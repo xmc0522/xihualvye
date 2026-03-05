@@ -1,4 +1,36 @@
 <template>
+  <div>
+      <span>长度：</span>
+      <el-input v-model="input1" style="width: 95px;" placeholder="请输入长度"  />
+      <span style="margin-left: 15px;">宽度：</span>
+      <el-input v-model="input2" style="width: 95px;" placeholder="请输入宽度"  />
+      <span style="margin-left: 15px;">高度：</span>
+      <el-input v-model="input3" style="width: 95px;" placeholder="请输入高度"  />
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <p style="margin-left: 5%;">表面处理：</p>
+    <el-select v-model="value3" placeholder="请选择" style="width: 100px">
+      <el-option
+        v-for="item in options3"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+  </div>
+  
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <p style="margin-left: 5%;">规格：</p>
+    <el-select v-model="value4" placeholder="请选择" style="width: 100px">
+      <el-option
+        v-for="item in options4"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+  </div>
   <div class="demo-date-picker">
     <div class="block">
       <span class="demonstration">时间：</span>
@@ -16,15 +48,15 @@
     </div>
   </div>
   <div class="m-4" style="display: flex; align-items: center; gap: 10px; margin-left: 5%;">
-    <p style="margin: 0;">选择不生成名称：</p>
+    <p style="margin: 0;">选择不生成的名称：</p>
     <el-select
       v-model="value1"
       multiple
-      placeholder="Select"
-      style="width: 240px"
+      placeholder="请勾选"
+      style="width: 210px"
     >
       <el-option
-        v-for="item in options"
+        v-for="item in options1"
         :key="item.value"
         :label="item.label"
         :value="item.value"
@@ -41,7 +73,8 @@
 
 <script lang="ts" setup>
 import { size, value2, shortcuts } from './ts/date-picker'
-import { value1, options } from './ts/xialakuang'
+import { value1,value3, value4,  options1, options3, options4} from './ts/xialakuang'
+import { input1, input2, input3} from './ts/shurukuang'
 import { Search, Upload } from '@element-plus/icons-vue'//到时候执行命令安装依赖：pnpm add @element-plus/icons-vue
 
 </script>
