@@ -1,0 +1,41 @@
+.demo-date-picker {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.demo-date-picker .block {
+  padding: 1.5rem 0;
+  text-align: center;
+  border-right: solid 1px var(--el-border-color);
+  flex: 1;
+  min-width: 400px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.demo-date-picker .block:last-child {
+  border-right: none;
+}
+
+.demo-date-picker .demonstration {
+  display: block;
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+}
+
+@media screen and (max-width: 1200px) {
+  .demo-date-picker .block {
+    flex: 0 0 100%;
+    padding: 1rem 0;
+    min-width: auto;
+    border-right: none;
+    border-bottom: solid 1px var(--el-border-color);
+  }
+
+  .demo-date-picker .block:last-child {
+    border-bottom: none;
+  }
+}

@@ -1,0 +1,31 @@
+/* 覆盖弹出面板布局，让快捷选项显示在日历面板最下方 */
+.shortcuts-bottom .el-picker-panel__body-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.shortcuts-bottom .el-picker-panel__sidebar {
+  position: static;
+  width: 100%;
+  display: flex !important;
+  flex-direction: row;
+  justify-content: space-evenly;
+  border-right: none;
+  border-top: 1px solid var(--el-border-color);
+  order: 999;
+  padding: 6px 0;
+}
+
+.shortcuts-bottom .el-picker-panel__body {
+  margin-left: 0;
+  min-width: auto;
+  order: 1;
+}
+
+.shortcuts-bottom .el-picker-panel__sidebar button {
+  flex: 1;
+  text-align: center;
+  padding: 4px 0;
+  white-space: nowrap;
+  margin: 0;
+}
