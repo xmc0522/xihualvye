@@ -1,5 +1,4 @@
 <template>
-
   <div class="demo-date-picker">
     <div class="block">
       <span class="demonstration">时间：</span>
@@ -16,13 +15,31 @@
       />
     </div>
   </div>
+  <div class="m-4" style="display: flex; align-items: center; gap: 10px; margin-left: 5%;">
+    <p style="margin: 0;">选择不生成名称：</p>
+    <el-select
+      v-model="value1"
+      multiple
+      placeholder="Select"
+      style="width: 240px"
+    >
+      <el-option
+        v-for="item in options"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+  </div>
+  
 </template>
 
 <script lang="ts" setup>
 import { size, value2, shortcuts } from './ts/date-picker'
+import { value1, options } from './ts/xialakuang'
 </script>
-
 <style>
 @import './css/demo-date-picker.css';
 @import './css/shortcuts-bottom.css';
+
 </style>
