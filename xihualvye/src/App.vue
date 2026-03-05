@@ -1,4 +1,5 @@
 <template>
+<!-- 长宽高 -->
   <div>
       <span>长度：</span>
       <el-input v-model="input1" style="width: 95px;" placeholder="请输入长度"  />
@@ -8,6 +9,7 @@
       <el-input v-model="input3" style="width: 95px;" placeholder="请输入高度"  />
   </div>
 
+<!-- 表面处理和规格 -->
   <div style="display: flex; align-items: center; gap: 10px;">
     <p style="margin-left: 5%;">表面处理：</p>
     <el-select v-model="value3" placeholder="请选择" style="width: 100px">
@@ -18,9 +20,6 @@
         :value="item.value"
       />
     </el-select>
-  </div>
-  
-  <div style="display: flex; align-items: center; gap: 10px;">
     <p style="margin-left: 5%;">规格：</p>
     <el-select v-model="value4" placeholder="请选择" style="width: 100px">
       <el-option
@@ -31,6 +30,8 @@
       />
     </el-select>
   </div>
+
+<!-- 时间选择器 -->
   <div class="demo-date-picker">
     <div class="block">
       <span class="demonstration">时间：</span>
@@ -47,6 +48,8 @@
       />
     </div>
   </div>
+
+<!-- 选择不生成的名称 -->
   <div class="m-4" style="display: flex; align-items: center; gap: 10px; margin-left: 5%;">
     <p style="margin: 0;">选择不生成的名称：</p>
     <el-select
