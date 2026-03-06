@@ -28,29 +28,41 @@
         <td class="value-cell">{{ info.height }}</td>
       </tr>
     </table>
+<div class="table-row">
+    <!-- 主数据表格 - 型号和图片 -->
+    <el-table
+      :data="filteredTableData"
+      border
+      style="width: auto"
+      :span-method="mergeMethod1"
+      class="main-table"
+      :header-cell-style="{ background: '#fff', color: '#000', textAlign: 'center', fontWeight: 'normal' }"
+      :cell-style="cellStyleFn"
+    >
+      <el-table-column prop="xinghao" label="型号" width="90" />
+      <el-table-column prop="tupian" label="图片" width="160">
+        <template #default="{ row }">
+          <img v-if="row.tupian" :src="getImage(row.tupian)" :alt="row.tupian" class="table-img" />
+        </template>
+      </el-table-column>
+    </el-table>
 
-    <!-- 主数据表格 -->
+    <!-- 主数据表格 - 名称、规格、数量和备注 -->
     <el-table
       :data="filteredTableData"
       border
       style="width: 100%"
-      :span-method="mergeMethod"
+      :span-method="mergeMethod2"
       class="main-table"
       :header-cell-style="{ background: '#fff', color: '#000', textAlign: 'center', fontWeight: 'normal' }"
-      :cell-style="{ textAlign: 'center' }"
+      :cell-style="cellStyleFn"
     >
-      <el-table-column prop="xinghao" label="型号" width="90" />
-    <el-table-column prop="tupian" label="图片" width="160">
-      <template #default="{ row }">
-        <img v-if="row.tupian" :src="getImage(row.tupian)" :alt="row.tupian" class="table-img" />
-      </template>
-    </el-table-column>
       <el-table-column prop="mingcheng" label="名称" width="100" />
       <el-table-column prop="guige" label="规格" width="100" />
       <el-table-column prop="shuliang" label="数量" width="70" />
-      <el-table-column prop="beizhu" label="备注" min-width="100" />
+      <el-table-column prop="beizhu" label="备注" width="179" />
     </el-table>
-
+</div>
     <!-- 配件表 -->
     <table v-if="accessoryRows.length > 0" class="accessory-table" border="1" cellspacing="0" cellpadding="0">
       <tr>
@@ -100,7 +112,7 @@
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '../ts/常用表格'
 
-const { info, filteredTableData, mergeMethod, accessoryRows, getImage } = useChangyongBiaoge()
+const { info, filteredTableData, mergeMethod1, mergeMethod2, cellStyleFn, accessoryRows, getImage } = useChangyongBiaoge()
 </script>
 
 <style scoped src="../css/常用表格.css"></style>

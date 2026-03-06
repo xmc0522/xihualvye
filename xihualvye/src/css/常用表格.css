@@ -41,6 +41,20 @@
   font-weight: bold;
 }
 
+/* 表格左右布局容器 */
+.table-row {
+  display: flex;
+  width: 100%;
+}
+
+.table-row > .el-table:first-child {
+  flex-shrink: 0;
+}
+
+.table-row > .el-table:last-child {
+  flex: 1;
+}
+
 /* 主数据表格 */
 .main-table {
   border-color: #333;

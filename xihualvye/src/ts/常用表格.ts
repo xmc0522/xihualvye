@@ -49,7 +49,7 @@ export function useChangyongBiaoge() {
 
   // 主表格数据
   const tableData = [
-    { xinghao: 'H-1071', tupian: 'H-1071', mingcheng: '上包边', guige: '1416', shuliang: '2', beizhu: '', _mergeXinghao: 2, _mergeTupian: 2, _mergeMingcheng: 2 },
+    { xinghao: 'H-1071', tupian: 'H-1071', mingcheng: '上包边', guige: '1416', shuliang: '2', beizhu: '打磨喷漆', _mergeXinghao: 2, _mergeTupian: 2, _mergeMingcheng: 2 },
     { xinghao: 'H-1071', tupian: 'H-1071', mingcheng: '上包边', guige: '516', shuliang: '2', beizhu: '打磨喷漆', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
 
     { xinghao: 'H-1072', tupian: 'H-1072', mingcheng: '下包边', guige: '1416', shuliang: '2', beizhu: '', _mergeXinghao: 2, _mergeTupian: 2, _mergeMingcheng: 2 },
@@ -69,8 +69,9 @@ export function useChangyongBiaoge() {
 
     { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '470.7', shuliang: '6', beizhu: '45度切', _mergeXinghao: 4, _mergeTupian: 4, _mergeMingcheng: 4 },
     { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '875', shuliang: '6', beizhu: '一半冲孔', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '515', shuliang: '4', beizhu: '45度切', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '899', shuliang: '4', beizhu: '', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
+    
+    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '侧板', guige: '515', shuliang: '4', beizhu: '45度切', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
+    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '侧板', guige: '899', shuliang: '4', beizhu: '', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
 
   ]
 
@@ -80,7 +81,7 @@ export function useChangyongBiaoge() {
     const filtered = tableData.filter(row => !excludeNames.includes(row.mingcheng))
 
     // 重新计算合并标记
-    const result = filtered.map((row, index) => ({ ...row }))
+    const result = filtered.map((row, index) => ({ ...row, _mergeBeizhu: 1 }))
     for (let i = 0; i < result.length; i++) {
       const currentRow = result[i]
       if (!currentRow) continue
@@ -97,6 +98,16 @@ export function useChangyongBiaoge() {
       currentRow._mergeXinghao = count
       currentRow._mergeTupian = count
       currentRow._mergeMingcheng = count
+      // 当名称为"上包边"或"下包边"时，备注列也进行合并
+      if (currentRow.mingcheng === '上包边' || currentRow.mingcheng === '下包边') {
+        currentRow._mergeBeizhu = count
+        for (let j = 1; j < count; j++) {
+          const mergedRow = result[i + j]
+          if (mergedRow) {
+            mergedRow._mergeBeizhu = 0
+          }
+        }
+      }
       for (let j = 1; j < count; j++) {
         const mergedRow = result[i + j]
         if (mergedRow) {
@@ -110,19 +121,49 @@ export function useChangyongBiaoge() {
     return result
   })
 
-  // 合并单元格方法
-  const mergeMethod = ({ row, column, rowIndex, columnIndex }: any) => {
-    // 对 型号(0)、图片(1)、名称(2) 列进行合并
-    if (columnIndex <= 2) {
-      const mergeKey = columnIndex === 0 ? '_mergeXinghao' : columnIndex === 1 ? '_mergeTupian' : '_mergeMingcheng'
+  // 合并单元格方法 - 第一个表格（型号+图片）
+  const mergeMethod1 = ({ row, column, rowIndex, columnIndex }: any) => {
+    // 对 型号(0)、图片(1) 列进行合并
+    if (columnIndex <= 1) {
+      const mergeKey = columnIndex === 0 ? '_mergeXinghao' : '_mergeTupian'
       if (row[mergeKey] > 0) {
         return { rowspan: row[mergeKey], colspan: 1 }
       } else if (row[mergeKey] === 0) {
         return { rowspan: 0, colspan: 0 }
       }
     }
-
     return { rowspan: 1, colspan: 1 }
+  }
+
+  // 合并单元格方法 - 第二个表格（名称+规格+数量+备注）
+  const mergeMethod2 = ({ row, column, rowIndex, columnIndex }: any) => {
+    // 对 名称(0) 列进行合并
+    if (columnIndex === 0) {
+      if (row._mergeMingcheng > 0) {
+        return { rowspan: row._mergeMingcheng, colspan: 1 }
+      } else if (row._mergeMingcheng === 0) {
+        return { rowspan: 0, colspan: 0 }
+      }
+    }
+    // 对 备注(3) 列进行合并（当名称为"上包边"时）
+    if (columnIndex === 3) {
+      if (row._mergeBeizhu > 0) {
+        return { rowspan: row._mergeBeizhu, colspan: 1 }
+      } else if (row._mergeBeizhu === 0) {
+        return { rowspan: 0, colspan: 0 }
+      }
+    }
+    return { rowspan: 1, colspan: 1 }
+  }
+
+  // 动态单元格样式：上包边和下包边的行高减半
+  const cellStyleFn = ({ row, column, rowIndex, columnIndex }: any) => {
+    const style: any = { textAlign: 'center' }
+    if (row.mingcheng === '上包边' || row.mingcheng === '下包边') {
+      style.height = '44.5px'
+      style.padding = '2px 0'
+    }
+    return style
   }
 
   // 完整配件数据映射（名称 -> 默认数量）
@@ -159,5 +200,5 @@ export function useChangyongBiaoge() {
     return rows
   })
 
-  return { info, filteredTableData, mergeMethod, accessoryRows, getImage }
+  return { info, filteredTableData, mergeMethod1, mergeMethod2, cellStyleFn, accessoryRows, getImage }
 }
