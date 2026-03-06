@@ -3,13 +3,23 @@
 import { ref } from 'vue'
     
     export const value1 = ref([])
+    export const value5 = ref([])
     export const value3 = ref('')
     export const value4 = ref('')
     
+    // 不生成名称选择
     export const options1 = [
         {
             value: '新下包边',
             label: '新下包边',
+        },
+        {
+            value: '上包边',
+            label: '上包边',
+        },
+        {
+            value: '下包边',
+            label: '下包边',
         },
         {
             value: '立柱',
@@ -28,6 +38,10 @@ import { ref } from 'vue'
             label: '中柱',
         },
         {
+            value: '竖支撑',
+            label: '竖支撑',
+        },
+        {
             value: '拉筋',
             label: '拉筋',
         },
@@ -36,10 +50,74 @@ import { ref } from 'vue'
             label: '门料',
         },
         {
+            value: '侧门料',
+            label: '侧门料',
+        },
+        {
             value: '侧板',
             label: '侧板',
         },
+        {
+            value: '门板',
+            label: '门板',
+        },
+        {
+            value: '侧门板',
+            label: '侧门板',
+        },
+        {
+            value: '背板',
+            label: '背板',
+        },
     ]
+    // 不生成名称选择
+    export const options5 = [
+        {
+            value: '上包转角',
+            label: '上包转角',
+        },
+        {
+            value: '下包转角',
+            label: '下包转角',
+        },
+        {
+            value: '三卡锁',
+            label: '三卡锁',
+        },
+        {
+            value: '堵头(分左右)',
+            label: '堵头(分左右)',
+        },
+        {
+            value: '角码',
+            label: '角码',
+        },
+        {
+            value: '反弹器',
+            label: '反弹器',
+        },
+        {
+            value: '大弯铰链',
+            label: '大弯铰链',
+        },
+        {
+            value: '直臂铰链',
+            label: '直臂铰链',
+        },
+        {
+            value: '铰链垫块',
+            label: '铰链垫块',
+        },
+        {
+            value: '4*10螺丝',
+            label: '4*10螺丝',
+        },
+        {
+            value: '4*19螺丝',
+            label: '4*19螺丝',
+        },
+    ]
+    // 表面处理
      export const options3 = [
         {
             value: '冰川白',
@@ -55,6 +133,7 @@ import { ref } from 'vue'
         },
         
     ]
+    // 规格选择
      export const options4 = [
         {
             value: '1245DY',
