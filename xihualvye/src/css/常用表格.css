@@ -1,0 +1,139 @@
+.table-container {
+  width: 700px;
+  margin: 20px auto;
+  font-size: 13px;
+  color: #333;
+}
+
+.table-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 0;
+  border: 1px solid #333;
+  border-bottom: none;
+  background: #fff;
+}
+
+/* 基本信息表格 */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-color: #333;
+}
+
+.info-table td {
+  padding: 6px 10px;
+  border: 1px solid #333;
+  height: 32px;
+}
+
+.label-cell {
+  text-align: center;
+  font-weight: normal;
+  white-space: nowrap;
+  width: 90px;
+  background: #fff;
+}
+
+.value-cell {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* 主数据表格 */
+.main-table {
+  border-color: #333;
+}
+
+.main-table :deep(.el-table__header th) {
+  border-color: #333 !important;
+}
+
+.main-table :deep(.el-table__body td) {
+  border-color: #333 !important;
+  padding: 4px 0;
+  height: 32px;
+}
+
+.main-table :deep(.el-table__inner-wrapper::before),
+.main-table :deep(.el-table__border-left-patch) {
+  background-color: #333;
+}
+
+.main-table :deep(.el-table td.el-table__cell),
+.main-table :deep(.el-table th.el-table__cell.is-leaf) {
+  border-color: #333;
+}
+
+/* 配件表 */
+.accessory-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-color: #333;
+  border-top: none;
+}
+
+.accessory-table td {
+  padding: 6px 10px;
+  border: 1px solid #333;
+  height: 32px;
+  text-align: center;
+}
+
+.section-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  background: #fff;
+}
+
+.acc-label {
+  width: 80px;
+  white-space: nowrap;
+}
+
+.acc-value {
+  width: 60px;
+}
+
+/* 工艺备注 */
+.remark-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-color: #333;
+  border-top: none;
+}
+
+.remark-table td {
+  padding: 6px 10px;
+  border: 1px solid #333;
+  height: 32px;
+  text-align: center;
+}
+
+.remark-content {
+  height: auto;
+  padding: 0 !important;
+}
+
+.remark-input :deep(.el-textarea__inner) {
+  color: blue;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 6px 10px;
+}
+
+/* 表格内图片样式 */
+.table-img {
+  width: 140px;
+  height: auto;
+  max-height: 80px;
+  object-fit: contain;
+  display: block;
+  margin: 2px auto;
+}

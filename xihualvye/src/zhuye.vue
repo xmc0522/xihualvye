@@ -77,9 +77,9 @@
     </el-select>
   </div>
 
-<!-- 选择不生成的配件 -->
+<!-- 选择生成的配件 -->
   <div class="m-4" style="display: flex; align-items: center; gap: 10px; margin-left: 5%;">
-    <p style="margin: 0;">选择不生成的配件：</p>
+    <p style="margin: 0;">选择生成的配件：</p>
     <el-select
       v-model="value5"
       multiple
@@ -138,6 +138,7 @@ const goToBiaoge = () => {
       height: input3.value,
       surface: value3.value,
       excludeNames: JSON.stringify(value1.value),
+      includeAccessories: JSON.stringify(value5.value),
       date: startDate,
     }
   })

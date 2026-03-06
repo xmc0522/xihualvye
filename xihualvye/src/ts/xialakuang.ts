@@ -4,6 +4,7 @@ import { ref } from 'vue'
     
     export const value1 = ref([])
     export const value5 = ref([])
+    export const value6 = ref([])
     export const value3 = ref('')
     export const value4 = ref('')
     
@@ -57,6 +58,9 @@ import { ref } from 'vue'
             value: '侧板',
             label: '侧板',
         },
+    ]
+// 不生成名称选择底部
+    export const options6 = [
         {
             value: '门板',
             label: '门板',
