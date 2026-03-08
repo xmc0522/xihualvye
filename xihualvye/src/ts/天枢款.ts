@@ -1,13 +1,17 @@
 import { reactive, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { tableData } from './天枢款主表格数据'
 
 // 批量导入JPG文件夹下的所有图片
-const imageModules = import.meta.glob('../../JPG/*.jpg', { eager: true, import: 'default' }) as Record<string, string>
+const imageModules = import.meta.glob('../../JPG/*.jpg', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
 
 // 根据型号获取对应图片路径
 const getImage = (xinghao: string) => {
   // 匹配键名中包含该型号的图片
-  const key = Object.keys(imageModules).find(k => k.includes(xinghao))
+  const key = Object.keys(imageModules).find((k) => k.includes(xinghao))
   return key ? imageModules[key] : ''
 }
 
@@ -44,40 +48,15 @@ export function useChangyongBiaoge() {
     length: (route.query.length as string) || '',
     width: (route.query.width as string) || '',
     height: (route.query.height as string) || '',
-    remark: '背留空'
+    remark: '背留空',
   })
 
-  // 主表格数据
-  const tableData = [
-    { xinghao: 'H-1071', tupian: 'H-1071', mingcheng: '上包边', guige: '1416', shuliang: '2', beizhu: '', _mergeXinghao: 2, _mergeTupian: 2, _mergeMingcheng: 2 },
-    { xinghao: 'H-1071', tupian: 'H-1071', mingcheng: '上包边', guige: '516', shuliang: '2', beizhu: '打磨喷漆', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-
-    { xinghao: 'H-1072', tupian: 'H-1072', mingcheng: '下包边', guige: '1416', shuliang: '2', beizhu: '', _mergeXinghao: 2, _mergeTupian: 2, _mergeMingcheng: 2 },
-    { xinghao: 'H-1072', tupian: 'H-1072', mingcheng: '下包边', guige: '516', shuliang: '2', beizhu: '', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-
-    { xinghao: 'H-1073', tupian: 'H-1073', mingcheng: '立柱', guige: '897', shuliang: '4', beizhu: '', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1074', tupian: 'H-1074', mingcheng: '前后横梁', guige: '1420', shuliang: '4', beizhu: '', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1075', tupian: 'H-1075', mingcheng: '侧横梁', guige: '460', shuliang: '4', beizhu: '', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1076', tupian: 'H-1076', mingcheng: '中柱', guige: '810', shuliang: '4', beizhu: '冲孔', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1005', tupian: 'H-1005', mingcheng: '拉筋', guige: '498', shuliang: '6', beizhu: '', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1005', tupian: 'H-1005', mingcheng: '横拉', guige: '460', shuliang: '1', beizhu: '', _mergeXinghao: 1, _mergeTupian: 1, _mergeMingcheng: 1 },
-
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '470.7', shuliang: '6', beizhu: '45度切', _mergeXinghao: 4, _mergeTupian: 4, _mergeMingcheng: 4 },
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '875', shuliang: '6', beizhu: '一半冲孔', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '515', shuliang: '4', beizhu: '45度切', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-    { xinghao: 'H-1077', tupian: 'H-1077', mingcheng: '门料', guige: '899', shuliang: '4', beizhu: '', _mergeXinghao: 0, _mergeTupian: 0, _mergeMingcheng: 0 },
-
-  ]
+ 
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
     // 过滤掉被排除的名称对应的行
-    const filtered = tableData.filter(row => !excludeNames.includes(row.mingcheng))
+    const filtered = tableData.filter((row) => !excludeNames.includes(row.mingcheng))
 
     // 重新计算合并标记
     const result = filtered.map((row, index) => ({ ...row }))
@@ -88,7 +67,11 @@ export function useChangyongBiaoge() {
       let count = 1
       while (i + count < result.length) {
         const nextRow = result[i + count]
-        if (!nextRow || currentRow.mingcheng !== nextRow.mingcheng || currentRow.xinghao !== nextRow.xinghao) {
+        if (
+          !nextRow ||
+          currentRow.mingcheng !== nextRow.mingcheng ||
+          currentRow.xinghao !== nextRow.xinghao
+        ) {
           break
         }
         count++
@@ -114,7 +97,8 @@ export function useChangyongBiaoge() {
   const mergeMethod = ({ row, column, rowIndex, columnIndex }: any) => {
     // 对 型号(0)、图片(1)、名称(2) 列进行合并
     if (columnIndex <= 2) {
-      const mergeKey = columnIndex === 0 ? '_mergeXinghao' : columnIndex === 1 ? '_mergeTupian' : '_mergeMingcheng'
+      const mergeKey =
+        columnIndex === 0 ? '_mergeXinghao' : columnIndex === 1 ? '_mergeTupian' : '_mergeMingcheng'
       if (row[mergeKey] > 0) {
         return { rowspan: row[mergeKey], colspan: 1 }
       } else if (row[mergeKey] === 0) {
@@ -143,9 +127,16 @@ export function useChangyongBiaoge() {
   // 根据value5选中的配件动态生成配件表行（每行3个配件，共6列）
   const accessoryRows = computed(() => {
     // 过滤出用户选中的配件
-    const selected = allAccessories.filter(item => includeAccessories.includes(item.name))
+    const selected = allAccessories.filter((item) => includeAccessories.includes(item.name))
     // 每行放3个配件
-    const rows: { name1: string; value1: string; name2: string; value2: string; name3: string; value3: string }[] = []
+    const rows: {
+      name1: string
+      value1: string
+      name2: string
+      value2: string
+      name3: string
+      value3: string
+    }[] = []
     for (let i = 0; i < selected.length; i += 3) {
       rows.push({
         name1: selected[i]?.name || '',

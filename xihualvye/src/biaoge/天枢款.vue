@@ -98,7 +98,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '../ts/常用表格'
+import { useChangyongBiaoge } from '../ts/天枢款'
 
 const { info, filteredTableData, mergeMethod, accessoryRows, getImage } = useChangyongBiaoge()
 </script>

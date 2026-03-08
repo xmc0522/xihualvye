@@ -15,16 +15,12 @@
       <span class="demonstration">时间：</span>
       <el-date-picker
         v-model="value2"
-        type="daterange"
-        unlink-panels
-        range-separator="至"
-        start-placeholder="开始时间"
-        end-placeholder="结束时间"
-        :shortcuts="shortcuts"
+        type="date"
+        placeholder="请选择时间"
         :size="size"
-        popper-class="shortcuts-bottom"
       />
     </div>
+    
   </div>
 
 <!-- 长宽高 -->

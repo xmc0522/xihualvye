@@ -16,7 +16,7 @@ const router = createRouter({
     {
       path: '/biaoge1',
       name: 'biaoge1',
-      component: () => import('../biaoge/常用表格.vue'),
+      component: () => import('../biaoge/天枢款.vue'),
     },
   ],
 })
