@@ -11,8 +11,8 @@
         @open="handleOpen"
         @close="handleClose"
       >
-        <el-menu-item>
-          <span>大学管理系统</span>
+        <el-menu-item style="padding-left:8px;padding-top: 10px;margin-bottom: 20px;">
+          <span style="font-size: 18px;">玺华铝业业务管理系统</span>
         </el-menu-item>
         <template v-for="(item, index) in menuArr" :key="index">
           <el-sub-menu v-if="item.children" :index="item.path">
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import menuArr from './router/menu'
 
 const route = useRoute()
@@ -52,7 +52,6 @@ const handleOpen = (key: string, keyPath: string[]) => {
 const handleClose = (key: string, keyPath: string[]) => {
   console.log('关闭菜单:', key, keyPath)
 }
-
 </script>
 
 <style scoped lang="css">
