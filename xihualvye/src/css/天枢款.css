@@ -8,7 +8,7 @@
 .table-title {
   text-align: center;
   font-size: 18px;
-  font-weight: bold;
+  /* font-weight: bold; */
   padding: 10px 0;
   border: 1px solid #333;
   border-bottom: none;
@@ -38,7 +38,7 @@
 
 .value-cell {
   text-align: center;
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 
 /* 主数据表格 */
@@ -66,6 +66,21 @@
   border-color: #333;
 }
 
+/* 底部门板表 */
+.door-panel-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-color: #333;
+  border-top: none;
+}
+
+.door-panel-table td {
+  padding: 6px 10px;
+  /* border: 1px solid #333; */
+  height: 32px;
+  text-align: center;
+}
+
 /* 配件表 */
 .accessory-table {
   width: 100%;
@@ -76,14 +91,14 @@
 
 .accessory-table td {
   padding: 6px 10px;
-  border: 1px solid #333;
+  /* border: 1px solid #333; */
   height: 32px;
   text-align: center;
 }
 
 .section-title {
   text-align: center;
-  font-weight: bold;
+  /* font-weight: bold; */
   font-size: 14px;
   background: #fff;
 }
@@ -107,7 +122,7 @@
 
 .remark-table td {
   padding: 6px 10px;
-  border: 1px solid #333;
+  /* border: 1px solid #333; */
   height: 32px;
   text-align: center;
 }
@@ -118,8 +133,8 @@
 }
 
 .remark-input :deep(.el-textarea__inner) {
-  color: blue;
-  font-weight: bold;
+  /* color: rgb(0, 0, 0); */
+  /* font-weight: bold; */
   font-size: 16px;
   text-align: center;
   border: none;
@@ -136,4 +151,27 @@
   object-fit: contain;
   display: block;
   margin: 2px auto;
+}
+
+/* 数量输入框样式 */
+.shuliang-input :deep(.el-textarea__inner) {
+  text-align: center;
+  /* color: rgb(0, 0, 0); */
+  /* font-weight: bold; */
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  resize: none;
+}
+
+.beizhu-input :deep(.el-textarea__inner) {
+  text-align: center;
+  /* color: rgb(0, 0, 0); */
+  /* font-weight: bold; */
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  resize: none;
 }

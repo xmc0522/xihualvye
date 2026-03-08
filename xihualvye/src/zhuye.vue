@@ -116,13 +116,13 @@ const formatDate = (date: Date | string) => {
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
-  return `${year}年${month}月${day}日`
+  return `${year}/${month}/${day}`
 }
 
 const router = useRouter()
 const goToBiaoge = () => {
-  // 获取开始时间（value2是日期范围数组 [startDate, endDate]）
-  const startDate = Array.isArray(value2.value) && value2.value[0] ? formatDate(value2.value[0]) : ''
+  // 获取时间（value2是单个日期值）
+  const startDate = value2.value ? formatDate(value2.value) : ''
   router.push({
     path: '/biaoge1',
     query: {

@@ -1,6 +1,8 @@
 import { reactive, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { tableData } from './天枢款主表格数据'
+import { allAccessories } from './天枢款配件数据'
+import { doorPanelRows } from './天枢款底部门板数据'
 
 // 批量导入JPG文件夹下的所有图片
 const imageModules = import.meta.glob('../../JPG/*.jpg', {
@@ -48,10 +50,8 @@ export function useChangyongBiaoge() {
     length: (route.query.length as string) || '',
     width: (route.query.width as string) || '',
     height: (route.query.height as string) || '',
-    remark: '背留空',
+    remark: '',
   })
-
- 
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
@@ -60,6 +60,49 @@ export function useChangyongBiaoge() {
 
     // 重新计算合并标记
     const result = filtered.map((row, index) => ({ ...row }))
+
+    // 先统计上包边和下包边的总行数
+    let shangXiaBaoBianStart = -1 // 上包边/下包边整体的起始索引
+    let shangXiaBaoBianCount = 0 // 上包边+下包边的总行数
+    for (let i = 0; i < result.length; i++) {
+      const row = result[i]
+      if (row && (row.mingcheng === '上包边' || row.mingcheng === '下包边')) {
+        if (shangXiaBaoBianStart === -1) {
+          shangXiaBaoBianStart = i
+        }
+        shangXiaBaoBianCount++
+      }
+    }
+    // 判断是否上包边和下包边同时存在（总行数 >= 4）
+    const shangXiaBaoBianTogether = shangXiaBaoBianCount >= 4
+
+    // 找到立柱和门料的索引，用于备注列合并
+    let liZhuIndex = -1
+    let menLiaoStartIndex = -1
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] && result[i]!.mingcheng === '立柱') {
+        liZhuIndex = i
+      }
+      if (result[i] && result[i]!.mingcheng === '门料') {
+        menLiaoStartIndex = i
+        break
+      }
+    }
+
+    // 立柱到门料之间的备注列合并（立柱行不合并，从下一行开始）
+    if (liZhuIndex >= 0 && menLiaoStartIndex > liZhuIndex + 1) {
+      const beizhuMergeCount = menLiaoStartIndex - liZhuIndex - 1
+      const startRow = result[liZhuIndex + 1]
+      if (startRow) {
+        startRow._mergeBeizhu = beizhuMergeCount
+      }
+      for (let j = liZhuIndex + 2; j < menLiaoStartIndex; j++) {
+        if (result[j]) {
+          result[j]!._mergeBeizhu = 0
+        }
+      }
+    }
+
     for (let i = 0; i < result.length; i++) {
       const currentRow = result[i]
       if (!currentRow) continue
@@ -80,12 +123,50 @@ export function useChangyongBiaoge() {
       currentRow._mergeXinghao = count
       currentRow._mergeTupian = count
       currentRow._mergeMingcheng = count
+      currentRow._mergeShuliang = count
+
+      // 上包边、下包边、侧板的备注列合并逻辑
+      if (
+        currentRow.mingcheng === '上包边' ||
+        currentRow.mingcheng === '下包边' ||
+        currentRow.mingcheng === '侧板'
+      ) {
+        if (
+          shangXiaBaoBianTogether &&
+          (currentRow.mingcheng === '上包边' || currentRow.mingcheng === '下包边')
+        ) {
+          // 上包边+下包边同时存在时，备注列合并4行
+          if (i === shangXiaBaoBianStart) {
+            // 只有第一行设置合并，其他行设为0
+            currentRow._mergeBeizhu = shangXiaBaoBianCount
+            for (let j = 1; j < shangXiaBaoBianCount; j++) {
+              const targetRow = result[i + j]
+              if (targetRow) {
+                targetRow._mergeBeizhu = 0
+              }
+            }
+          } else {
+            currentRow._mergeBeizhu = 0
+          }
+        } else {
+          // 只有一个时，按原来的2行合并
+          currentRow._mergeBeizhu = count
+          for (let j = 1; j < count; j++) {
+            const mergedRow = result[i + j]
+            if (mergedRow) {
+              mergedRow._mergeBeizhu = 0
+            }
+          }
+        }
+      }
+
       for (let j = 1; j < count; j++) {
         const mergedRow = result[i + j]
         if (mergedRow) {
           mergedRow._mergeXinghao = 0
           mergedRow._mergeTupian = 0
           mergedRow._mergeMingcheng = 0
+          mergedRow._mergeShuliang = 0
         }
       }
       i += count - 1 // 跳过已处理的行
@@ -106,23 +187,17 @@ export function useChangyongBiaoge() {
       }
     }
 
+    // 对备注列(5)进行合并（上包边、下包边、侧板）
+    if (columnIndex === 5) {
+      if (row._mergeBeizhu > 0) {
+        return { rowspan: row._mergeBeizhu, colspan: 1 }
+      } else if (row._mergeBeizhu === 0) {
+        return { rowspan: 0, colspan: 0 }
+      }
+    }
+
     return { rowspan: 1, colspan: 1 }
   }
-
-  // 完整配件数据映射（名称 -> 默认数量）
-  const allAccessories: { name: string; value: string }[] = [
-    { name: '上包转角', value: '4' },
-    { name: '下包转角', value: '4' },
-    { name: '三卡锁', value: '' },
-    { name: '堵头(分左右)', value: '' },
-    { name: '角码', value: '' },
-    { name: '反弹器', value: '' },
-    { name: '大弯铰链', value: '' },
-    { name: '直臂铰链', value: '4' },
-    { name: '铰链垫块', value: '4' },
-    { name: '4*10螺丝', value: '4' },
-    { name: '4*19螺丝', value: '4' },
-  ]
 
   // 根据value5选中的配件动态生成配件表行（每行3个配件，共6列）
   const accessoryRows = computed(() => {
@@ -150,5 +225,5 @@ export function useChangyongBiaoge() {
     return rows
   })
 
-  return { info, filteredTableData, mergeMethod, accessoryRows, getImage }
+  return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage }
 }

@@ -6,10 +6,12 @@ export const tableData = [
     mingcheng: '上包边',
     guige: '1416',
     shuliang: '2',
-    beizhu: '打磨喷漆',
+    beizhu: '',
     _mergeXinghao: 2,
     _mergeTupian: 2,
     _mergeMingcheng: 2,
+    _mergeBeizhu: 2,
+    _mergeShuliang: 2,
   },
   {
     xinghao: 'H-1071',
@@ -17,10 +19,12 @@ export const tableData = [
     mingcheng: '上包边',
     guige: '516',
     shuliang: '2',
-    beizhu: '打磨喷漆',
+    beizhu: '',
     _mergeXinghao: 0,
     _mergeTupian: 0,
     _mergeMingcheng: 0,
+    _mergeBeizhu: 0,
+    _mergeShuliang: 0,
   },
 
   {
@@ -33,6 +37,8 @@ export const tableData = [
     _mergeXinghao: 2,
     _mergeTupian: 2,
     _mergeMingcheng: 2,
+    _mergeBeizhu: 2,
+    _mergeShuliang: 2,
   },
   {
     xinghao: 'H-1072',
@@ -44,6 +50,8 @@ export const tableData = [
     _mergeXinghao: 0,
     _mergeTupian: 0,
     _mergeMingcheng: 0,
+    _mergeBeizhu: 0,
+    _mergeShuliang: 0,
   },
 
   {
@@ -56,6 +64,7 @@ export const tableData = [
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -68,6 +77,7 @@ export const tableData = [
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -80,6 +90,7 @@ export const tableData = [
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -88,10 +99,11 @@ export const tableData = [
     mingcheng: '中柱',
     guige: '810',
     shuliang: '',
-    beizhu: '冲孔',
+    beizhu: '',
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -104,6 +116,7 @@ export const tableData = [
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -116,6 +129,7 @@ export const tableData = [
     _mergeXinghao: 1,
     _mergeTupian: 1,
     _mergeMingcheng: 1,
+    _mergeShuliang: 1,
   },
 
   {
@@ -124,10 +138,11 @@ export const tableData = [
     mingcheng: '门料',
     guige: '470.7',
     shuliang: '',
-    beizhu: '45度切',
+    beizhu: '',
     _mergeXinghao: 4,
     _mergeTupian: 4,
     _mergeMingcheng: 4,
+    _mergeShuliang: 4,
   },
   {
     xinghao: 'H-1077',
@@ -135,10 +150,11 @@ export const tableData = [
     mingcheng: '门料',
     guige: '875',
     shuliang: '',
-    beizhu: '一半冲孔',
+    beizhu: '',
     _mergeXinghao: 0,
     _mergeTupian: 0,
     _mergeMingcheng: 0,
+    _mergeShuliang: 0,
   },
   {
     xinghao: 'H-1077',
@@ -150,6 +166,8 @@ export const tableData = [
     _mergeXinghao: 0,
     _mergeTupian: 0,
     _mergeMingcheng: 0,
+    _mergeBeizhu: 2,
+    _mergeShuliang: 0,
   },
   {
     xinghao: 'H-1077',
@@ -161,5 +179,7 @@ export const tableData = [
     _mergeXinghao: 0,
     _mergeTupian: 0,
     _mergeMingcheng: 0,
+    _mergeBeizhu: 0,
+    _mergeShuliang: 0,
   },
 ]
