@@ -1,8 +1,13 @@
-import { reactive, computed } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { tableData } from './天枢款主表格数据'
 import { allAccessories } from './天枢款配件数据'
 import { doorPanelRows } from './天枢款底部门板数据'
+
+// 本地存储 key 生成函数
+const getStorageKey = (customer: string, orderNo: string) => {
+  return `tianshu_${customer}_${orderNo}`
+}
 
 // 批量导入JPG文件夹下的所有图片
 const imageModules = import.meta.glob('../../JPG/*.jpg', {
@@ -51,6 +56,53 @@ export function useChangyongBiaoge() {
     width: (route.query.width as string) || '',
     height: (route.query.height as string) || '',
     remark: '',
+  })
+
+  // 从本地存储加载数据
+  const loadFromLocalStorage = () => {
+    const key = getStorageKey(info.customer, info.orderNo)
+    const saved = localStorage.getItem(key)
+    if (saved) {
+      try {
+        const data = JSON.parse(saved)
+        // 恢复底部门板数据
+        if (data.doorPanels) {
+          doorPanelRows.value.forEach((row) => {
+            const savedRow = data.doorPanels.find((r: { name: string }) => r.name === row.name)
+            if (savedRow) {
+              row.shuliang = savedRow.shuliang
+              row.beizhu = savedRow.beizhu
+            }
+          })
+        }
+        // 恢复备注
+        if (data.remark) {
+          info.remark = data.remark
+        }
+      } catch (e) {
+        console.error('加载本地数据失败:', e)
+      }
+    }
+  }
+
+  // 保存到本地存储
+  const saveToLocalStorage = () => {
+    const key = getStorageKey(info.customer, info.orderNo)
+    if (!info.customer || !info.orderNo) return
+    const data = {
+      doorPanels: doorPanelRows.value.map((row) => ({
+        name: row.name,
+        shuliang: row.shuliang,
+        beizhu: row.beizhu,
+      })),
+      remark: info.remark,
+    }
+    localStorage.setItem(key, JSON.stringify(data))
+  }
+
+  // 页面加载时从本地存储恢复数据
+  onMounted(() => {
+    loadFromLocalStorage()
   })
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
@@ -225,5 +277,5 @@ export function useChangyongBiaoge() {
     return rows
   })
 
-  return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage }
+  return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage }
 }

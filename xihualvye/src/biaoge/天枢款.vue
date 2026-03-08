@@ -164,9 +164,19 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '../ts/天枢款'
+import { watch } from 'vue'
 
-const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage } =
+const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage } =
   useChangyongBiaoge()
+
+// 监听数据变化，自动保存到本地存储
+watch(
+  () => [doorPanelRows.value, info.remark],
+  () => {
+    saveToLocalStorage()
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped src="../css/天枢款.css"></style>
