@@ -78,9 +78,10 @@ export async function downloadTable(
   }
 
   // 设置列宽
+  const IMAGE_COL_WIDTH = 20 // 图片列宽度（Excel字符宽度单位）
   ws.columns = [
     { width: 12 },  // 列A: 型号
-    { width: 18 },  // 列B: 图片（稍宽以容纳图片）
+    { width: IMAGE_COL_WIDTH },  // 列B: 图片（加宽以容纳图片）
     { width: 12 },  // 列C: 名称
     { width: 12 },  // 列D: 规格
     { width: 10 },  // 列E: 数量
@@ -167,35 +168,63 @@ export async function downloadTable(
 
   // ========== 5. 主表格数据（含图片嵌入） ==========
   const mainTableStartRow = rowIdx
-  const IMAGE_ROW_HEIGHT = 55 // 有图片的行高度
+  const IMAGE_ROW_HEIGHT = 60 // 有图片的行高度（加大以适应图片）
 
-  for (const row of filteredTableData) {
+  // 将Excel列宽/行高转换为像素的辅助函数
+  // Excel列宽1个字符单位 ≈ 7.5像素；行高1个点 ≈ 1.33像素
+  const colWidthToPixel = (w: number) => Math.round(w * 7.5)
+  const rowHeightToPixel = (h: number) => Math.round(h * 1.33)
+
+  // 先收集需要合并的图片行信息，避免重复添加图片
+  const mergedTupianRows = new Set<number>() // 记录哪些行是被合并图片列覆盖的子行
+  for (let i = 0; i < filteredTableData.length; i++) {
+    const row = filteredTableData[i]
+    if (!row) continue
+    if (row._mergeTupian !== undefined && row._mergeTupian > 1) {
+      // 记录该合并区域内的所有子行（不含首行）
+      for (let j = 1; j < row._mergeTupian; j++) {
+        mergedTupianRows.add(i + j)
+      }
+    }
+  }
+
+  for (let i = 0; i < filteredTableData.length; i++) {
+    const row = filteredTableData[i]
+    if (!row) continue
     const rowData = [row.xinghao, '', row.mingcheng, row.guige, row.shuliang, row.beizhu]
     for (let c = 0; c < 6; c++) {
       ws.getCell(rowIdx, c + 1).value = rowData[c]
     }
     setRowStyle(rowIdx)
 
-    // 嵌入图片到图片列（列B = 第2列）
+    // 设置有图片的行高度（包括合并区域内的子行也需要设置行高）
     if (row.tupian && imageCache.has(row.tupian)) {
-      const imageBuffer = imageCache.get(row.tupian)!
-      const imageId = workbook.addImage({
-        buffer: imageBuffer,
-        extension: 'jpeg',
-      })
-
-      // 设置行高以容纳图片
       ws.getRow(rowIdx).height = IMAGE_ROW_HEIGHT
+    } else if (mergedTupianRows.has(i)) {
+      // 合并区域内的子行也需要设置相同行高，确保合并区域总高度足够
+      ws.getRow(rowIdx).height = IMAGE_ROW_HEIGHT
+    }
 
-      // 将图片嵌入到单元格中
-      // tl = top-left 左上角, br = bottom-right 右下角
-      // col/row 使用0基索引，列B = 索引1
-      // 注意：ExcelJS 运行时支持 {col, row} 简写，但类型定义要求 Anchor，用 as any 绕过
-      ws.addImage(imageId, {
-        tl: { col: 1.05, row: rowIdx - 1 + 0.05 } as any,
-        br: { col: 1.95, row: rowIdx - 0.05 } as any,
-        editAs: 'oneCell',
-      })
+    // 只在非合并子行时添加图片（合并行的图片在后续合并处理中统一添加）
+    if (row.tupian && imageCache.has(row.tupian) && !mergedTupianRows.has(i)) {
+      // 检查是否有合并，如果有合并则跳过（后续统一添加大图）
+      if (row._mergeTupian === undefined || row._mergeTupian <= 1) {
+        const imageBuffer = imageCache.get(row.tupian)!
+        const imageId = workbook.addImage({
+          buffer: imageBuffer,
+          extension: 'jpeg',
+        })
+        // 将图片嵌入到单元格中
+        // 使用 tl + ext 方式明确指定图片宽高像素，确保图片填满单元格
+        // col/row 使用0基索引，列B = 索引1
+        const imgWidth = colWidthToPixel(IMAGE_COL_WIDTH) - 10 // 留少量边距
+        const imgHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT) - 10
+        ws.addImage(imageId, {
+          tl: { col: 1.05, row: rowIdx - 1 + 0.05 } as any,
+          ext: { width: imgWidth, height: imgHeight },
+          editAs: 'oneCell',
+        })
+      }
     }
 
     rowIdx++
@@ -212,23 +241,23 @@ export async function downloadTable(
       ws.mergeCells(r, 1, r + row._mergeXinghao - 1, 1)
     }
 
-    // 图片列合并（列B=2）- 合并后图片会自动跨越合并区域
+    // 图片列合并（列B=2）- 合并后添加覆盖整个合并区域的大图
     if (row._mergeTupian !== undefined && row._mergeTupian > 1) {
       ws.mergeCells(r, 2, r + row._mergeTupian - 1, 2)
 
-      // 如果图片列需要合并多行，重新调整图片大小以覆盖合并区域
+      // 添加覆盖合并区域的大图（在数据遍历阶段已跳过这些行的图片添加）
       if (row.tupian && imageCache.has(row.tupian)) {
-        // 删除之前添加的单行图片，重新添加一个覆盖合并区域的图片
-        // ExcelJS不支持删除已添加的图片，所以我们在前面添加时不添加会被合并的图片
-        // 这里重新添加一个大图覆盖合并区域
         const imageBuffer = imageCache.get(row.tupian)!
         const mergedImageId = workbook.addImage({
           buffer: imageBuffer,
           extension: 'jpeg',
         })
+        // 使用 tl + ext 方式，根据合并区域总高度计算图片大小
+        const mergedImgWidth = colWidthToPixel(IMAGE_COL_WIDTH) - 10
+        const mergedImgHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT * row._mergeTupian) - 10
         ws.addImage(mergedImageId, {
           tl: { col: 1.05, row: r - 1 + 0.05 } as any,
-          br: { col: 1.95, row: r - 1 + row._mergeTupian - 0.05 } as any,
+          ext: { width: mergedImgWidth, height: mergedImgHeight },
           editAs: 'oneCell',
         })
       }
