@@ -98,4 +98,17 @@ const handleClose = (key: string, keyPath: string[]) => {
 .common-layout {
   height: 100vh;
 }
+
+/* 打印时隐藏左侧菜单 */
+@media print {
+  .el-aside {
+    display: none !important;
+  }
+  .layout-container-demo .el-aside {
+    display: none !important;
+  }
+  /* .el-container {
+    width: 100% !important;
+  } */
+}
 </style>
