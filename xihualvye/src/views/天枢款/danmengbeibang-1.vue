@@ -79,7 +79,7 @@
           <img v-if="row.tupian" :src="getImage(row.tupian)" :alt="row.tupian" class="table-img" />
         </template>
       </el-table-column>
-      <el-table-column prop="mingcheng" label="名称" width="100" />
+      <el-table-column prop="mingcheng" label="名称" width="99" />
       <el-table-column prop="guige" label="规格" width="100" />
       <el-table-column prop="shuliang" label="数量" width="70">
         <template #default="{ row }">
@@ -92,7 +92,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column prop="beizhu" label="备注" width="179.5">
+      <el-table-column prop="beizhu" label="备注">
         <template #default="{ row }">
           <span v-if="row.mingcheng === '上包边' || row.mingcheng === '下包边' || row.mingcheng === '前后横梁' || row.mingcheng === '侧横梁' || row.mingcheng === '中柱' || row.mingcheng === '拉筋' || row.mingcheng === '横拉' || row.mingcheng === '门料' || row.mingcheng === '侧板'">{{ row.beizhu }}</span>
           <el-input

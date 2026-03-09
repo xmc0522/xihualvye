@@ -76,7 +76,6 @@
 .side-zhong-count .info-zz-input {
   width: 80px;
   margin-left: 4px;
-  
 }
 
 .side-zhong-count .info-zz-input :deep(.el-input__wrapper) {
@@ -107,6 +106,7 @@
   width: 100%;
   border-collapse: collapse;
   border-color: #333;
+  margin-bottom: 0;
 }
 
 .info-table td {
@@ -199,7 +199,10 @@
 
 /* 主数据表格 */
 .main-table {
+  width: 100%;
   border-color: #333;
+  margin-top: 0;
+  border: 1px solid #333 !important;
 }
 
 .main-table :deep(.el-table__header th) {
@@ -227,7 +230,7 @@
   width: 100%;
   border-collapse: collapse;
   border-color: #333;
-  border-top: none;
+  /* border-top: none; */
 }
 
 .door-panel-table td {
@@ -242,7 +245,7 @@
   width: 100%;
   border-collapse: collapse;
   border-color: #333;
-  border-top: none;
+  /* border-top: none; */
 }
 
 .accessory-table td {
