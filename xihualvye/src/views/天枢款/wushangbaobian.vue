@@ -1,7 +1,7 @@
 <template>
   <div class="button-row">
-      <el-button type="primary">下载表格</el-button>
-      <el-button type="success">保存表格</el-button>
+      <el-button type="primary" @click="handleDownload">下载表格</el-button>
+      <el-button type="success" @click="handleSave">保存表格数据</el-button>
       <el-button type="danger" @click="handleClear">清空表格</el-button>
     </div>
 <div class="page-wrapper" ref="pageWrapperRef">
@@ -203,12 +203,34 @@
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/天枢款-无上包边款/天枢款-无上包边'
 import { clearTable } from '@/ts/button3'
+import { downloadTable } from '@/ts/button1'
+import { saveTableData, loadTableData } from '@/ts/button2'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
 // import { size, value2 } from '@/ts/date-picker'
 import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
-const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories } =
+const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
   useChangyongBiaoge()
+
+// 页面唯一标识，用于本地存储
+const PAGE_KEY = '天枢款-无上包边款'
+
+// 保存表格数据点击事件
+const handleSave = () => {
+  saveTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
+}
+
+// 下载表格点击事件
+const handleDownload = async () => {
+  await downloadTable(
+    '天枢款-圆弧',
+    info,
+    filteredTableData.value,
+    doorPanelRows.value,
+    allAccessories,
+    imageModules
+  )
+}
 
 // 清空表格点击事件
 const handleClear = () => {
@@ -218,6 +240,7 @@ const handleClear = () => {
     type: 'warning',
   }).then(() => {
     clearTable(info, tableData, doorPanelRows.value, allAccessories)
+    value3.value = '' // 同步清空表面下拉框
   }).catch(() => {})
 }
 
@@ -273,11 +296,23 @@ const calcZhongCountTop = () => {
 }
 
 onMounted(() => {
+  // 从本地存储加载之前保存的数据
+  loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
+  // 加载数据后，将 info.surface 同步回下拉框 value3
+  if (info.surface) {
+    value3.value = info.surface
+  }
+
   // el-table 内部渲染是异步的，延迟执行确保表格完全渲染
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
   }, 300)
+})
+
+// 监听表面下拉框变化，同步到 info.surface（供下载和保存使用）
+watch(value3, (newVal) => {
+  info.surface = newVal
 })
 
 // 监听数据变化，自动保存到本地存储

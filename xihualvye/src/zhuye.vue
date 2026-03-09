@@ -1,6 +1,6 @@
 <template>
   <el-container class="layout-container-demo" style="height: 100vh">
-    <el-aside width="240px">
+    <el-aside width="255px">
       <el-menu
         background-color="#001529"
         class="el-menu-vertical-demo"
@@ -12,7 +12,7 @@
         @close="handleClose"
       >
         <el-menu-item style="padding-left:8px;padding-top: 10px;margin-bottom: 20px;">
-          <span style="font-size: 18px;">玺华铝业业务管理系统</span>
+          <span style="font-size: 18px;">玺华铝业-业务(表格)管理系统</span>
         </el-menu-item>
         <template v-for="(item, index) in menuArr" :key="index">
           <el-sub-menu v-if="item.children" :index="item.path">
