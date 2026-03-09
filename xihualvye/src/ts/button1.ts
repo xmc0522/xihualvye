@@ -78,11 +78,11 @@ export async function downloadTable(
   }
 
   // 设置列宽
-  const IMAGE_COL_WIDTH = 20 // 图片列宽度（Excel字符宽度单位）
+  const IMAGE_COL_WIDTH = 26 // 图片列宽度（Excel字符宽度单位）
   ws.columns = [
-    { width: 12 },  // 列A: 型号
+    { width:10 },   // 列A: 型号（缩小列宽）
     { width: IMAGE_COL_WIDTH },  // 列B: 图片（加宽以容纳图片）
-    { width: 12 },  // 列C: 名称
+    { width: 10 },  // 列C: 名称
     { width: 12 },  // 列D: 规格
     { width: 10 },  // 列E: 数量
     { width: 12 },  // 列F: 备注
@@ -168,7 +168,7 @@ export async function downloadTable(
 
   // ========== 5. 主表格数据（含图片嵌入） ==========
   const mainTableStartRow = rowIdx
-  const IMAGE_ROW_HEIGHT = 60 // 有图片的行高度（加大以适应图片）
+  const IMAGE_ROW_HEIGHT = 60 // 有图片的行高度
 
   // 将Excel列宽/行高转换为像素的辅助函数
   // Excel列宽1个字符单位 ≈ 7.5像素；行高1个点 ≈ 1.33像素
@@ -254,9 +254,16 @@ export async function downloadTable(
         })
         // 使用 tl + ext 方式，根据合并区域总高度计算图片大小
         const mergedImgWidth = colWidthToPixel(IMAGE_COL_WIDTH) - 10
-        const mergedImgHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT * row._mergeTupian) - 10
+        // 合并区域总像素高度
+        const mergedAreaHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT * row._mergeTupian)
+        // 限制图片最大高度，避免合并多行时图片被拉伸得过高
+        const maxImgHeight = Math.min(mergedAreaHeight - 10, colWidthToPixel(IMAGE_COL_WIDTH) * 1.2)
+        const mergedImgHeight = maxImgHeight
+        // 图片垂直居中：计算顶部偏移量（以行为单位）
+        const topOffsetPixel = (mergedAreaHeight - mergedImgHeight) / 2
+        const topOffsetRow = topOffsetPixel / rowHeightToPixel(IMAGE_ROW_HEIGHT)
         ws.addImage(mergedImageId, {
-          tl: { col: 1.05, row: r - 1 + 0.05 } as any,
+          tl: { col: 1.05, row: r - 1 + topOffsetRow } as any,
           ext: { width: mergedImgWidth, height: mergedImgHeight },
           editAs: 'oneCell',
         })
