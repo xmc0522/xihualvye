@@ -175,6 +175,10 @@ export async function downloadTable(
   const colWidthToPixel = (w: number) => Math.round(w * 7.5)
   const rowHeightToPixel = (h: number) => Math.round(h * 1.33)
 
+  // 像素转点（ExcelJS的ext.width/height单位是点）
+  // 1像素 ≈ 0.75点（96DPI下）
+  const pixelToPoint = (px: number) => px * 0.75
+
   // 先收集需要合并的图片行信息，避免重复添加图片
   const mergedTupianRows = new Set<number>() // 记录哪些行是被合并图片列覆盖的子行
   for (let i = 0; i < filteredTableData.length; i++) {
@@ -214,14 +218,16 @@ export async function downloadTable(
           buffer: imageBuffer,
           extension: 'jpeg',
         })
-        // 将图片嵌入到单元格中
-        // 使用 tl + ext 方式明确指定图片宽高像素，确保图片填满单元格
-        // col/row 使用0基索引，列B = 索引1
-        const imgWidth = colWidthToPixel(IMAGE_COL_WIDTH) - 10 // 留少量边距
-        const imgHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT) - 10
+        // 将图片嵌入到单元格中，居中显示（允许拉伸变形）
+        const padding = 5 // 四周留5像素边距
+        const imgWidthPx = colWidthToPixel(IMAGE_COL_WIDTH) - padding * 2
+        const imgHeightPx = rowHeightToPixel(IMAGE_ROW_HEIGHT) - padding * 2
+        // 计算居中偏移量
+        const leftOffset = padding / colWidthToPixel(IMAGE_COL_WIDTH)
+        const topOffset = padding / rowHeightToPixel(IMAGE_ROW_HEIGHT)
         ws.addImage(imageId, {
-          tl: { col: 1.05, row: rowIdx - 1 + 0.05 } as any,
-          ext: { width: imgWidth, height: imgHeight },
+          tl: { col: 1 + leftOffset, row: rowIdx - 1 + topOffset } as any,
+          ext: { width: pixelToPoint(imgWidthPx), height: pixelToPoint(imgHeightPx) },
           editAs: 'oneCell',
         })
       }
@@ -252,19 +258,17 @@ export async function downloadTable(
           buffer: imageBuffer,
           extension: 'jpeg',
         })
-        // 使用 tl + ext 方式，根据合并区域总高度计算图片大小
-        const mergedImgWidth = colWidthToPixel(IMAGE_COL_WIDTH) - 10
-        // 合并区域总像素高度
-        const mergedAreaHeight = rowHeightToPixel(IMAGE_ROW_HEIGHT * row._mergeTupian)
-        // 限制图片最大高度，避免合并多行时图片被拉伸得过高
-        const maxImgHeight = Math.min(mergedAreaHeight - 10, colWidthToPixel(IMAGE_COL_WIDTH) * 1.2)
-        const mergedImgHeight = maxImgHeight
-        // 图片垂直居中：计算顶部偏移量（以行为单位）
-        const topOffsetPixel = (mergedAreaHeight - mergedImgHeight) / 2
-        const topOffsetRow = topOffsetPixel / rowHeightToPixel(IMAGE_ROW_HEIGHT)
+        // 合并区域图片居中显示在合并单元格内
+        const padding = 5
+        const mergedImgWidthPx = colWidthToPixel(IMAGE_COL_WIDTH) - padding * 2
+        const mergedAreaHeightPx = rowHeightToPixel(IMAGE_ROW_HEIGHT * row._mergeTupian)
+        const mergedImgHeightPx = mergedAreaHeightPx - padding * 2
+        // 计算居中偏移量
+        const leftOffset = padding / colWidthToPixel(IMAGE_COL_WIDTH)
+        const topOffset = padding / mergedAreaHeightPx
         ws.addImage(mergedImageId, {
-          tl: { col: 1.05, row: r - 1 + topOffsetRow } as any,
-          ext: { width: mergedImgWidth, height: mergedImgHeight },
+          tl: { col: 1 + leftOffset, row: r - 1 + topOffset } as any,
+          ext: { width: pixelToPoint(mergedImgWidthPx), height: pixelToPoint(mergedImgHeightPx) },
           editAs: 'oneCell',
         })
       }
