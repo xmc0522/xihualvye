@@ -9,16 +9,11 @@ const router = createRouter({
       component: () => import('../zhuye.vue'),
       children: [...menuArr],
     },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-    },
-    {
-      path: '/biaoge1',
-      name: 'biaoge1',
-      component: () => import('../biaoge/天枢款.vue'),
-    },
+    // {
+    //   path: '/about',
+    //   name: 'about',
+    //   component: () => import('../views/AboutView.vue'),
+    // }
   ],
 })
 

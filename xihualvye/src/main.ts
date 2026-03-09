@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 import { ConfigProvider } from 'vant';
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import App from './views/App.vue'
+import App from './views/废弃/App.vue'
 import router from './router'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 

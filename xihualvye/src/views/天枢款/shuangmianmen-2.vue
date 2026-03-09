@@ -1,7 +1,7 @@
 <template>
 <div class="page-wrapper" ref="pageWrapperRef">
   <div class="table-container" ref="tableContainerRef">    <!-- 标题 -->
-    <div class="table-title">天枢款-圆弧</div>
+    <div class="table-title">天枢款-圆弧-双面门</div>
     <!-- 基本信息区 -->
     <table class="info-table" border="1" cellspacing="0" cellpadding="0" style="text-align: center">
       <tr>
