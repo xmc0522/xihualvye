@@ -1,9 +1,75 @@
+/* 页面外层容器 */
+.page-wrapper {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+}
+
 .table-container {
   width: 700px;
   /* margin: 20px; */
   margin: 20px auto;
   font-size: 13px;
   color: #333;
+}
+
+/* 门数量输入框 - 定位在表格右侧，与拉筋行水平对齐 */
+.side-door-count {
+  position: absolute;
+  left: calc(100% + 10px);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #333;
+}
+
+.side-door-count .info-meng-input {
+  width: 80px;
+  margin-left: 4px;
+}
+
+.side-door-count .info-meng-input :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  background: #fff;
+  padding: 0 8px;
+}
+
+.side-door-count .info-meng-input :deep(.el-input__inner) {
+  text-align: center;
+  font-size: 13px;
+  color: red;
+  height: 28px;
+}
+
+/* 中柱数量输入框 - 定位在表格右侧，与背板行水平对齐 */
+.side-zhong-count {
+  position: absolute;
+  left: calc(100% + 10px);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #333;
+}
+
+.side-zhong-count .info-zz-input {
+  width: 80px;
+  margin-left: 4px;
+  
+}
+
+.side-zhong-count .info-zz-input :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  background: #fff;
+  padding: 0 8px;
+}
+
+.side-zhong-count .info-zz-input :deep(.el-input__inner) {
+  text-align: center;
+  font-size: 13px;
+  color: red;
+  height: 28px;
 }
 
 .table-title {
@@ -40,6 +106,75 @@
 .value-cell {
   text-align: center;
   /* font-weight: bold; */
+}
+
+/* 基本信息输入框样式 */
+.info-input :deep(.el-input__wrapper) {
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.info-input :deep(.el-input__inner) {
+  text-align: center;
+  font-size: 13px;
+  color: #333;
+  height: 32px;
+}
+
+/* 基本信息下拉框样式 */
+.info-select :deep(.el-select__wrapper) {
+  box-shadow: none;
+  background: transparent;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  height: 32px;
+}
+
+.info-select :deep(.el-select__wrapper:hover) {
+  border-color: #409eff;
+}
+
+.info-select :deep(.el-select__wrapper.is-focused) {
+  border-color: #409eff;
+}
+
+.info-select :deep(.el-select__selected-item) {
+  font-size: 13px;
+  color: #333;
+}
+
+.info-select :deep(.el-select__suffix) {
+  display: flex;
+}
+
+.info-select :deep(.el-select__caret) {
+  color: #999;
+  font-size: 14px;
+}
+
+/* 兼容旧结构 el-input 内嵌 */
+.info-select :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  background: transparent;
+}
+
+.info-select :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #409eff inset;
+}
+
+.info-select :deep(.el-input__inner) {
+  text-align: center;
+  font-size: 13px;
+  color: #333;
+}
+
+.info-select :deep(.el-input__suffix) {
+  display: flex;
+}
+
+.info-select :deep(.el-select__icon) {
+  display: flex;
 }
 
 /* 主数据表格 */

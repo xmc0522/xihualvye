@@ -163,7 +163,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '../ts/天枢款'
+import { useChangyongBiaoge } from '../ts/天枢款-单门-加背板/天枢款-单门-加背板'
 import { watch } from 'vue'
 
 const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage } =

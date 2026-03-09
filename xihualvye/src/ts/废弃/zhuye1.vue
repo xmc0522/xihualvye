@@ -103,9 +103,9 @@
 </template>
 
 <script lang="ts" setup>
-import { size, value2, shortcuts } from './ts/date-picker'
-import { value1,value3, value4,value5,options1, options3, options4,options5} from './ts/xialakuang'
-import { input1, input2, input3, input4, input5, input6} from './ts/shurukuang'
+import { size, value2 } from '../date-picker'
+import { value1,value3, value4,value5,options1, options3, options4,options5} from '../xialakuang'
+import { input1, input2, input3, input4, input5, input6} from '../shurukuang'
 import { Search, Upload } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 

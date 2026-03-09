@@ -1,6 +1,6 @@
 import { reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { tableData } from './天枢款主表格数据'
+import { tableData } from '../天枢款-单门-加背板/天枢款-单门-加背板-主表格数据'
 import { allAccessories } from './天枢款配件数据'
 import { doorPanelRows } from './天枢款底部门板数据'
 

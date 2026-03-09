@@ -1,25 +1,26 @@
-// import StudentHomeView from "../views/StudentHomeView.vue";
-import BanjiAddView from '@/views/Banji/BanjiAddView.vue'
-import BanjiListView from '@/views/Banji/BanjiListView.vue'
-import BanjiDetailView from '@/views/Banji/BanjiDetailView.vue'
-import BanjiEditView from '@/views/Banji/BanjiEditView.vue'
+
+// import BanjiDetailView from '@/views/天枢款/BanjiDetailView.vue'
+// import BanjiEditView from '@/views/天枢款/BanjiEditView.vue'
 import KaoshiAddView from '@/views/Kaoshi/kaoshiAddView.vue'
 import KaoshiliebiaoView from '@/views/Kaoshi/KaoshiliebiaoView.vue'
 import KaoshixiangqingView from '@/views/Kaoshi/KaoshixiangqingView.vue'
 import RibaoAddView from '@/views/Ribao/RibaoAddView.vue'
 import RibaoListView from '@/views/Ribao/RibaoListView.vue'
 import RibaoDetail from '@/views/Ribao/RibaoDetail.vue'
+import danmengbeibang1 from '@/views/天枢款/danmengbeibang-1.vue'
+import danmengbeibang2 from '@/views/天枢款/danmengbeibang-2.vue'
+import changyongkuan from '@/views/天枢款/changyongkuan.vue'
 
 export const menuArr = [
   {
     path: '/banji',
     name: 'banji',
-    title: '班级管理',
+    title: '天枢款',
     children: [
-      { path: '/banji/add', title: '创建班级', component: BanjiAddView },
-      { path: '/banji/list', title: '班级列表', component: BanjiListView },
-      { path: '/banji/detail/:id', title: '班级详情', component: BanjiDetailView },
-      { path: '/banji/edit/:id', title: '编辑班级', component: BanjiEditView },
+      { path: '/banji/add', title: '天枢款-单门-加背板', component: danmengbeibang1 },
+      { path: '/banji/list', title: '天枢款-单门-加背板-加固', component: danmengbeibang2 },
+      { path: '/banji/detail', title: '天枢款-常用款', component: changyongkuan },
+      // { path: '/banji/edit/:id', title: '编辑班级', component: BanjiEditView },
     ],
   },
   {
