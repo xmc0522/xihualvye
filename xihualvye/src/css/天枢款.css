@@ -1,3 +1,21 @@
+.button-example {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  
+}
+
+.button-row > * {
+  margin: 0;
+}
+
 /* 页面外层容器 */
 .page-wrapper {
   position: relative;

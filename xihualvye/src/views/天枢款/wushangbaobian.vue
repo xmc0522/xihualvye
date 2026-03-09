@@ -1,4 +1,9 @@
 <template>
+  <div class="button-row">
+      <el-button type="primary">下载表格</el-button>
+      <el-button type="success">保存表格</el-button>
+      <el-button type="danger" @click="handleClear">清空表格</el-button>
+    </div>
 <div class="page-wrapper" ref="pageWrapperRef">
   <div class="table-container" ref="tableContainerRef">    <!-- 标题 -->
     <div class="table-title">天枢款-圆弧</div>
@@ -197,11 +202,24 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/天枢款-无上包边款/天枢款-无上包边'
+import { clearTable } from '@/ts/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
+import { ElMessageBox } from 'element-plus'
 // import { size, value2 } from '@/ts/date-picker'
 import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
-const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage } =
+const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories } =
   useChangyongBiaoge()
+
+// 清空表格点击事件
+const handleClear = () => {
+  ElMessageBox.confirm('确定要清空表格中所有数据吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    clearTable(info, tableData, doorPanelRows.value, allAccessories)
+  }).catch(() => {})
+}
 
 const pageWrapperRef = ref<HTMLElement | null>(null)
 const tableContainerRef = ref<HTMLElement | null>(null)

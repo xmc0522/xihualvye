@@ -501,5 +501,5 @@ export function useChangyongBiaoge() {
     { immediate: true }
   )
 
-  return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage }
+return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules }
 }

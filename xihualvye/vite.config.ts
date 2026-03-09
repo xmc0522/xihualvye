@@ -16,4 +16,7 @@ export default defineConfig({
       '@jpg': fileURLToPath(new URL('./JPG', import.meta.url))
     },
   },
+  optimizeDeps: {
+    include: ['exceljs'],
+  },
 })
