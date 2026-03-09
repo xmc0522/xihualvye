@@ -2,6 +2,7 @@
   <div class="button-row">
       <el-button type="primary" @click="handleDownload">下载表格</el-button>
       <el-button type="success" @click="handleSave">保存表格数据</el-button>
+      <el-button type="warning" @click="handlePrint">打印表格</el-button>
       <el-button type="danger" @click="handleClear">清空表格</el-button>
     </div>
 <div class="page-wrapper" ref="pageWrapperRef">
@@ -230,6 +231,11 @@ const handleDownload = async () => {
     allAccessories,
     imageModules
   )
+}
+
+// 打印表格点击事件
+const handlePrint = () => {
+  window.print()
 }
 
 // 清空表格点击事件

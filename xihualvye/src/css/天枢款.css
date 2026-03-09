@@ -18,6 +18,13 @@
   margin: 0;
 }
 
+/* 打印时隐藏按钮行 */
+@media print {
+  .button-row {
+    display: none !important;
+  }
+}
+
 /* 页面外层容器 */
 .page-wrapper {
   position: relative;
