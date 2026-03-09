@@ -1,6 +1,6 @@
 <template>
   <el-container class="layout-container-demo" style="height: 100vh">
-    <el-aside width="200px">
+    <el-aside width="240px">
       <el-menu
         background-color="#001529"
         class="el-menu-vertical-demo"

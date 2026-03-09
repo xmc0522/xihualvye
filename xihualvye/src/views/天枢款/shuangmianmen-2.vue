@@ -196,7 +196,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-常用款/天枢款-常用款'
+import { useChangyongBiaoge } from '@/ts/天枢款-双面门-背面假门/天枢款-双面门-背面假门'
 import { watch, ref, onMounted, nextTick } from 'vue'
 // import { size, value2 } from '@/ts/date-picker'
 import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
@@ -261,6 +261,19 @@ onMounted(() => {
     calcZhongCountTop()
   }, 300)
 })
+
+// 监听表格数据变化，重新计算门数量和中柱数量的位置
+watch(
+  () => [filteredTableData.value, doorPanelRows.value],
+  () => {
+    // 延迟执行，等待 DOM 更新完成
+    setTimeout(() => {
+      calcDoorCountTop()
+      calcZhongCountTop()
+    }, 100)
+  },
+  { deep: true }
+)
 
 // 监听数据变化，自动保存到本地存储
 watch(

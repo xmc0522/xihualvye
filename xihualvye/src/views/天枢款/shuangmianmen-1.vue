@@ -262,6 +262,19 @@ onMounted(() => {
   }, 300)
 })
 
+// 监听表格数据变化，重新计算门数量和中柱数量的位置
+watch(
+  () => [filteredTableData.value, doorPanelRows.value],
+  () => {
+    // 延迟执行，等待 DOM 更新完成
+    setTimeout(() => {
+      calcDoorCountTop()
+      calcZhongCountTop()
+    }, 100)
+  },
+  { deep: true }
+)
+
 // 监听数据变化，自动保存到本地存储
 watch(
   () => [doorPanelRows.value, info.remark],

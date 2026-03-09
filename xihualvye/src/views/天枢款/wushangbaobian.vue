@@ -196,7 +196,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-常用款/天枢款-常用款'
+import { useChangyongBiaoge } from '@/ts/天枢款-无上包边款/天枢款-无上包边'
 import { watch, ref, onMounted, nextTick } from 'vue'
 // import { size, value2 } from '@/ts/date-picker'
 import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
