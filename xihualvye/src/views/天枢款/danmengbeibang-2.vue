@@ -203,9 +203,10 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/天枢款-单门-加背板-加固/天枢款-单门-加背板-加固'
-import { clearTable } from '@/ts/button3'
+import { clearTable } from '@/ts/button4'
 import { downloadTable } from '@/ts/button1'
 import { saveTableData, loadTableData } from '@/ts/button2'
+import { printTable } from '@/ts/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
@@ -234,7 +235,7 @@ const handleDownload = async () => {
 
 // 打印表格点击事件
 const handlePrint = () => {
-  window.print()
+  printTable()
 }
 
 // 清空表格点击事件

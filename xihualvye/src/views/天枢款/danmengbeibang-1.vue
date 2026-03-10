@@ -205,9 +205,10 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/天枢款-单门-加背板/天枢款-单门-加背板'
-import { clearTable } from '@/ts/button3'
+import { clearTable } from '@/ts/button4'
 import { downloadTable } from '@/ts/button1'
 import { saveTableData, loadTableData } from '@/ts/button2'
+import { printTable } from '@/ts/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
 // import { size, value2 } from '@/ts/date-picker'
@@ -237,7 +238,7 @@ const handleDownload = async () => {
 
 // 打印表格点击事件
 const handlePrint = () => {
-  window.print()
+  printTable()
 }
 
 // 清空表格点击事件
