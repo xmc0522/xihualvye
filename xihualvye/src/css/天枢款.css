@@ -108,6 +108,27 @@ font-size: 18px !important;
 font-size: 18px !important;
   }
 
+  /* 打印时强制固定主表格各列宽度，确保与上下表格对齐 */
+  .main-table :deep(table) {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  .main-table :deep(col:nth-child(5)) {
+    width: 95px !important;
+  }
+  /* .main-table :deep(td:nth-child(5)),
+  .main-table :deep(th:nth-child(5)) {
+    width: 95px !important;
+    min-width: 95px !important;
+  } */
+  /* 打印时门板表也使用固定布局，数量列同步加宽 */
+  .door-panel-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  .door-panel-table td:nth-child(4) {
+    width: 95px !important;
+  }
   /* 主表格内数量输入框 */
   .shuliang-input :deep(.el-textarea__inner) {
     min-height: 26px !important;
