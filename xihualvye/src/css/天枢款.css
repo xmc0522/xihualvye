@@ -34,53 +34,53 @@
   /* 缩小主数据表格行高 */
   .main-table :deep(td) {
     padding: 0px 0 !important;
-    height: 20px !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.2 !important;
   }
   .main-table :deep(th) {
     padding: 0px 0 !important;
-    height: 20px !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.2 !important;
   }
   .main-table :deep(.el-table__cell) {
     padding: 0px 0 !important;
-    height: 20px !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.2 !important;
   }
   /* 缩小其他表格行高 */
   .info-table td {
     padding: 1px 2px !important;
-    height: 20px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.3 !important;
   }
   .door-panel-table td {
     padding: 1px 2px !important;
-    height: 20px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.3 !important;
   }
   .accessory-table td {
     padding: 1px 2px !important;
-    height: 20px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.3 !important;
   }
   .remark-table td {
     padding: 1px 2px !important;
-    height: 20px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
+    height: 26px !important;
+font-size: 18px !important;
+    line-height: 1.3 !important;
   }
   /* 备注输入框 */
   .beizhu-input :deep(.el-textarea__inner) {
-    min-height: 20px !important;
-    height: 20px !important;
+    min-height: 26px !important;
+    height: 26px !important;
     padding: 2px 5px !important;
-    font-size: 11px !important;
+font-size: 18px !important;
     overflow: hidden !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
@@ -102,10 +102,65 @@
   }
   /* 工艺备注输入框 */
   .remark-input :deep(.el-textarea__inner) {
-    min-height: 30px !important;
-    height: 30px !important;
+    min-height: 36px !important;
+    height: 36px !important;
     padding: 2px 5px !important;
-    font-size: 11px !important;
+font-size: 18px !important;
+  }
+
+  /* 主表格内数量输入框 */
+  .shuliang-input :deep(.el-textarea__inner) {
+    min-height: 26px !important;
+    height: 26px !important;
+    padding: 2px 5px !important;
+font-size: 18px !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .shuliang-input :deep(.el-textarea__inner)::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  /* 隐藏数量输入框的箭头和其他控件 */
+  .shuliang-input :deep(.el-input__suffix) {
+    display: none !important;
+  }
+  .shuliang-input :deep(.el-input__prefix) {
+    display: none !important;
+  }
+  .shuliang-input :deep(.el-textarea .el-input__count) {
+    display: none !important;
+  }
+  /* 主表格内所有输入框文字 */
+  .main-table :deep(.el-input__inner) {
+font-size: 18px !important;
+  }
+  .main-table :deep(.el-textarea__inner) {
+font-size: 18px !important;
+  }
+  /* 信息表格输入框文字 */
+  .info-table :deep(.el-input__inner) {
+font-size: 18px !important;
+  }
+  /* 信息表格下拉框文字 */
+  .info-select :deep(.el-select__selected-item) {
+font-size: 18px !important;
+  }
+  .info-select :deep(.el-input__inner) {
+font-size: 18px !important;
+  }
+  /* 门板表输入框文字 */
+  .door-panel-table :deep(.el-input__inner) {
+font-size: 18px !important;
+  }
+  .door-panel-table :deep(.el-textarea__inner) {
+font-size: 18px !important;
+  }
+  /* 配件表输入框文字 */
+  .accessory-table :deep(.el-input__inner) {
+font-size: 18px !important;
   }
   /* 标题行高 */
   .table-title {
