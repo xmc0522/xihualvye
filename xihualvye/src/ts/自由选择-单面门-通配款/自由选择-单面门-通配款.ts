@@ -1,8 +1,8 @@
 import { reactive, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { tableData } from './自由选择-通配款-主表格数据'
-import { allAccessories } from './自由选择-通配款-配件数据'
-import { doorPanelRows } from './自由选择-通配款-底部门板数据'
+import { tableData } from './自由选择-单面门-通配款-主表格数据'
+import { allAccessories } from './自由选择-单面门-通配款-配件数据'
+import { doorPanelRows } from './自由选择-单面门-通配款-底部门板数据'
 
 // 本地存储 key 生成函数
 const getStorageKey = (customer: string, orderNo: string) => {

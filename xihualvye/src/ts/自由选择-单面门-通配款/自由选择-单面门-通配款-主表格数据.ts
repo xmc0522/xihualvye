@@ -117,7 +117,18 @@ export const tableData = [
     _mergeMingcheng: 1,
     _mergeShuliang: 1,
   },
-
+  {
+    xinghao: 'H-1005',
+    tupian: 'H-1005',
+    mingcheng: '加固',
+    guige: '',
+    shuliang: '',
+    beizhu: '冲孔',
+    _mergeXinghao: 1,
+    _mergeTupian: 1,
+    _mergeMingcheng: 1,
+    _mergeShuliang: 1,
+  },
   {
     xinghao: 'H-1005',
     tupian: 'H-1005',
