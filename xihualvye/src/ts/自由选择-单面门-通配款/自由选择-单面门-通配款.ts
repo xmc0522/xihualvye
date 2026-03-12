@@ -206,42 +206,63 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
       }
     }
 
-    // 计算中 柱（H-1076）的规格值和数量：guige = height - 90，shuliang = (doorCount - 1) * 2 / 2
+    // 判断背板是否被排除（不生成底部门板下拉框中勾选了背板）
+    const isBeiBanExcluded = excludeDoorPanelsRef.value.includes('背板')
+
+    // 计算中 柱（H-1076）的规格值和数量：
+    // guige = height - 90
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '中 柱') {
         if (info.height) {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (info.doorCount) {
-          result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          if (isBeiBanExcluded) {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+          } else {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          }
         } else {
           result[i]!.shuliang = ''
         }
       }
     }
 
-    // 计算中柱（H-1005）的规格值和数量：guige = height - 90，shuliang = (doorCount - 1) * 2 / 2
+    // 计算中柱（H-1005）的规格值和数量：
+    // guige = height - 90
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '中柱') {
         if (info.height) {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (info.doorCount) {
-          result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          if (isBeiBanExcluded) {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+          } else {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          }
         } else {
           result[i]!.shuliang = ''
         }
       }
     }
 
-    // 计算加固的规格值：加固规格 = height - 90，加固shuliang = 中柱shuliang = (doorCount - 1) * 2 / 2
+    // 计算加固的规格值和数量（与中柱相同）：
+    // guige = height - 90
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '加固') {
         if (info.height) {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (info.doorCount) {
-          result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          if (isBeiBanExcluded) {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+          } else {
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+          }
         } else {
           result[i]!.shuliang = ''
         }

@@ -170,7 +170,7 @@ export function useChangyongBiaoge() {
         }
         if (zhongZhuIdx === 1) {
           if (info.doorCount) {
-            zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+            zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 )
             result[i]!.shuliang = zhongZhuShuliang
           } else {
             result[i]!.shuliang = ''
