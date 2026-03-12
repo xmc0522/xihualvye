@@ -149,6 +149,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
+    // 数量倍率：所有 shuliang 都要乘以 quantity
+    const qty = Number(info.quantity) || 1
+
     // 过滤掉被排除的名称对应的行
     const filtered = tableData.filter((row) => !excludeNamesRef.value.includes(row.mingcheng))
 
@@ -211,7 +214,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
     // 计算中 柱（H-1076）的规格值和数量：
     // guige = height - 90
-    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2，再乘以 quantity
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '中 柱') {
         if (info.height) {
@@ -219,9 +222,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         }
         if (info.doorCount) {
           if (isBeiBanExcluded) {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -231,7 +234,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
     // 计算中柱（H-1005）的规格值和数量：
     // guige = height - 90
-    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2，再乘以 quantity
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '中柱') {
         if (info.height) {
@@ -239,9 +242,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         }
         if (info.doorCount) {
           if (isBeiBanExcluded) {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -251,7 +254,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
     // 计算加固的规格值和数量（与中柱相同）：
     // guige = height - 90
-    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2
+    // shuliang = 背板被排除时 (doorCount - 1) * 2，否则 (doorCount - 1) * 2 / 2，再乘以 quantity
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '加固') {
         if (info.height) {
@@ -259,9 +262,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         }
         if (info.doorCount) {
           if (isBeiBanExcluded) {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -274,9 +277,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         if (info.width) {
           result[i]!.guige = String(Number(info.width) - 102)
         }
-        // 拉筋shuliang = doorCount * 2
+        // 拉筋shuliang = doorCount * 2 * quantity
         if (info.doorCount) {
-          result[i]!.shuliang = String(Number(info.doorCount) * 2)
+          result[i]!.shuliang = String(Number(info.doorCount) * 2 * qty)
         } else {
           result[i]!.shuliang = ''
         }
@@ -305,9 +308,9 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         } else if (menLiaoIdx === 2 && info.height) {
           result[i]!.guige = String(Number(info.height) - 25)
         }
-        // 门料shuliang = doorCount * 2（所有门料行共享同一个shuliang值）
+        // 门料shuliang = doorCount * 2 * quantity（所有门料行共享同一个shuliang值）
         if (info.doorCount) {
-          result[i]!.shuliang = String(Number(info.doorCount) * 2)
+          result[i]!.shuliang = String(Number(info.doorCount) * 2 * qty)
         } else {
           result[i]!.shuliang = ''
         }
@@ -497,8 +500,10 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
   // 监听基本信息变化及下拉框排除变化，自动计算侧门板和配件的数据值
   watch(
-    () => [info.width, info.height, info.length, info.doorCount, info.zhongCount, excludeNamesRef.value, excludeDoorPanelsRef.value],
+    () => [info.width, info.height, info.length, info.doorCount, info.zhongCount, info.quantity, excludeNamesRef.value, excludeDoorPanelsRef.value],
     () => {
+      const qty = Number(info.quantity) || 1
+
       const ceMenBan = doorPanelRows.value.find((row) => row.name === '侧门板')
       if (ceMenBan) {
         // 第一个侧板的guige = width - 85，侧门板shuju1 = 第一个侧板guige - 2.8
@@ -515,10 +520,10 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         }
       }
 
-      // 门板shuliang = doorCount
+      // 门板shuliang = doorCount * quantity
       const menBan = doorPanelRows.value.find((row) => row.name === '门板')
       if (menBan) {
-        menBan.shuliang = info.doorCount ? String(Number(info.doorCount)) : ''
+        menBan.shuliang = info.doorCount ? String(Number(info.doorCount) * qty) : ''
       }
 
       // 门板shuju1 = 第一个门料的guige值 - 2.8 = ((length - 80 - (doorCount + 1) * 2) / doorCount) - 2.8
@@ -565,10 +570,10 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         }
       }
 
-      // 背板shuliang = zhongCount + 1
+      // 背板shuliang = (zhongCount + 1) * quantity
       const beiBan = doorPanelRows.value.find((row) => row.name === '背板')
       if (beiBan) {
-        beiBan.shuliang = info.zhongCount ? String(Number(info.zhongCount) + 1) : ''
+        beiBan.shuliang = info.zhongCount ? String((Number(info.zhongCount) + 1) * qty) : ''
       }
 
       // 背板shuju1 = (length - 80 - zhongCount * 38) / (zhongCount + 1) + 5
