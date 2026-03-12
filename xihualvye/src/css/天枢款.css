@@ -31,24 +31,64 @@
   .side-zhong-count {
     display: none !important;
   }
-  /* 缩小主数据表格行高 */
+  /* 缩小主数据表格行高 - 默认样式 */
   .main-table :deep(td) {
     padding: 0px 0 !important;
-    height: 26px !important;
     font-size: 18px !important;
-    line-height: 1.2 !important;
+    line-height: 1 !important;
   }
   .main-table :deep(th) {
     padding: 0px 0 !important;
-    height: 26px !important;
+    height: 24px !important;
     font-size: 18px !important;
-    line-height: 1.2 !important;
+    line-height: 1 !important;
   }
   .main-table :deep(.el-table__cell) {
     padding: 0px 0 !important;
-    height: 26px !important;
     font-size: 18px !important;
-    line-height: 1.2 !important;
+    line-height: 1 !important;
+  }
+  /* 名称为上包边、下包边、门料、侧板、门板、侧门板、背板的行 → 34px */
+  .main-table :deep(tr.print-row-tall td) {
+    height: 34px !important;
+    font-size: 19px !important;
+  }
+  .main-table :deep(tr.print-row-tall .el-table__cell) {
+    height: 34px !important;
+    font-size: 19px !important;
+  }
+  /* 其他名称的行 → 14px，同时缩小字号和行高确保能生效 */
+  .main-table :deep(tr.print-row-short td) {
+    height: 32px !important;
+    font-size: 17.5px !important;
+    line-height: 1.1 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  .main-table :deep(tr.print-row-short .el-table__cell) {
+    height: 32px !important;
+    font-size: 17.5px !important;
+    line-height: 1.1 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  /* print-row-short 行内的输入框/文本域也要缩小 */
+  .main-table :deep(tr.print-row-short .el-textarea__inner) {
+    min-height: 32px !important;
+    height: 32px !important;
+    font-size: 17.5px !important;
+    line-height: 1.1 !important;
+    padding: 0 !important;
+    
+  }
+  .main-table :deep(tr.print-row-short .el-input__inner) {
+    height: 32px !important;
+    font-size: 17.5px !important;
+    line-height: 1.1 !important;
+  }
+  /* print-row-short 行内的图片也缩小 */
+  .main-table :deep(tr.print-row-short .table-img) {
+    max-height: 32px !important;
   }
   /* 缩小其他表格行高 */
   .info-table td {
@@ -59,10 +99,29 @@
   }
   .door-panel-table td {
     padding: 1px 2px !important;
-    height: 26px !important;
     font-size: 18px !important;
     line-height: 1.3 !important;
   }
+  /* 门板表：名称为门板、侧门板、背板的行 → 34px */
+  .door-panel-table tr.print-row-tall td {
+    height: 34px !important;
+    font-size: 19px !important;
+  }
+  /* 门板表：其他行 → 14px */
+  /* .door-panel-table tr.print-row-short td {
+    height: 24px !important;
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+    padding: 0 2px !important;
+    overflow: hidden !important;
+  } */
+  /* .door-panel-table tr.print-row-short .el-textarea__inner {
+    min-height: 24px !important;
+    height: 24px !important;
+    font-size: 18px !important;
+    line-height: 1.1 !important;
+    padding: 0 2px !important;
+  } */
   .accessory-table td {
     padding: 1px 2px !important;
     height: 26px !important;
