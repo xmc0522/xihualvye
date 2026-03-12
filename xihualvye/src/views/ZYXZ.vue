@@ -223,19 +223,18 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/自由选择-单面门-通配款/自由选择-单面门-通配款'
-import { clearTable } from '@/ts/button4'
-import { downloadTable } from '@/ts/button1'
-import { saveTableData, loadTableData } from '@/ts/button2'
-import { printTable } from '@/ts/button3'
+import { clearTable } from '@/ts/按钮/button4'
+import { downloadTable } from '@/ts/按钮/button1'
+import { saveTableData, loadTableData } from '@/ts/按钮/button2'
+import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
-// import { size, value2 } from '@/ts/date-picker'
-import { value1, value3, value4, value5, value6, options1, options3, options4, options5, options6 } from '@/ts/xialakuang'
+import { value1, value3,  value6, options1, options3, options6 } from '@/ts/自由选择-单面门-通配款/xialakuang'
 const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, filteredDoorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
   useChangyongBiaoge(value1, value6)
 
 // 页面唯一标识，用于本地存储
-const PAGE_KEY = '天枢款-常用款'
+const PAGE_KEY = '天枢款'
 
 // 保存表格数据点击事件
 const handleSave = () => {

@@ -203,13 +203,13 @@
 
 <script lang="ts" setup>
 import { useChangyongBiaoge } from '@/ts/天枢款-双面门/天枢款-双面门'
-import { clearTable } from '@/ts/button4'
-import { downloadTable } from '@/ts/button1'
-import { saveTableData, loadTableData } from '@/ts/button2'
-import { printTable } from '@/ts/button3'
+import { clearTable } from '@/ts/按钮/button4'
+import { downloadTable } from '@/ts/按钮/button1'
+import { saveTableData, loadTableData } from '@/ts/按钮/button2'
+import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
-import { ElMessageBox } from 'element-plus'// import { size, value2 } from '@/ts/date-picker'
-import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
+import { ElMessageBox } from 'element-plus'
+import { value3, options3, } from '@/ts/xialakuang'
 const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
   useChangyongBiaoge()
 
