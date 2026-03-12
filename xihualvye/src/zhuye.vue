@@ -33,6 +33,7 @@
     </el-aside>
     <el-container>
       <el-main>
+        <img src="../JPG/" alt="" />
         <router-view></router-view>
       </el-main>
     </el-container>
