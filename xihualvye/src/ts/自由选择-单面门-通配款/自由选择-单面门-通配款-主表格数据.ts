@@ -96,7 +96,7 @@ export const tableData = [
   {
     xinghao: 'H-1076',
     tupian: 'H-1076',
-    mingcheng: '中柱',
+    mingcheng: '中 柱',
     guige: '',
     shuliang: '',
     beizhu: '冲孔',

@@ -10,10 +10,10 @@ import { ref } from 'vue'
     
     // 不生成名称选择
     export const options1 = [
-        {
-            value: '新下包边',
-            label: '新下包边',
-        },
+        // {
+        //     value: '新下包边',
+        //     label: '新下包边',
+        // },
         {
             value: '上包边',
             label: '上包边',
@@ -35,29 +35,42 @@ import { ref } from 'vue'
             label: '侧横梁',
         },
         {
-            value: '中柱',
-            label: '中柱',
+            value: '中 柱',
+            label: '中柱-H1076',
         },
         {
-            value: '竖支撑',
-            label: '竖支撑',
+            value: '中柱',
+            label: '中柱-H1005',
         },
+        {
+            value: '加固',
+            label: '加固',
+        },
+        // {
+        //     value: '竖支撑',
+        //     label: '竖支撑',
+        // },
         {
             value: '拉筋',
             label: '拉筋',
         },
         {
+            value: '横拉',
+            label: '横拉',
+        },
+        {
             value: '门料',
             label: '门料',
         },
-        {
-            value: '侧门料',
-            label: '侧门料',
-        },
+        // {
+        //     value: '侧门料',
+        //     label: '侧门料',
+        // },
         {
             value: '侧板',
             label: '侧板',
         },
+       
     ]
 // 不生成名称选择底部
     export const options6 = [

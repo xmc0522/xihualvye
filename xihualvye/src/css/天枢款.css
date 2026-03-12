@@ -31,6 +31,10 @@
   .side-zhong-count {
     display: none !important;
   }
+  /* 隐藏表格右侧的不生成下拉框 */
+  .side-height-select {
+    display: none !important;
+  }
   /* 缩小主数据表格行高 - 默认样式 */
   .main-table :deep(td) {
     padding: 0px 0 !important;
@@ -396,6 +400,23 @@
   font-size: 13px;
   color: red;
   height: 28px;
+}
+
+/* 不生成下拉框 - 定位在表格右侧，与高度行水平对齐 */
+.side-height-select {
+  position: absolute;
+  left: calc(100% + 10px);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #333;
+}
+
+.side-height-select .side-select :deep(.el-select__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  background: #fff;
+  padding: 0 8px;
 }
 
 .table-title {

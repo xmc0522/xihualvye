@@ -13,7 +13,7 @@ export const menuArr = [
     name: 'zyxz',
     title: '自由选择',
     children: [
-      { path: '/zyxz/a', title: '自由选择-单面门-通配款', component: ZYXZ },
+      { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: ZYXZ },
     ],
   },
   {

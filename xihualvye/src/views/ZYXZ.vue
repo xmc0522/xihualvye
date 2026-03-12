@@ -109,13 +109,13 @@
 
     <!-- 底部门板 -->
     <table
-      v-if="doorPanelRows.length > 0"
+      v-if="filteredDoorPanelRows.length > 0"
       class="door-panel-table"
       border="1"
       cellspacing="0"
       cellpadding="0"
     >
-      <tr v-for="(row, index) in doorPanelRows" :key="index">
+      <tr v-for="(row, index) in filteredDoorPanelRows" :key="index">
         <td class="value-cell" style="width: 250px">{{ row.name }}</td>
         <td class="value-cell" style="width: 99px">{{ row.shuju1 }}</td>
         <td class="value-cell" style="width: 100px">{{ row.shuju2 }}</td>
@@ -194,15 +194,35 @@
     <span>门数量：</span>
     <el-input v-model="info.doorCount" placeholder="门数量" class="info-meng-input" />
   </div>
-  <!-- <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
+  <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
     <span>中柱数量：</span>
     <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
-  </div> -->
+  </div>
+  <div class="side-height-select" :style="{ top: heightSelectTop + 'px' }">
+    <span>不生成的名称：</span>
+    <el-select v-model="value1" multiple placeholder="请选择" class="side-select" style="width: 110px">
+      <el-option
+        v-for="item in options1"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+    <span style="margin-left: 15px">不生成的底部门板：</span>
+    <el-select v-model="value6" multiple placeholder="请选择" class="side-select" style="width: 90px; ">
+      <el-option
+        v-for="item in options6"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
+  </div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-常用款/天枢款-常用款'
+import { useChangyongBiaoge } from '@/ts/自由选择-单面门-通配款/自由选择-单面门-通配款'
 import { clearTable } from '@/ts/button4'
 import { downloadTable } from '@/ts/button1'
 import { saveTableData, loadTableData } from '@/ts/button2'
@@ -210,9 +230,9 @@ import { printTable } from '@/ts/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { ElMessageBox } from 'element-plus'
 // import { size, value2 } from '@/ts/date-picker'
-import { value1,value3, value4,value5,options1, options3, options4,options5} from '@/ts/xialakuang'
-const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
-  useChangyongBiaoge()
+import { value1, value3, value4, value5, value6, options1, options3, options4, options5, options6 } from '@/ts/xialakuang'
+const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, filteredDoorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
+  useChangyongBiaoge(value1, value6)
 
 // 页面唯一标识，用于本地存储
 const PAGE_KEY = '天枢款-常用款'
@@ -255,6 +275,28 @@ const pageWrapperRef = ref<HTMLElement | null>(null)
 const tableContainerRef = ref<HTMLElement | null>(null)
 const doorCountTop = ref(0)
 const zhongCountTop = ref(0)
+const heightSelectTop = ref(0)
+
+// 计算高度行位置，使下拉框与基本信息表格的高度行水平对齐
+const calcHeightSelectTop = () => {
+  nextTick(() => {
+    const wrapper = pageWrapperRef.value
+    const container = tableContainerRef.value
+    if (!wrapper || !container) return
+    // 查找基本信息表格中高度行（第3个 tr）
+    const infoTable = container.querySelector('.info-table')
+    if (!infoTable) return
+    const rows = infoTable.querySelectorAll('tr')
+    // 高度在第3行（index=2）
+    if (rows.length >= 3) {
+      const heightRow = rows[2]
+      if (!heightRow) return
+      const wrapperRect = wrapper.getBoundingClientRect()
+      const rowRect = heightRow.getBoundingClientRect()
+      heightSelectTop.value = rowRect.top - wrapperRect.top + (rowRect.height - 32) / 2
+    }
+  })
+}
 
 // 计算拉筋行位置，使门数量输入框与拉筋行水平对齐
 const calcDoorCountTop = () => {
@@ -314,6 +356,7 @@ onMounted(() => {
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
+    calcHeightSelectTop()
   }, 300)
 })
 

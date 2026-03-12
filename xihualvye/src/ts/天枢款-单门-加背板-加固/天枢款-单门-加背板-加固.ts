@@ -182,10 +182,17 @@ export function useChangyongBiaoge() {
       }
     }
 
-    // 计算加固的规格值：加固规格 = height - 90
+    // 计算加固的规格值：加固规格 = height - 90，加固shuliang = 中柱shuliang = (doorCount - 1) * 2 / 2
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '加固' && info.height) {
-        result[i]!.guige = String(Number(info.height) - 90)
+      if (result[i] && result[i]!.mingcheng === '加固') {
+        if (info.height) {
+          result[i]!.guige = String(Number(info.height) - 90)
+        }
+        if (info.doorCount) {
+          result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2)
+        } else {
+          result[i]!.shuliang = ''
+        }
       }
     }
 
