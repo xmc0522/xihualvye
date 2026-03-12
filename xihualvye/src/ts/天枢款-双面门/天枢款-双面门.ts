@@ -111,6 +111,7 @@ export function useChangyongBiaoge() {
     const result = filtered.map((row, index) => ({ ...row }))
 
     // 计算上包边的规格值：第一个上包边 = length - 84，第二个上包边 = width - 84
+    // 上包边shuliang = 固定值2 * quantity
     let shangBaoBianIndex = 0
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '上包边') {
@@ -122,10 +123,12 @@ export function useChangyongBiaoge() {
           // 第二个上包边：规格 = 宽度 - 84
           result[i]!.guige = String(Number(info.width) - 84)
         }
+        result[i]!.shuliang = String(2 * qty)
       }
     }
 
     // 计算下包边的规格值：第一个下包边 = length - 84，第二个下包边 = width - 84
+    // 下包边shuliang = 固定值2 * quantity
     let xiaBaoBianIndex = 0
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '下包边') {
@@ -137,27 +140,40 @@ export function useChangyongBiaoge() {
           // 第二个下包边：规格 = 宽度 - 84
           result[i]!.guige = String(Number(info.width) - 84)
         }
+        result[i]!.shuliang = String(2 * qty)
       }
     }
 
     // 计算立柱的规格值：立柱规格 = height - 3
+    // 立柱shuliang = 固定值4 * quantity
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '立柱' && info.height) {
-        result[i]!.guige = String(Number(info.height) - 3)
+      if (result[i] && result[i]!.mingcheng === '立柱') {
+        if (info.height) {
+          result[i]!.guige = String(Number(info.height) - 3)
+        }
+        result[i]!.shuliang = String(4 * qty)
       }
     }
 
     // 计算前后横梁的规格值：前后横梁规格 = length - 80
+    // 前后横梁shuliang = 固定值4 * quantity
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '前后横梁' && info.length) {
-        result[i]!.guige = String(Number(info.length) - 80)
+      if (result[i] && result[i]!.mingcheng === '前后横梁') {
+        if (info.length) {
+          result[i]!.guige = String(Number(info.length) - 80)
+        }
+        result[i]!.shuliang = String(4 * qty)
       }
     }
 
     // 计算侧横梁的规格值：侧横梁规格 = width - 140
+    // 侧横梁shuliang = 固定值4 * quantity
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '侧横梁' && info.width) {
-        result[i]!.guige = String(Number(info.width) - 140)
+      if (result[i] && result[i]!.mingcheng === '侧横梁') {
+        if (info.width) {
+          result[i]!.guige = String(Number(info.width) - 140)
+        }
+        result[i]!.shuliang = String(4 * qty)
       }
     }
 
@@ -203,9 +219,13 @@ export function useChangyongBiaoge() {
     }
 
     // 计算横拉的规格值：横拉规格 = width - 140
+    // 横拉shuliang = 固定值1 * quantity
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '横拉' && info.width) {
-        result[i]!.guige = String(Number(info.width) - 140)
+      if (result[i] && result[i]!.mingcheng === '横拉') {
+        if (info.width) {
+          result[i]!.guige = String(Number(info.width) - 140)
+        }
+        result[i]!.shuliang = String(1 * qty)
       }
     }
 
@@ -234,6 +254,7 @@ export function useChangyongBiaoge() {
     }
 
     // 计算侧板的规格值：第一个侧板规格 = width - 85，第二个侧板规格 = height - 1
+    // 侧板shuliang = 固定值4 * quantity
     let ceBanIdx = 0
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '侧板') {
@@ -245,6 +266,7 @@ export function useChangyongBiaoge() {
           // 第二个侧板：规格 = 高度 - 1
           result[i]!.guige = String(Number(info.height) - 1)
         }
+        result[i]!.shuliang = String(4 * qty)
       }
     }
 
@@ -428,6 +450,8 @@ export function useChangyongBiaoge() {
         } else {
           ceMenBan.shuju2 = ''
         }
+        // 侧门板shuliang = 固定值2 * quantity
+        ceMenBan.shuliang = String(2 * qty)
       }
 
       // 门板shuliang = doorCount * quantity
@@ -454,26 +478,16 @@ export function useChangyongBiaoge() {
         menBan.shuju2 = ''
       }
 
-      // 上包转角的value = 第一个上包边shuliang值 * 2
-      const firstShangBaoBian = filteredTableData.value.find((row) => row.mingcheng === '上包边')
+      // 上包转角的value = 上包边shuliang(2 * qty) * 2
       const shangBaoZhuanJiao = allAccessories.find((item) => item.name === '上包转角')
       if (shangBaoZhuanJiao) {
-        if (firstShangBaoBian && firstShangBaoBian.shuliang) {
-          shangBaoZhuanJiao.value = String(Number(firstShangBaoBian.shuliang) * 2)
-        } else {
-          shangBaoZhuanJiao.value = ''
-        }
+        shangBaoZhuanJiao.value = String(2 * qty * 2)
       }
 
-      // 下包转角的value = 第一个下包边shuliang值 * 2
-      const firstXiaBaoBian = filteredTableData.value.find((row) => row.mingcheng === '下包边')
+      // 下包转角的value = 下包边shuliang(2 * qty) * 2
       const xiaBaoZhuanJiao = allAccessories.find((item) => item.name === '下包转角')
       if (xiaBaoZhuanJiao) {
-        if (firstXiaBaoBian && firstXiaBaoBian.shuliang) {
-          xiaBaoZhuanJiao.value = String(Number(firstXiaBaoBian.shuliang) * 2)
-        } else {
-          xiaBaoZhuanJiao.value = ''
-        }
+        xiaBaoZhuanJiao.value = String(2 * qty * 2)
       }
 
       // 背板shuliang = (zhongCount + 1) * quantity
