@@ -33,7 +33,7 @@
     </el-aside>
     <el-container>
       <el-main>
-        <img src="../JPG/" alt="" />
+        <img src="../JPG/卡通形象.png" width="100%" />
         <router-view></router-view>
       </el-main>
     </el-container>
