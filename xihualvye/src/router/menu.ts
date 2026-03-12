@@ -5,8 +5,17 @@ import changyongkuan from '@/views/天枢款/changyongkuan.vue'
 import wushangbaobian from '@/views/天枢款/wushangbaobian.vue'
 import Shuangmianmen1 from '@/views/天枢款/shuangmianmen-1.vue'
 import Shuangmianmen2 from '@/views/天枢款/shuangmianmen-2.vue'
+import ZYXZ from '@/views/ZYXZ.vue'
 
 export const menuArr = [
+  {
+    path: '/zyxz',
+    name: 'zyxz',
+    title: '自由选择',
+    children: [
+      { path: '/zyxz/a', title: '自由选择-通配款', component: ZYXZ },
+    ],
+  },
   {
     path: '/tianshu',
     name: 'tianshu',
