@@ -15,6 +15,19 @@ app.use(express.json({ limit: '10mb' }))
 // API 路由
 app.use('/api/orders', ordersRouter)
 
+// 登录接口
+const ADMIN_USERNAME = 'xhly'
+const ADMIN_PASSWORD = '12345678'
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    res.json({ code: 0, message: '登录成功' })
+  } else {
+    res.json({ code: 1, message: '账号或密码错误' })
+  }
+})
+
 // 健康检查
 app.get('/api/health', (_req, res) => {
   res.json({ code: 0, message: 'ok', timestamp: new Date().toLocaleString() })
