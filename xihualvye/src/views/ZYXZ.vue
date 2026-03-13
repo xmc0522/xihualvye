@@ -225,9 +225,10 @@
 import { useChangyongBiaoge } from '@/ts/自由选择-单面门-通配款/自由选择-单面门-通配款'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
-import { saveTableData, loadTableData } from '@/ts/按钮/button2'
+import { saveTableData, loadTableData, loadOrderFromServer, setCurrentOrderId } from '@/ts/按钮/button2'
 import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { value1, value3,  value6, options1, options3, options6 } from '@/ts/自由选择-单面门-通配款/xialakuang'
 const { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, filteredDoorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules } =
@@ -238,7 +239,7 @@ const PAGE_KEY = '天枢款'
 
 // 保存表格数据点击事件
 const handleSave = () => {
-  saveTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
+  saveTableData(PAGE_KEY, info, filteredTableData.value, doorPanelRows.value, allAccessories)
 }
 
 // 下载表格点击事件
@@ -343,12 +344,24 @@ const calcZhongCountTop = () => {
   })
 }
 
-onMounted(() => {
-  // 从本地存储加载之前保存的数据
-  loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
-  // 加载数据后，将 info.surface 同步回下拉框 value3
-  if (info.surface) {
-    value3.value = info.surface
+const currentRoute = useRoute()
+
+onMounted(async () => {
+  // 检查是否从订单管理页面跳转过来，带有 orderId 参数
+  const orderId = currentRoute.query.orderId
+  if (orderId) {
+    const id = Number(orderId)
+    const loaded = await loadOrderFromServer(id, info, tableData, doorPanelRows.value, allAccessories)
+    if (loaded && info.surface) {
+      value3.value = info.surface
+    }
+  } else {
+    // 没有 orderId，从本地存储加载之前保存的数据
+    setCurrentOrderId(null)
+    loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
+    if (info.surface) {
+      value3.value = info.surface
+    }
   }
 
   // el-table 内部渲染是异步的，延迟执行确保表格完全渲染

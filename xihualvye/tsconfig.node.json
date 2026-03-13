@@ -10,6 +10,9 @@
     "eslint.config.*"
   ],
   "compilerOptions": {
+    // Override lib to avoid unsupported ESNext sub-libs in current TS version
+    "lib": ["es2024"],
+
     // Most tools use transpilation instead of Node.js's native type-stripping.
     // Bundler mode provides a smoother developer experience.
     "module": "preserve",

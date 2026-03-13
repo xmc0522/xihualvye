@@ -1,4 +1,5 @@
 
+
 import danmengbeibang1 from '@/views/天枢款/danmengbeibang-1.vue'
 import danmengbeibang2 from '@/views/天枢款/danmengbeibang-2.vue'
 import changyongkuan from '@/views/天枢款/changyongkuan.vue'
@@ -6,8 +7,15 @@ import wushangbaobian from '@/views/天枢款/wushangbaobian.vue'
 import Shuangmianmen1 from '@/views/天枢款/shuangmianmen-1.vue'
 import Shuangmianmen2 from '@/views/天枢款/shuangmianmen-2.vue'
 import ZYXZ from '@/views/ZYXZ.vue'
+import OrderManage from '@/views/OrderManage.vue'
 
 export const menuArr = [
+  {
+    path: '/orders',
+    name: 'orders',
+    title: '订单管理',
+    component: OrderManage,
+  },
   {
     path: '/zyxz',
     name: 'zyxz',

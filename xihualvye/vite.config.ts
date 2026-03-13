@@ -19,4 +19,12 @@ export default defineConfig({
   optimizeDeps: {
     include: ['exceljs'],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3456',
+        changeOrigin: true,
+      },
+    },
+  },
 })

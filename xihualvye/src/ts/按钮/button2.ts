@@ -1,5 +1,5 @@
 import { ElMessage } from 'element-plus'
-import type { Ref } from 'vue'
+import { createOrder, updateOrder, getOrderDetail } from '../api'
 
 /**
  * 生成本地存储的 key
@@ -9,15 +9,28 @@ const getStorageKey = (pageKey: string) => {
   return `table_save_${pageKey}`
 }
 
+// 当前正在编辑的订单ID（null 表示新建）
+let currentOrderId: number | null = null
+
+/** 获取当前订单ID */
+export function getCurrentOrderId(): number | null {
+  return currentOrderId
+}
+
+/** 设置当前订单ID（用于从订单管理页面加载时） */
+export function setCurrentOrderId(id: number | null) {
+  currentOrderId = id
+}
+
 /**
- * 通用保存表格数据函数 - 将页面所有表格数据保存到 localStorage
+ * 通用保存表格数据函数 - 同时保存到后端数据库和 localStorage
  * @param pageKey - 页面唯一标识，用作存储key
  * @param info - 基本信息
  * @param tableData - 主表格原始数据数组
  * @param doorPanelRows - 底部门板数据（ref 的 .value）
  * @param allAccessories - 配件数据数组
  */
-export function saveTableData(
+export async function saveTableData(
   pageKey: string,
   info: {
     customer: string
@@ -36,51 +49,157 @@ export function saveTableData(
   doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
   allAccessories: Array<{ name: string; value: string }>
 ) {
+  // 构建保存数据
+  const tableRows = tableData.map((row) => ({
+    mingcheng: row.mingcheng,
+    guige: row.guige,
+    shuliang: row.shuliang,
+    beizhu: row.beizhu,
+  }))
+
+  const panels = doorPanelRows.map((row) => ({
+    name: row.name,
+    shuju1: row.shuju1,
+    shuju2: row.shuju2,
+    shuliang: row.shuliang,
+    beizhu: row.beizhu,
+  }))
+
+  const accs = allAccessories.map((item) => ({
+    name: item.name,
+    value: item.value,
+  }))
+
+  // 1. 保存到 localStorage 作为备份
   try {
-    const data = {
-      // 保存基本信息
-      info: {
-        customer: info.customer,
-        date: info.date,
-        surface: info.surface,
-        quantity: info.quantity,
-        orderNo: info.orderNo,
-        length: info.length,
-        width: info.width,
-        height: info.height,
-        doorCount: info.doorCount,
-        zhongCount: info.zhongCount,
-        remark: info.remark,
-      },
-      // 保存主表格中可编辑的字段（shuliang、beizhu）
-      tableRows: tableData.map((row) => ({
-        mingcheng: row.mingcheng,
-        shuliang: row.shuliang,
-        beizhu: row.beizhu,
-      })),
-      // 保存底部门板数据
-      doorPanels: doorPanelRows.map((row) => ({
-        name: row.name,
-        shuju1: row.shuju1,
-        shuju2: row.shuju2,
-        shuliang: row.shuliang,
-        beizhu: row.beizhu,
-      })),
-      // 保存配件数据
-      accessories: allAccessories.map((item) => ({
-        name: item.name,
-        value: item.value,
-      })),
-      // 保存时间戳
+    const localData = {
+      info: { ...info },
+      tableRows,
+      doorPanels: panels,
+      accessories: accs,
       savedAt: new Date().toLocaleString(),
     }
-
     const key = getStorageKey(pageKey)
-    localStorage.setItem(key, JSON.stringify(data))
-    ElMessage.success('表格数据已保存到本地')
+    localStorage.setItem(key, JSON.stringify(localData))
   } catch (e) {
-    console.error('保存表格数据失败:', e)
-    ElMessage.error('保存失败，请重试')
+    console.warn('localStorage 保存失败:', e)
+  }
+
+  // 2. 保存到后端数据库
+  try {
+    const payload = {
+      customer: info.customer,
+      orderNo: info.orderNo,
+      date: info.date,
+      surface: info.surface,
+      quantity: info.quantity,
+      length: info.length,
+      width: info.width,
+      height: info.height,
+      doorCount: info.doorCount,
+      zhongCount: info.zhongCount,
+      remark: info.remark,
+      pageType: pageKey,
+      tableData: tableRows,
+      doorPanels: panels,
+      accessories: accs,
+    }
+
+    if (currentOrderId) {
+      // 更新已有订单
+      await updateOrder(currentOrderId, payload)
+      ElMessage.success('订单已更新保存')
+    } else {
+      // 新建订单
+      const res = await createOrder(payload)
+      currentOrderId = res.data.id
+      ElMessage.success('订单已保存到数据库')
+    }
+  } catch (e: any) {
+    console.error('后端保存失败:', e)
+    ElMessage.warning('已保存到本地，但后端保存失败：' + (e.message || '网络错误'))
+  }
+}
+
+/**
+ * 从后端加载指定订单数据
+ */
+export async function loadOrderFromServer(
+  orderId: number,
+  info: {
+    customer: string
+    date: string
+    surface: string
+    quantity: string
+    orderNo: string
+    length: string
+    width: string
+    height: string
+    doorCount: string
+    zhongCount: string
+    remark: string
+  },
+  tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string; [key: string]: any }>,
+  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
+  allAccessories: Array<{ name: string; value: string }>
+): Promise<boolean> {
+  try {
+    const res = await getOrderDetail(orderId)
+    const data = res.data
+
+    // 恢复基本信息
+    info.customer = data.customer || ''
+    info.date = data.date || ''
+    info.surface = data.surface || ''
+    info.quantity = data.quantity || ''
+    info.orderNo = data.order_no || ''
+    info.length = data.length || ''
+    info.width = data.width || ''
+    info.height = data.height || ''
+    info.doorCount = data.door_count || ''
+    info.zhongCount = data.zhong_count || ''
+    info.remark = data.remark || ''
+
+    // 恢复主表格
+    if (data.table_data) {
+      for (const row of tableData) {
+        const savedRow = data.table_data.find((r: { mingcheng: string }) => r.mingcheng === row.mingcheng)
+        if (savedRow) {
+          row.guige = savedRow.guige ?? row.guige
+          row.shuliang = savedRow.shuliang ?? row.shuliang
+          row.beizhu = savedRow.beizhu ?? row.beizhu
+        }
+      }
+    }
+
+    // 恢复底部门板
+    if (data.door_panels) {
+      for (const row of doorPanelRows) {
+        const savedRow = data.door_panels.find((r: { name: string }) => r.name === row.name)
+        if (savedRow) {
+          row.shuju1 = savedRow.shuju1 ?? ''
+          row.shuju2 = savedRow.shuju2 ?? ''
+          row.shuliang = savedRow.shuliang ?? ''
+          row.beizhu = savedRow.beizhu ?? ''
+        }
+      }
+    }
+
+    // 恢复配件
+    if (data.accessories) {
+      for (const item of allAccessories) {
+        const savedItem = data.accessories.find((a: { name: string }) => a.name === item.name)
+        if (savedItem) {
+          item.value = savedItem.value ?? ''
+        }
+      }
+    }
+
+    currentOrderId = orderId
+    return true
+  } catch (e) {
+    console.error('从后端加载订单失败:', e)
+    return false
   }
 }
 
@@ -139,6 +258,7 @@ export function loadTableData(
       for (const row of tableData) {
         const savedRow = data.tableRows.find((r: { mingcheng: string }) => r.mingcheng === row.mingcheng)
         if (savedRow) {
+          row.guige = savedRow.guige ?? row.guige
           row.shuliang = savedRow.shuliang ?? row.shuliang
           row.beizhu = savedRow.beizhu ?? row.beizhu
         }
