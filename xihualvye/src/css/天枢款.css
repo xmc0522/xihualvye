@@ -83,7 +83,6 @@
     font-size: 17.5px !important;
     line-height: 1.1 !important;
     padding: 0 !important;
-    
   }
   .main-table :deep(tr.print-row-short .el-input__inner) {
     height: 32px !important;

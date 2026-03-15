@@ -4,8 +4,17 @@
       <div class="login-card">
         <div class="login-header">
           <div class="login-logo">
-            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#409eff" stroke-width="2">
-              <path d="M3 21h18M3 7v1a3 3 0 006 0V7m0 0V3h6v4m0 0v1a3 3 0 006 0V7M6 21V10m12 11V10" />
+            <svg
+              viewBox="0 0 24 24"
+              width="40"
+              height="40"
+              fill="none"
+              stroke="#409eff"
+              stroke-width="2"
+            >
+              <path
+                d="M3 21h18M3 7v1a3 3 0 006 0V7m0 0V3h6v4m0 0v1a3 3 0 006 0V7M6 21V10m12 11V10"
+              />
             </svg>
           </div>
           <h1 class="login-title">玺华铝业</h1>
@@ -69,12 +78,12 @@ const loading = ref(false)
 
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 
 const rules: FormRules = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
 
 // 页面加载时检查是否已登录
@@ -104,17 +113,20 @@ async function handleLogin() {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: form.username, password: form.password })
+      body: JSON.stringify({ username: form.username, password: form.password }),
     })
     const data = await res.json()
 
     if (data.code === 0) {
       // 登录成功，保存到 localStorage
-      localStorage.setItem('xhly_auth', JSON.stringify({
-        username: form.username,
-        password: form.password,
-        loginTime: Date.now()
-      }))
+      localStorage.setItem(
+        'xhly_auth',
+        JSON.stringify({
+          username: form.username,
+          password: form.password,
+          loginTime: Date.now(),
+        }),
+      )
       ElMessage.success('登录成功')
       router.replace('/')
     } else {

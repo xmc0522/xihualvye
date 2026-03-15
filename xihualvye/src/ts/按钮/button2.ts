@@ -45,9 +45,21 @@ export async function saveTableData(
     zhongCount: string
     remark: string
   },
-  tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string; [key: string]: any }>,
-  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
-  allAccessories: Array<{ name: string; value: string }>
+  tableData: Array<{
+    mingcheng: string
+    guige: string
+    shuliang: string
+    beizhu: string
+    [key: string]: any
+  }>,
+  doorPanelRows: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>,
+  allAccessories: Array<{ name: string; value: string }>,
 ) {
   // 构建保存数据
   const tableRows = tableData.map((row) => ({
@@ -139,9 +151,21 @@ export async function loadOrderFromServer(
     zhongCount: string
     remark: string
   },
-  tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string; [key: string]: any }>,
-  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
-  allAccessories: Array<{ name: string; value: string }>
+  tableData: Array<{
+    mingcheng: string
+    guige: string
+    shuliang: string
+    beizhu: string
+    [key: string]: any
+  }>,
+  doorPanelRows: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>,
+  allAccessories: Array<{ name: string; value: string }>,
 ): Promise<boolean> {
   try {
     const res = await getOrderDetail(orderId)
@@ -163,7 +187,9 @@ export async function loadOrderFromServer(
     // 恢复主表格
     if (data.table_data) {
       for (const row of tableData) {
-        const savedRow = data.table_data.find((r: { mingcheng: string }) => r.mingcheng === row.mingcheng)
+        const savedRow = data.table_data.find(
+          (r: { mingcheng: string }) => r.mingcheng === row.mingcheng,
+        )
         if (savedRow) {
           row.guige = savedRow.guige ?? row.guige
           row.shuliang = savedRow.shuliang ?? row.shuliang
@@ -227,9 +253,21 @@ export function loadTableData(
     zhongCount: string
     remark: string
   },
-  tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string; [key: string]: any }>,
-  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
-  allAccessories: Array<{ name: string; value: string }>
+  tableData: Array<{
+    mingcheng: string
+    guige: string
+    shuliang: string
+    beizhu: string
+    [key: string]: any
+  }>,
+  doorPanelRows: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>,
+  allAccessories: Array<{ name: string; value: string }>,
 ): boolean {
   try {
     const key = getStorageKey(pageKey)
@@ -256,7 +294,9 @@ export function loadTableData(
     // 恢复主表格中可编辑的字段
     if (data.tableRows) {
       for (const row of tableData) {
-        const savedRow = data.tableRows.find((r: { mingcheng: string }) => r.mingcheng === row.mingcheng)
+        const savedRow = data.tableRows.find(
+          (r: { mingcheng: string }) => r.mingcheng === row.mingcheng,
+        )
         if (savedRow) {
           row.guige = savedRow.guige ?? row.guige
           row.shuliang = savedRow.shuliang ?? row.shuliang

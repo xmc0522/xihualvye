@@ -35,8 +35,6 @@ export function useChangyongBiaoge() {
     }
   })()
 
-
-
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
@@ -189,7 +187,7 @@ export function useChangyongBiaoge() {
         }
         if (zhongZhuIdx === 1) {
           if (info.doorCount) {
-            zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
+            zhongZhuShuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
             result[i]!.shuliang = zhongZhuShuliang
           } else {
             result[i]!.shuliang = ''
@@ -208,7 +206,7 @@ export function useChangyongBiaoge() {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (info.doorCount) {
-          result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
+          result[i]!.shuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
         } else {
           result[i]!.shuliang = ''
         }
@@ -251,7 +249,10 @@ export function useChangyongBiaoge() {
           // 第一个门料：规格 = (长度 - 80 - (门数量 + 1) * 2) / 门数量，保留小数点后一位
           const doorCount = Number(info.doorCount)
           if (doorCount > 0) {
-            result[i]!.guige = ((Number(info.length) - 80 - (doorCount + 1) * 2) / doorCount).toFixed(1)
+            result[i]!.guige = (
+              (Number(info.length) - 80 - (doorCount + 1) * 2) /
+              doorCount
+            ).toFixed(1)
           }
         } else if (menLiaoIdx === 2 && info.height) {
           result[i]!.guige = String(Number(info.height) - 25)
@@ -523,8 +524,19 @@ export function useChangyongBiaoge() {
         beiBan.shuju2 = ''
       }
     },
-    { immediate: true }
+    { immediate: true },
   )
 
-return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules }
+  return {
+    info,
+    filteredTableData,
+    mergeMethod,
+    accessoryRows,
+    doorPanelRows,
+    getImage,
+    saveToLocalStorage,
+    tableData,
+    allAccessories,
+    imageModules,
+  }
 }

@@ -1,27 +1,38 @@
 // 主表格中各行的默认shuliang值
 const defaultShuliang: Record<string, string> = {
-  '上包边': '2',
-  '下包边': '2',
-  '立柱': '4',
-  '前后横梁': '4',
-  '侧横梁': '4',
-  '中柱': '',
-  '加固': '',
-  '拉筋': '',
-  '横拉': '1',
-  '门料': '',
-  '侧板': '4',
+  上包边: '2',
+  下包边: '2',
+  立柱: '4',
+  前后横梁: '4',
+  侧横梁: '4',
+  中柱: '',
+  加固: '',
+  拉筋: '',
+  横拉: '1',
+  门料: '',
+  侧板: '4',
 }
 
 // 底部门板默认shuliang
 const defaultDoorPanelShuliang: Record<string, string> = {
-  '门板': '',
-  '侧门板': '2',
-  '背板': '',
+  门板: '',
+  侧门板: '2',
+  背板: '',
 }
 
 // 固定备注的名称列表（这些行的beizhu不清空）
-const fixedBeizhuNames = ['上包边', '下包边', '前后横梁', '侧横梁', '中柱', '加固', '拉筋', '横拉', '门料', '侧板']
+const fixedBeizhuNames = [
+  '上包边',
+  '下包边',
+  '前后横梁',
+  '侧横梁',
+  '中柱',
+  '加固',
+  '拉筋',
+  '横拉',
+  '门料',
+  '侧板',
+]
 
 /**
  * 通用清空表格函数
@@ -44,9 +55,21 @@ export function clearTable(
     zhongCount: string
     remark: string
   },
-  tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string; [key: string]: any }>,
-  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
-  allAccessories: Array<{ value: string; [key: string]: any }>
+  tableData: Array<{
+    mingcheng: string
+    guige: string
+    shuliang: string
+    beizhu: string
+    [key: string]: any
+  }>,
+  doorPanelRows: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>,
+  allAccessories: Array<{ value: string; [key: string]: any }>,
 ) {
   // 1. 清空基本信息
   info.customer = ''

@@ -4,14 +4,29 @@
     <div class="search-bar">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="客户">
-          <el-input v-model="searchForm.customer" placeholder="请输入客户名" clearable style="width: 150px" />
+          <el-input
+            v-model="searchForm.customer"
+            placeholder="请输入客户名"
+            clearable
+            style="width: 150px"
+          />
         </el-form-item>
         <el-form-item label="单号">
-          <el-input v-model="searchForm.orderNo" placeholder="请输入单号" clearable style="width: 150px" />
+          <el-input
+            v-model="searchForm.orderNo"
+            placeholder="请输入单号"
+            clearable
+            style="width: 150px"
+          />
         </el-form-item>
         <el-form-item label="款式">
-          <el-select v-model="searchForm.pageType" placeholder="全部款式" clearable style="width: 180px">
-            <el-option label="天枢款-单面门-选择款" value="天枢款" />
+          <el-select
+            v-model="searchForm.pageType"
+            placeholder="全部款式"
+            clearable
+            style="width: 180px"
+          >
+            <!-- <el-option label="天枢款-单面门-选择款" value="天枢款" /> -->
             <el-option label="天枢款-常用款" value="天枢款-常用款" />
             <el-option label="天枢款-无上包边" value="天枢款-无上包边" />
             <el-option label="天枢款-单门-加背板" value="天枢款-单门-加背板" />
@@ -98,7 +113,9 @@
           <el-descriptions-item label="高度">{{ detailData.height }}</el-descriptions-item>
           <el-descriptions-item label="门数量">{{ detailData.door_count }}</el-descriptions-item>
           <el-descriptions-item label="中柱数量">{{ detailData.zhong_count }}</el-descriptions-item>
-          <el-descriptions-item label="工艺备注" :span="2">{{ detailData.remark || '无' }}</el-descriptions-item>
+          <el-descriptions-item label="工艺备注" :span="2">{{
+            detailData.remark || '无'
+          }}</el-descriptions-item>
         </el-descriptions>
 
         <h4 style="margin-top: 16px">主表格数据</h4>
@@ -267,7 +284,7 @@ const editForm = ref<OrderSavePayload>({
 
 // 款式 -> 路由路径映射
 const pageTypeRouteMap: Record<string, string> = {
-  '天枢款': '/zyxz/a',
+  天枢款: '/zyxz/a',
   '天枢款-常用款': '/tianshu/c',
   '天枢款-无上包边': '/tianshu/d',
   '天枢款-单门-加背板': '/tianshu/a',
@@ -378,11 +395,9 @@ const handleEditSave = async () => {
 // 删除单个订单
 const handleDelete = async (row: OrderListItem) => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除客户 "${row.customer}" 的订单吗？`,
-      '提示',
-      { type: 'warning' }
-    )
+    await ElMessageBox.confirm(`确定要删除客户 "${row.customer}" 的订单吗？`, '提示', {
+      type: 'warning',
+    })
     await deleteOrder(row.id)
     ElMessage.success('删除成功')
     handleSearch()
@@ -396,11 +411,9 @@ const handleDelete = async (row: OrderListItem) => {
 // 批量删除
 const handleBatchDelete = async () => {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedIds.value.length} 条订单吗？`,
-      '提示',
-      { type: 'warning' }
-    )
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条订单吗？`, '提示', {
+      type: 'warning',
+    })
     await batchDeleteOrders(selectedIds.value)
     ElMessage.success('批量删除成功')
     selectedIds.value = []

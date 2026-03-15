@@ -21,7 +21,10 @@ const getImage = (xinghao: string) => {
   return key ? imageModules[key] : ''
 }
 
-export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externalExcludeDoorPanels?: Ref<string[]>) {
+export function useChangyongBiaoge(
+  externalExcludeNames?: Ref<string[]>,
+  externalExcludeDoorPanels?: Ref<string[]>,
+) {
   // 使用外部传入的排除名称列表（响应式），若未传入则使用空数组
   const excludeNamesRef = externalExcludeNames || ref<string[]>([])
   // 使用外部传入的排除底部门板名称列表（响应式），若未传入则使用空数组
@@ -31,59 +34,74 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
   const savedTableValuesMap = new Map<number, { guige: string; shuliang: string }>()
 
   // 记录被排除前底部门板每行的 shuju1、shuju2、shuliang 值
-  const savedDoorPanelValuesMap = new Map<string, { shuju1: string; shuju2: string; shuliang: string }>()
+  const savedDoorPanelValuesMap = new Map<
+    string,
+    { shuju1: string; shuju2: string; shuliang: string }
+  >()
 
   // 监听"不生成的名称"下拉框变化：被排除的行 guige 和 shuliang 赋 '0'，取消排除时恢复排除前的值
-  watch(excludeNamesRef, (newExcludeNames, oldExcludeNames) => {
-    const oldNames = oldExcludeNames || []
+  watch(
+    excludeNamesRef,
+    (newExcludeNames, oldExcludeNames) => {
+      const oldNames = oldExcludeNames || []
 
-    tableData.forEach((row, index) => {
-      const isNowExcluded = newExcludeNames.includes(row.mingcheng)
-      const wasExcluded = oldNames.includes(row.mingcheng)
+      tableData.forEach((row, index) => {
+        const isNowExcluded = newExcludeNames.includes(row.mingcheng)
+        const wasExcluded = oldNames.includes(row.mingcheng)
 
-      if (isNowExcluded && !wasExcluded) {
-        // 新增排除：备份当前值，然后赋0
-        savedTableValuesMap.set(index, { guige: row.guige, shuliang: row.shuliang })
-        row.guige = '0'
-        row.shuliang = '0'
-      } else if (!isNowExcluded && wasExcluded) {
-        // 取消排除：恢复备份的值
-        const saved = savedTableValuesMap.get(index)
-        if (saved !== undefined) {
-          row.guige = saved.guige
-          row.shuliang = saved.shuliang
-          savedTableValuesMap.delete(index)
+        if (isNowExcluded && !wasExcluded) {
+          // 新增排除：备份当前值，然后赋0
+          savedTableValuesMap.set(index, { guige: row.guige, shuliang: row.shuliang })
+          row.guige = '0'
+          row.shuliang = '0'
+        } else if (!isNowExcluded && wasExcluded) {
+          // 取消排除：恢复备份的值
+          const saved = savedTableValuesMap.get(index)
+          if (saved !== undefined) {
+            row.guige = saved.guige
+            row.shuliang = saved.shuliang
+            savedTableValuesMap.delete(index)
+          }
         }
-      }
-    })
-  }, { deep: true })
+      })
+    },
+    { deep: true },
+  )
 
   // 监听"不生成的配件"下拉框变化：被排除的底部门板行赋 '0'，取消排除时恢复排除前的值
-  watch(excludeDoorPanelsRef, (newExcludeDoorPanels, oldExcludeDoorPanels) => {
-    const oldNames = oldExcludeDoorPanels || []
+  watch(
+    excludeDoorPanelsRef,
+    (newExcludeDoorPanels, oldExcludeDoorPanels) => {
+      const oldNames = oldExcludeDoorPanels || []
 
-    doorPanelRows.value.forEach((row) => {
-      const isNowExcluded = newExcludeDoorPanels.includes(row.name)
-      const wasExcluded = oldNames.includes(row.name)
+      doorPanelRows.value.forEach((row) => {
+        const isNowExcluded = newExcludeDoorPanels.includes(row.name)
+        const wasExcluded = oldNames.includes(row.name)
 
-      if (isNowExcluded && !wasExcluded) {
-        // 新增排除：备份当前值，然后赋0
-        savedDoorPanelValuesMap.set(row.name, { shuju1: row.shuju1, shuju2: row.shuju2, shuliang: row.shuliang })
-        row.shuju1 = '0'
-        row.shuju2 = '0'
-        row.shuliang = '0'
-      } else if (!isNowExcluded && wasExcluded) {
-        // 取消排除：恢复备份的值
-        const saved = savedDoorPanelValuesMap.get(row.name)
-        if (saved !== undefined) {
-          row.shuju1 = saved.shuju1
-          row.shuju2 = saved.shuju2
-          row.shuliang = saved.shuliang
-          savedDoorPanelValuesMap.delete(row.name)
+        if (isNowExcluded && !wasExcluded) {
+          // 新增排除：备份当前值，然后赋0
+          savedDoorPanelValuesMap.set(row.name, {
+            shuju1: row.shuju1,
+            shuju2: row.shuju2,
+            shuliang: row.shuliang,
+          })
+          row.shuju1 = '0'
+          row.shuju2 = '0'
+          row.shuliang = '0'
+        } else if (!isNowExcluded && wasExcluded) {
+          // 取消排除：恢复备份的值
+          const saved = savedDoorPanelValuesMap.get(row.name)
+          if (saved !== undefined) {
+            row.shuju1 = saved.shuju1
+            row.shuju2 = saved.shuju2
+            row.shuliang = saved.shuliang
+            savedDoorPanelValuesMap.delete(row.name)
+          }
         }
-      }
-    })
-  }, { deep: true })
+      })
+    },
+    { deep: true },
+  )
 
   // 基本信息（页面手动输入）
   const info = reactive({
@@ -240,7 +258,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
           if (isBeiBanExcluded) {
             result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
+            result[i]!.shuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -260,7 +278,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
           if (isBeiBanExcluded) {
             result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
+            result[i]!.shuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -280,7 +298,7 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
           if (isBeiBanExcluded) {
             result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 * qty)
           } else {
-            result[i]!.shuliang = String((Number(info.doorCount) - 1) * 2 / 2 * qty)
+            result[i]!.shuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
           }
         } else {
           result[i]!.shuliang = ''
@@ -323,7 +341,10 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
           // 第一个门料：规格 = (长度 - 80 - (门数量 + 1) * 2) / 门数量，保留小数点后一位
           const doorCount = Number(info.doorCount)
           if (doorCount > 0) {
-            result[i]!.guige = ((Number(info.length) - 80 - (doorCount + 1) * 2) / doorCount).toFixed(1)
+            result[i]!.guige = (
+              (Number(info.length) - 80 - (doorCount + 1) * 2) /
+              doorCount
+            ).toFixed(1)
           }
         } else if (menLiaoIdx === 2 && info.height) {
           result[i]!.guige = String(Number(info.height) - 25)
@@ -522,7 +543,16 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
 
   // 监听基本信息变化及下拉框排除变化，自动计算侧门板和配件的数据值
   watch(
-    () => [info.width, info.height, info.length, info.doorCount, info.zhongCount, info.quantity, excludeNamesRef.value, excludeDoorPanelsRef.value],
+    () => [
+      info.width,
+      info.height,
+      info.length,
+      info.doorCount,
+      info.zhongCount,
+      info.quantity,
+      excludeNamesRef.value,
+      excludeDoorPanelsRef.value,
+    ],
     () => {
       const qty = Number(info.quantity) || 1
 
@@ -611,8 +641,20 @@ export function useChangyongBiaoge(externalExcludeNames?: Ref<string[]>, externa
         beiBan.shuju2 = ''
       }
     },
-    { immediate: true }
+    { immediate: true },
   )
 
-return { info, filteredTableData, mergeMethod, accessoryRows, doorPanelRows, filteredDoorPanelRows, getImage, saveToLocalStorage, tableData, allAccessories, imageModules }
+  return {
+    info,
+    filteredTableData,
+    mergeMethod,
+    accessoryRows,
+    doorPanelRows,
+    filteredDoorPanelRows,
+    getImage,
+    saveToLocalStorage,
+    tableData,
+    allAccessories,
+    imageModules,
+  }
 }

@@ -12,8 +12,8 @@
           @open="handleOpen"
           @close="handleClose"
         >
-          <el-menu-item style="padding-left:8px;padding-top: 10px;margin-bottom: 20px;">
-            <span style="font-size: 18px;">玺华铝业-业务管理系统</span>
+          <el-menu-item style="padding-left: 8px; padding-top: 10px; margin-bottom: 20px">
+            <span style="font-size: 18px">玺华铝业-业务管理系统</span>
           </el-menu-item>
           <template v-for="(item, index) in menuArr" :key="index">
             <el-sub-menu v-if="item.children" :index="item.path">
@@ -69,12 +69,14 @@ const handleLogout = () => {
   ElMessageBox.confirm('确定要退出登录吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    localStorage.removeItem('xhly_auth')
-    ElMessage.success('已退出登录')
-    router.replace('/login')
-  }).catch(() => {})
+    type: 'warning',
+  })
+    .then(() => {
+      localStorage.removeItem('xhly_auth')
+      ElMessage.success('已退出登录')
+      router.replace('/login')
+    })
+    .catch(() => {})
 }
 </script>
 

@@ -55,9 +55,15 @@ export async function downloadTable(
     _mergeBeizhu?: number
     [key: string]: any
   }>,
-  doorPanelRows: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>,
+  doorPanelRows: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>,
   allAccessories: Array<{ name: string; value: string }>,
-  imageModules?: Record<string, string>
+  imageModules?: Record<string, string>,
 ) {
   const workbook = new ExcelJS.Workbook()
   const ws = workbook.addWorksheet('表格数据')
@@ -80,12 +86,12 @@ export async function downloadTable(
   // 设置列宽
   const IMAGE_COL_WIDTH = 26 // 图片列宽度（Excel字符宽度单位）
   ws.columns = [
-    { width:10 },   // 列A: 型号（缩小列宽）
-    { width: IMAGE_COL_WIDTH },  // 列B: 图片（加宽以容纳图片）
-    { width: 10 },  // 列C: 名称
-    { width: 12 },  // 列D: 规格
-    { width: 10 },  // 列E: 数量
-    { width: 12 },  // 列F: 备注
+    { width: 10 }, // 列A: 型号（缩小列宽）
+    { width: IMAGE_COL_WIDTH }, // 列B: 图片（加宽以容纳图片）
+    { width: 10 }, // 列C: 名称
+    { width: 12 }, // 列D: 规格
+    { width: 10 }, // 列E: 数量
+    { width: 12 }, // 列F: 备注
   ]
 
   // 辅助函数：为一行的所有6列设置样式
@@ -316,9 +322,12 @@ export async function downloadTable(
     // 每行3个配件，每个配件占2列（名称+数量）
     for (let j = 0; j < allAccessories.length; j += 3) {
       const accData = [
-        allAccessories[j]?.name || '', allAccessories[j]?.value || '',
-        allAccessories[j + 1]?.name || '', allAccessories[j + 1]?.value || '',
-        allAccessories[j + 2]?.name || '', allAccessories[j + 2]?.value || '',
+        allAccessories[j]?.name || '',
+        allAccessories[j]?.value || '',
+        allAccessories[j + 1]?.name || '',
+        allAccessories[j + 1]?.value || '',
+        allAccessories[j + 2]?.name || '',
+        allAccessories[j + 2]?.value || '',
       ]
       for (let c = 0; c < 6; c++) {
         ws.getCell(rowIdx, c + 1).value = accData[c]
@@ -341,6 +350,8 @@ export async function downloadTable(
   // ========== 生成并下载文件 ==========
   const fileName = `${title}${info.customer ? '_' + info.customer : ''}${info.orderNo ? '_' + info.orderNo : ''}.xlsx`
   const buffer = await workbook.xlsx.writeBuffer()
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  })
   saveAs(blob, fileName)
 }

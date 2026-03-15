@@ -54,7 +54,13 @@ export interface OrderSavePayload {
   remark: string
   pageType: string
   tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string }>
-  doorPanels: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>
+  doorPanels: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>
   accessories: Array<{ name: string; value: string }>
 }
 
@@ -78,7 +84,13 @@ export interface OrderListItem {
 
 export interface OrderDetail extends OrderListItem {
   table_data: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string }>
-  door_panels: Array<{ name: string; shuju1: string; shuju2: string; shuliang: string; beizhu: string }>
+  door_panels: Array<{
+    name: string
+    shuju1: string
+    shuju2: string
+    shuliang: string
+    beizhu: string
+  }>
   accessories: Array<{ name: string; value: string }>
 }
 
@@ -98,15 +110,17 @@ export async function createOrder(payload: OrderSavePayload) {
 }
 
 /** 查询订单列表 */
-export async function getOrderList(params: {
-  customer?: string
-  pageType?: string
-  orderNo?: string
-  startDate?: string
-  endDate?: string
-  page?: number
-  pageSize?: number
-} = {}) {
+export async function getOrderList(
+  params: {
+    customer?: string
+    pageType?: string
+    orderNo?: string
+    startDate?: string
+    endDate?: string
+    page?: number
+    pageSize?: number
+  } = {},
+) {
   const searchParams = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== '') {
