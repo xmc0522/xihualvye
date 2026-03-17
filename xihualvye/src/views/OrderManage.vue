@@ -62,13 +62,13 @@
       :cell-style="{ textAlign: 'center' }"
     >
       <el-table-column type="selection" width="50" />
-      <el-table-column prop="id" label="ID" width="60" />
+      <!-- <el-table-column prop="id" label="ID" width="60" /> -->
       <el-table-column prop="customer" label="客户" min-width="120" show-overflow-tooltip />
       <el-table-column prop="order_no" label="单号" min-width="120" show-overflow-tooltip />
       <el-table-column prop="date" label="日期" min-width="110" />
       <el-table-column prop="page_type" label="款式" min-width="180" show-overflow-tooltip />
       <el-table-column prop="surface" label="表面" min-width="80" />
-      <el-table-column prop="quantity" label="数量" width="60" />
+      <el-table-column prop="quantity" label="数量/套" width="80" />
       <el-table-column label="尺寸 (长×宽×高)" min-width="160">
         <template #default="{ row }">
           {{ row.length || '-' }} × {{ row.width || '-' }} × {{ row.height || '-' }}

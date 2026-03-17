@@ -46,8 +46,8 @@
             </el-select>
           </td>
           <td class="label-cell" style="width: 99px">数量：</td>
-          <td class="value-cell" style="width: 100px">
-            <el-input v-model="info.quantity" placeholder="请输入数量" class="info-input" />
+          <td class="value-cell" style="width: 100px;padding-left: 0px;padding-right: 0px;">
+            <el-input v-model="info.quantity" placeholder="请输入数量" class="info-input" style="width: 70px;"/><span class="print-unit">套</span> 
           </td>
           <td class="label-cell" style="padding: 0; width: 70px">客户单号：</td>
           <td class="value-cell">
