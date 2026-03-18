@@ -23,8 +23,13 @@ xcopy /e /i /q xihualvye\dist server\public
 echo ✅ 前端文件复制完成
 echo.
 
-echo [3/5] 正在编译后端 TypeScript...
+echo [3/5] 正在安装后端依赖（含开发依赖）...
 cd server
+call npm install
+echo ✅ 后端依赖安装完成
+echo.
+
+echo [4/5] 正在编译后端 TypeScript...
 call npx tsc
 if errorlevel 1 (
     echo ❌ 后端编译失败！
@@ -32,11 +37,6 @@ if errorlevel 1 (
     exit /b 1
 )
 echo ✅ 后端编译完成
-echo.
-
-echo [4/5] 正在安装后端依赖...
-call npm install --production
-echo ✅ 后端依赖安装完成
 echo.
 
 echo [5/5] 打包完成！
