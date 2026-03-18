@@ -3,6 +3,28 @@ import db from '../db'
 
 const router = Router()
 
+// ============ 按型号统计订单数量 ============
+router.get('/stats/by-page-type', (_req: Request, res: Response) => {
+  try {
+    // 按 page_type 分组，汇总 quantity（字符串转数字求和）
+    const rows = db.prepare(`
+      SELECT page_type, COALESCE(SUM(CAST(quantity AS INTEGER)), 0) as total_quantity, COUNT(*) as order_count
+      FROM orders
+      WHERE page_type IS NOT NULL AND page_type != ''
+      GROUP BY page_type
+      ORDER BY total_quantity DESC
+    `).all() as Array<{ page_type: string; total_quantity: number; order_count: number }>
+
+    res.json({
+      code: 0,
+      data: rows,
+    })
+  } catch (e: any) {
+    console.error('统计订单失败:', e)
+    res.status(500).json({ code: -1, message: '统计失败: ' + e.message })
+  }
+})
+
 // ============ 创建订单 ============
 router.post('/', (req: Request, res: Response) => {
   try {

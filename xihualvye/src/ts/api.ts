@@ -158,3 +158,16 @@ export async function batchDeleteOrders(ids: number[]) {
     body: JSON.stringify({ ids }),
   })
 }
+
+// ============ 统计相关接口 ============
+
+export interface PageTypeStats {
+  page_type: string
+  total_quantity: number
+  order_count: number
+}
+
+/** 按型号统计订单数量 */
+export async function getOrderStatsByPageType() {
+  return request<{ code: number; data: PageTypeStats[] }>('/orders/stats/by-page-type')
+}

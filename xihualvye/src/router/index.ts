@@ -36,6 +36,7 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('../zhuye.vue'),
+      redirect: '/dashboard',
       children: childRoutes,
       meta: { requiresAuth: true }
     },
@@ -61,10 +62,10 @@ router.beforeEach((to, _from, next) => {
     // 需要登录的页面
     if (!isLoggedIn) {
       next('/login')
-    } else if (isFirstLoad && to.path !== '/') {
-      // 刷新浏览器时，回到首页（显示图片的页面）
+    } else if (isFirstLoad && to.path !== '/' && to.path !== '/dashboard') {
+      // 刷新浏览器时，回到首页 Dashboard
       isFirstLoad = false
-      next('/')
+      next('/dashboard')
     } else {
       isFirstLoad = false
       next()

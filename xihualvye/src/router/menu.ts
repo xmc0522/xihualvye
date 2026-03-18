@@ -1,15 +1,26 @@
 
 
+
+
+// Dashboard 使用懒加载，避免与 menu.ts 的循环依赖
+// （Dashboard.ts 中需要 import menuArr，如果同步 import 会造成循环引用导致白屏）
+const Dashboard = () => import('@/views/首页/Dashboard.vue')
 import danmengbeibang1 from '@/views/天枢款/danmengbeibang-1.vue'
 import danmengbeibang2 from '@/views/天枢款/danmengbeibang-2.vue'
 import changyongkuan from '@/views/天枢款/changyongkuan.vue'
 import wushangbaobian from '@/views/天枢款/wushangbaobian.vue'
 import Shuangmianmen1 from '@/views/天枢款/shuangmianmen-1.vue'
 import Shuangmianmen2 from '@/views/天枢款/shuangmianmen-2.vue'
-import ZYXZ from '@/views/ZYXZ.vue'
-import OrderManage from '@/views/OrderManage.vue'
+import ZYXZ from '@/views/自由选择页面/天枢-单门/ZYXZ.vue'
+import OrderManage from '@/views/订单管理页面/OrderManage.vue'
 
 export const menuArr = [
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    title: '首页',
+    component: Dashboard,
+  },
   {
     path: '/orders',
     name: 'orders',

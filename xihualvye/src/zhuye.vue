@@ -40,7 +40,6 @@
     </el-aside>
     <el-container>
       <el-main>
-        <img v-if="route.path === '/'" src="../JPG/卡通形象.png" width="100%" />
         <router-view></router-view>
       </el-main>
     </el-container>
