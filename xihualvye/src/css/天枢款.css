@@ -18,6 +18,13 @@
   margin: 0;
 }
 
+.print-unit {
+    /* display: inline !important; */
+    font-size: 15px;
+    text-align: center !important;
+    padding-top: 8px !important;
+  }
+
 /* 打印时隐藏表格上方内容并去掉页眉区空白 */
 @media print {
   .button-row {
@@ -247,12 +254,10 @@
   }
   /* 打印时显示数量后面的“套”字 */
   .print-unit {
-    display: inline !important;
+    /* display: inline !important; */
     font-size: 18px !important;
     text-align: center !important;
-    /* line-height: 18px !important; */
     padding-top: 8px !important;
-    /* padding-bottom: 6px !important; */
   }
   /* 标题行高 */
   .table-title {
@@ -487,9 +492,9 @@
 }
 
 /* 打印时数量后面的“套”字，默认隐藏 */
-.print-unit {
+/* .print-unit {
   display: none;
-}
+} */
 
 /* 基本信息输入框样式 */
 .info-input :deep(.el-input__wrapper) {
