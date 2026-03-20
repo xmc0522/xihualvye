@@ -13,24 +13,29 @@ import Shuangmianmen1 from '@/views/天枢款/shuangmianmen-1.vue'
 import Shuangmianmen2 from '@/views/天枢款/shuangmianmen-2.vue'
 import ZYXZ from '@/views/自由选择页面/天枢-单门/ZYXZ.vue'
 import OrderManage from '@/views/订单管理页面/OrderManage.vue'
+import { HomeFilled, Document, Operation, Grid } from '@element-plus/icons-vue'
+import { markRaw, type Component } from 'vue'
 
 export const menuArr = [
   {
     path: '/dashboard',
     name: 'dashboard',
     title: '首页',
+    icon: markRaw(HomeFilled),
     component: Dashboard,
   },
   {
     path: '/orders',
     name: 'orders',
     title: '订单管理',
+    icon: markRaw(Document),
     component: OrderManage,
   },
   {
     path: '/zyxz',
     name: 'zyxz',
     title: '自由选择',
+    icon: markRaw(Operation),
     children: [
       { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: ZYXZ },
     ],
@@ -39,6 +44,7 @@ export const menuArr = [
     path: '/tianshu',
     name: 'tianshu',
     title: '天枢款',
+    icon: markRaw(Grid),
     children: [
       { path: '/tianshu/c', title: '天枢款-常用款', component: changyongkuan },
       { path: '/tianshu/d', title: '天枢款-无上包边款', component: wushangbaobian },

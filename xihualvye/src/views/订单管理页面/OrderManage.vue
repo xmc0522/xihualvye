@@ -35,6 +35,18 @@
             <el-option label="天枢款-双面门-背面假门" value="天枢款-双面门-背面假门" />
           </el-select>
         </el-form-item>
+        <el-form-item label="日期">
+          <el-date-picker
+            v-model="searchForm.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY/MM/DD"
+            style="width: 260px"
+            clearable
+          />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
@@ -246,6 +258,7 @@ const searchForm = ref({
   customer: '',
   orderNo: '',
   pageType: '',
+  dateRange: null as [string, string] | null,
 })
 
 // 表格数据
@@ -301,6 +314,8 @@ const handleSearch = async () => {
       customer: searchForm.value.customer,
       orderNo: searchForm.value.orderNo,
       pageType: searchForm.value.pageType,
+      startDate: searchForm.value.dateRange?.[0] || '',
+      endDate: searchForm.value.dateRange?.[1] || '',
       page: currentPage.value,
       pageSize: pageSize.value,
     })
@@ -315,7 +330,7 @@ const handleSearch = async () => {
 
 // 重置
 const handleReset = () => {
-  searchForm.value = { customer: '', orderNo: '', pageType: '' }
+  searchForm.value = { customer: '', orderNo: '', pageType: '', dateRange: null }
   currentPage.value = 1
   handleSearch()
 }

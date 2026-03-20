@@ -15,21 +15,23 @@
           <el-menu-item style="padding-left: 8px; padding-top: 10px; margin-bottom: 20px">
             <span style="font-size: 18px">玺华铝业-业务管理系统</span>
           </el-menu-item>
-          <template v-for="(item, index) in menuArr" :key="index">
-            <el-sub-menu v-if="item.children" :index="item.path">
-              <template #title>
-                <span>
-                  {{ item.title }}
-                </span>
-              </template>
-              <el-menu-item v-for="(v, i) in item.children" :key="i" :index="v.path">
-                <span>{{ v.title }}</span>
+          <div class="menu-items-wrapper">
+            <template v-for="(item, index) in menuArr" :key="index">
+              <el-sub-menu v-if="item.children" :index="item.path">
+                <template #title>
+                  <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+                  <span>{{ item.title }}</span>
+                </template>
+                <el-menu-item v-for="(v, i) in item.children" :key="i" :index="v.path">
+                  <span>{{ v.title }}</span>
+                </el-menu-item>
+              </el-sub-menu>
+              <el-menu-item v-else :index="item.path">
+                <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+                <span>{{ item.title }}</span>
               </el-menu-item>
-            </el-sub-menu>
-            <el-menu-item v-else :index="item.path">
-              <span>{{ item.title }}</span>
-            </el-menu-item>
-          </template>
+            </template>
+          </div>
         </el-menu>
         <div class="logout-area">
           <el-button type="danger" plain size="small" @click="handleLogout" class="logout-btn">
@@ -122,6 +124,11 @@ const handleLogout = () => {
 
 .layout-container-demo .el-menu {
   border-right: none;
+}
+
+/* 菜单项区域整体左侧内边距加大 */
+.menu-items-wrapper {
+  padding-left: 15px;
 }
 
 .layout-container-demo .el-main {

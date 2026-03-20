@@ -271,6 +271,28 @@
     max-height: 45px !important;
     width: auto !important;
   }
+  /* 打印时日期选择器变为纯文本样式，去掉边框、图标 */
+  .info-table :deep(.el-date-editor) {
+    width: 100% !important;
+  }
+  .info-table :deep(.el-date-editor .el-input__wrapper) {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  .info-table :deep(.el-date-editor .el-input__prefix) {
+    display: none !important;
+  }
+  .info-table :deep(.el-date-editor .el-input__suffix) {
+    display: none !important;
+  }
+  .info-table :deep(.el-date-editor .el-input__inner) {
+    text-align: center !important;
+    font-size: 18px !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
   /* 打印时下拉框变为纯文本样式，去掉下拉箭头和边框 */
   .info-select :deep(.el-select__wrapper) {
     box-shadow: none !important;

@@ -24,7 +24,14 @@
           </td>
           <td class="label-cell">日期：</td>
           <td class="value-cell" colspan="2">
-            <el-input v-model="info.date" placeholder="日期格式：xxxx/xx/xx" class="info-input" />
+            <el-date-picker
+              v-model="info.date"
+              type="date"
+              placeholder="请选择日期"
+              value-format="YYYY/MM/DD"
+              class="info-input"
+              style="width: 100%"
+            />
           </td>
         </tr>
         <tr>

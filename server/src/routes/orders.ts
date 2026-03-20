@@ -117,7 +117,7 @@ router.get('/', (req: Request, res: Response) => {
     // 分页
     const p = Math.max(1, parseInt(page as string))
     const ps = Math.max(1, Math.min(100, parseInt(pageSize as string)))
-    sql += ' ORDER BY updated_at DESC LIMIT ? OFFSET ?'
+    sql += ' ORDER BY date DESC LIMIT ? OFFSET ?'
     params.push(ps, (p - 1) * ps)
 
     const rows = db.prepare(sql).all(...params)
