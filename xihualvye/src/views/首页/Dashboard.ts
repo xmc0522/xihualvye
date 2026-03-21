@@ -137,19 +137,23 @@ export function useDashboard() {
       if (res.code === 0 && res.data) {
         const stats = res.data
 
-        // 计算汇总数据
-        totalOrders.value = stats.reduce((sum, s) => sum + s.order_count, 0)
-        totalQuantity.value = stats.reduce((sum, s) => sum + s.total_quantity, 0)
-        typeCount.value = stats.length
-
         // 构建 pageType → totalQuantity 映射
         const pageTypeMap = new Map<string, number>()
         for (const s of stats) {
           pageTypeMap.set(s.page_type, s.total_quantity)
         }
 
+        // typeCount 只统计天枢款型号种类，排除自由选择
+        const tianshuPageTypes = new Set(Object.values(titleToPageTypeMap))
+        const tianshuStats = stats.filter((s) => tianshuPageTypes.has(s.page_type))
+        typeCount.value = tianshuStats.length
+
         // 天枢款各型号的数量（按菜单 children 的 title 顺序）
         const values = tianshuTitles.map((title) => matchTitleToPageType(title, pageTypeMap))
+
+        // 计算汇总数据
+        totalOrders.value = stats.reduce((sum, s) => sum + s.order_count, 0)
+        totalQuantity.value = stats.reduce((sum, s) => sum + s.total_quantity, 0)
 
         noData.value = values.every((v) => v === 0) && stats.length === 0
 
