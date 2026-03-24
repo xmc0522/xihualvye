@@ -72,6 +72,8 @@
       style="width: 100%"
       :header-cell-style="{ background: '#f5f7fa', color: '#333', textAlign: 'center' }"
       :cell-style="{ textAlign: 'center' }"
+      :row-class-name="getRowClassName"
+      ref="tableRef"
     >
       <el-table-column type="selection" width="50" />
       <!-- <el-table-column prop="id" label="ID" width="60" /> -->
@@ -244,14 +246,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, deleteOrder, batchDeleteOrders, updateOrder } from '@/ts/api'
 import { setCurrentOrderId } from '@/ts/按钮/button2'
 import type { OrderListItem, OrderDetail, OrderSavePayload } from '@/ts/api'
 
 const router = useRouter()
+const route = useRoute()
 
 // 搜索表单
 const searchForm = ref({
@@ -268,6 +271,9 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const selectedIds = ref<number[]>([])
+const highlightId = ref<number | null>(null)
+const tableRef = ref()
+const isFirstClickAfterReturn = ref(true) // 返回后首次点击不取消高亮
 
 // 详情弹窗
 const detailVisible = ref(false)
@@ -441,13 +447,53 @@ const handleBatchDelete = async () => {
 }
 
 onMounted(() => {
+  const hlId = route.query.highlightId
+  if (hlId) {
+    highlightId.value = Number(hlId)
+  }
   handleSearch()
+
+  // 返回后首次点击不取消高亮
+  isFirstClickAfterReturn.value = true
+  // 确保只添加一次监听器
+  document.removeEventListener('click', handleDocumentClick)
+  document.addEventListener('click', handleDocumentClick)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
+})
+
+// 点击事件处理 - 清除高亮
+const handleDocumentClick = () => {
+  // 第一次点击（返回页面时自动触发的）不取消高亮
+  if (isFirstClickAfterReturn.value) {
+    isFirstClickAfterReturn.value = false
+    return
+  }
+  highlightId.value = null
+}
+
+// 行高亮样式
+const getRowClassName = ({ row }: { row: OrderListItem }) => {
+  if (highlightId.value && row.id === highlightId.value) {
+    return 'highlight-row'
+  }
+  return ''
+}
 </script>
 
 <style scoped>
 .order-manage {
   padding: 20px;
+}
+
+:deep(.highlight-row) {
+  background-color: #e6f7ff !important;
+}
+
+:deep(.highlight-row > td) {
+  background-color: #e6f7ff !important;
 }
 
 .search-bar {

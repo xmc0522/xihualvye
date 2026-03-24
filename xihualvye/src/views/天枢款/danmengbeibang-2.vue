@@ -363,7 +363,7 @@ const orderId = ref<number | null>(null)
 
 // 返回订单管理页面
 const goBackToOrders = () => {
-  router.push('/orders')
+  router.push({ path: '/orders', query: { highlightId: String(orderId.value) } })
 }
 
 onMounted(async () => {
