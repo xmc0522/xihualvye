@@ -91,7 +91,7 @@
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handleLoad(row)">加载</el-button>
           <el-button type="info" size="small" @click="handleView(row)">详情</el-button>
-          <el-button type="warning" size="small" @click="handleEdit(row)">编辑</el-button>
+          <!-- <el-button type="warning" size="small" @click="handleEdit(row)">编辑</el-button> -->
           <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>

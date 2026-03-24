@@ -1,5 +1,6 @@
 <template>
   <div class="button-row">
+    <el-button v-if="orderId" type="info" @click="goBackToOrders">返回订单管理</el-button>
     <el-button type="primary" @click="handleDownload">下载表格</el-button>
     <el-button type="success" @click="handleSave">保存表格数据</el-button>
     <el-button type="warning" @click="handlePrint">打印表格</el-button>
@@ -250,7 +251,7 @@ import {
 } from '@/ts/按钮/button2'
 import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { value3, options3 } from '@/ts/xialakuang'
 const {
@@ -357,11 +358,19 @@ const calcZhongCountTop = () => {
 }
 
 const currentRoute = useRoute()
+const router = useRouter()
+const orderId = ref<number | null>(null)
+
+// 返回订单管理页面
+const goBackToOrders = () => {
+  router.push('/orders')
+}
 
 onMounted(async () => {
-  const orderId = currentRoute.query.orderId
-  if (orderId) {
-    const id = Number(orderId)
+  const orderIdParam = currentRoute.query.orderId
+  if (orderIdParam) {
+    orderId.value = Number(orderIdParam)
+    const id = Number(orderIdParam)
     const loaded = await loadOrderFromServer(
       id,
       info,
