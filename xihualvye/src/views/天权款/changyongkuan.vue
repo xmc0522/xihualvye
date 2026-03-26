@@ -9,7 +9,7 @@
   <div class="page-wrapper" ref="pageWrapperRef">
     <div class="table-container" ref="tableContainerRef">
       <!-- 标题 -->
-      <div class="table-title">天枢款-圆弧</div>
+      <div class="table-title">天权款-立柱</div>
       <!-- 基本信息区 -->
       <table
         class="info-table"
@@ -240,7 +240,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-常用款/天枢款-常用款'
+import { useChangyongBiaoge } from '@/ts/天权款-常用款/天权款-常用款'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
 import {
@@ -268,7 +268,7 @@ const {
 } = useChangyongBiaoge()
 
 // 页面唯一标识，用于本地存储
-const PAGE_KEY = '天枢款-常用款'
+const PAGE_KEY = '天权款-常用款'
 
 // 保存表格数据点击事件
 const handleSave = () => {
@@ -278,7 +278,7 @@ const handleSave = () => {
 // 下载表格点击事件
 const handleDownload = async () => {
   await downloadTable(
-    '天枢款-圆弧',
+    '天权款-圆弧',
     info,
     filteredTableData.value,
     doorPanelRows.value,

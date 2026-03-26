@@ -66,15 +66,15 @@ export const menuArr = [
   {
     path: '/tianquan',
     name: 'tianquan',
-    title: '天权款（暂时作废）',
+    title: '天权款',
     icon: markRaw(Grid),
     children: [
-      { path: '/tianquan/a', title: '天枢款-单门-加背板', component: danmengbeibang11 },
-      { path: '/tianquan/b', title: '天枢款-单门-加背板-加固', component: danmengbeibang21 },
-      { path: '/tianquan/c', title: '天枢款-常用款', component: changyongkuan1 },
-      { path: '/tianquan/d', title: '天枢款-无上包边款', component: wushangbaobian1 },
-      { path: '/tianquan/e', title: '天枢款-双面门款', component: Shuangmianmen11 },
-      { path: '/tianquan/f', title: '天枢款-双面门款-背面假门', component: Shuangmianmen21 },
+      { path: '/tianquan/a', title: '天权款-常用款', component: changyongkuan1 },
+      { path: '/tianquan/b', title: '天权款-单门-加背板', component: danmengbeibang11 },
+      { path: '/tianquan/c', title: '天权款-单门-加背板-加固', component: danmengbeibang21 },
+      { path: '/tianquan/d', title: '天权款-无上包边款', component: wushangbaobian1 },
+      { path: '/tianquan/e', title: '天权款-双面门款', component: Shuangmianmen11 },
+      { path: '/tianquan/f', title: '天权款-双面门款-背面假门', component: Shuangmianmen21 },
     ],
   },
   {

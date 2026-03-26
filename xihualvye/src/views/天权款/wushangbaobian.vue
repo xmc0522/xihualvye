@@ -9,7 +9,7 @@
   <div class="page-wrapper" ref="pageWrapperRef">
     <div class="table-container" ref="tableContainerRef">
       <!-- 标题 -->
-      <div class="table-title">天枢款-圆弧</div>
+      <div class="table-title">天权款-立柱</div>
       <!-- 基本信息区 -->
       <table
         class="info-table"
