@@ -160,6 +160,45 @@ const handleLogout = () => {
   padding-left: 15px;
 }
 
+/* 选中菜单项的蓝色背景 */
+.el-menu-vertical-demo :deep(.el-menu-item.is-active) {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* 子菜单项选中时的蓝色背景 */
+.el-menu-vertical-demo :deep(.el-sub-menu .el-menu-item.is-active) {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* 当子菜单项被选中时，父级菜单项显示浅蓝色背景（展开状态） */
+.el-menu-vertical-demo :deep(.el-sub-menu.is-active.is-opened > .el-sub-menu__title) {
+  background-color: rgba(24, 144, 255, 0.3) !important;
+  color: #fff !important;
+}
+
+/* 当子菜单项被选中且菜单收起时，父级菜单项显示深蓝色背景 */
+.el-menu-vertical-demo :deep(.el-sub-menu.is-active:not(.is-opened) > .el-sub-menu__title) {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* 当子菜单项被选中时，父级菜单项的图标也变白色 */
+.el-menu-vertical-demo :deep(.el-sub-menu.is-active > .el-sub-menu__title .el-icon) {
+  color: #fff !important;
+}
+
+/* 菜单项悬浮效果 */
+.el-menu-vertical-demo :deep(.el-menu-item:hover) {
+  background-color: rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 父级菜单项悬浮效果 */
+.el-menu-vertical-demo :deep(.el-sub-menu__title:hover) {
+  background-color: rgba(24, 144, 255, 0.2) !important;
+}
+
 .layout-container-demo .el-main {
   padding: 0;
 }
