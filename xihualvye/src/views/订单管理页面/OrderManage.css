@@ -1,0 +1,49 @@
+.order-manage {
+  padding: 20px;
+}
+
+:deep(.highlight-row) {
+  background-color: #e6f7ff !important;
+}
+
+:deep(.highlight-row > td) {
+  background-color: #e6f7ff !important;
+}
+
+.search-bar {
+  margin-bottom: 16px;
+  background: #fff;
+  padding: 16px 16px 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.action-bar {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.total-info {
+  color: #909399;
+  font-size: 14px;
+}
+
+.pagination-bar {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.detail-content h4 {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
