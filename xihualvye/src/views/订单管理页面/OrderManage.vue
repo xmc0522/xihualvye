@@ -76,20 +76,29 @@
       :row-class-name="getRowClassName"
       ref="tableRef"
     >
-      <el-table-column type="selection" width="50" />
+      <el-table-column type="selection" width="50" fixed="left" />
       <!-- <el-table-column prop="id" label="ID" width="60" /> -->
-      <el-table-column prop="customer" label="客户" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="customer" label="客户" min-width="120" show-overflow-tooltip fixed="left">
+        <template #default="{ row }">
+          <span style="color: #1890ff; font-weight: 500;">{{ row.customer }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="order_no" label="单号" min-width="120" show-overflow-tooltip />
-      <el-table-column prop="date" label="日期" min-width="110" />
+      <el-table-column prop="date" label="日期" min-width="80" />
       <el-table-column prop="page_type" label="款式" min-width="180" show-overflow-tooltip />
       <el-table-column prop="surface" label="表面" min-width="80" />
       <el-table-column prop="quantity" label="数量/套" width="80" />
-      <el-table-column label="尺寸 (长×宽×高)" min-width="160">
+      <el-table-column label="尺寸 (长×宽×高)" min-width="90">
         <template #default="{ row }">
           {{ row.length || '-' }} × {{ row.width || '-' }} × {{ row.height || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="updated_at" label="更新时间" min-width="170" />
+      <el-table-column prop="remark" label="工艺备注" min-width="170" show-overflow-tooltip>
+        <template #default="{ row }">
+          {{ row.remark}}
+        </template>
+      </el-table-column>
+      <el-table-column prop="updated_at" label="更新时间" min-width="90" />
       <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handleLoad(row)">加载</el-button>
