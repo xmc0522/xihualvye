@@ -2,6 +2,22 @@
   <div class="login-page" @mousemove="handleMouseMove">
     <!-- 左侧：动态几何图形区域 -->
     <div class="left-section">
+      <!-- 系统标题 -->
+      <div class="system-title-wrapper">
+        <div class="system-title">玺华铝业-业务管理系统</div>
+        <!-- <p class="system-subtitle">智能管理 · 高效协同</p> -->
+      </div>
+      
+      <!-- 漂浮装饰元素 -->
+      <div class="floating-decorations">
+        <div class="float-circle float-1"></div>
+        <div class="float-circle float-2"></div>
+        <div class="float-circle float-3"></div>
+        <div class="float-star star-1">⭐</div>
+        <div class="float-star star-2">✦</div>
+        <div class="float-star star-3">✨</div>
+      </div>
+      
       <div class="shapes-container">
         <!-- 橙色半圆 -->
         <div class="shape shape-semicircle-orange" ref="orangeShape">
@@ -50,8 +66,13 @@
     <div class="right-section">
       <div class="login-container">
         <div class="login-header">
-          <h1 class="login-title">玺华铝业</h1>
-          <p class="login-subtitle">业务管理系统</p>
+          <div class="welcome-decoration">
+            <span class="welcome-icon">✨</span>
+            <h1 class="login-title">欢迎回来</h1>
+            <span class="welcome-icon">✨</span>
+          </div>
+          <p class="login-subtitle">很高兴再次见到您</p>
+          <!-- <p class="login-subtitle">业务管理系统</p> -->
         </div>
 
         <el-form

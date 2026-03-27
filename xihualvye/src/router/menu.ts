@@ -66,7 +66,7 @@ export const menuArr = [
   {
     path: '/tianquan',
     name: 'tianquan',
-    title: '天权款',
+    title: '天权款（暂时作废）',
     icon: markRaw(Operation),
     children: [
       { path: '/tianquan/a', title: '天权款-常用款', component: changyongkuan1 },
