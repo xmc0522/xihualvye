@@ -17,7 +17,7 @@ app.use('/api/orders', ordersRouter)
 
 // 登录接口
 const ADMIN_USERNAME = 'xhly'
-const ADMIN_PASSWORD = '12345678'
+const ADMIN_PASSWORD = '123123'
 
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body
@@ -25,6 +25,16 @@ app.post('/api/auth/login', (req, res) => {
     res.json({ code: 0, message: '登录成功' })
   } else {
     res.json({ code: 1, message: '账号或密码错误' })
+  }
+})
+
+// 验证接口 - 检查当前登录的用户密码是否还有效
+app.post('/api/auth/verify', (req, res) => {
+  const { username, password } = req.body
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    res.json({ code: 0, message: '验证成功' })
+  } else {
+    res.status(401).json({ code: 401, message: '认证失败，请重新登录' })
   }
 })
 

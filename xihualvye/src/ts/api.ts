@@ -3,10 +3,74 @@
  * 所有后端接口都通过这个模块调用
  */
 
+import { ElMessage } from 'element-plus'
+
 const BASE_URL = '/api'
+
+// 获取当前登录信息
+function getAuthInfo() {
+  const saved = localStorage.getItem('xhly_auth')
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+// 强制退出登录
+function forceLogout() {
+  localStorage.removeItem('xhly_auth')
+  ElMessage.error('密码已更改，请重新登录')
+  // 延迟跳转，确保消息显示
+  setTimeout(() => {
+    window.location.href = '/login'
+  }, 1000)
+}
+
+// 验证当前登录凭据是否有效
+async function verifyAuth(): Promise<boolean> {
+  const auth = getAuthInfo()
+  if (!auth || !auth.username || !auth.password) {
+    return false
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: auth.username,
+        password: auth.password,
+      }),
+    })
+
+    if (res.status === 401) {
+      forceLogout()
+      return false
+    }
+
+    const data = await res.json()
+    return data.code === 0
+  } catch {
+    return false
+  }
+}
 
 // 通用请求方法
 async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+  // 在每次请求前验证认证信息（除了登录接口）
+  if (!url.includes('/auth/login')) {
+    const isValid = await verifyAuth()
+    if (!isValid) {
+      throw new Error('认证失败')
+    }
+  }
+
   const res = await fetch(`${BASE_URL}${url}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -16,6 +80,12 @@ async function request<T = any>(url: string, options: RequestInit = {}): Promise
   })
 
   const data = await res.json()
+
+  // 检查是否返回401认证失败
+  if (res.status === 401 || data.code === 401) {
+    forceLogout()
+    throw new Error('认证失败，请重新登录')
+  }
 
   if (!res.ok) {
     throw new Error(data.message || `请求失败 (${res.status})`)
