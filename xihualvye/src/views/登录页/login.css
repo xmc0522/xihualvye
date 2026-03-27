@@ -1,0 +1,277 @@
+.login-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧：动态几何图形区域 */
+.left-section {
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(135deg, #2a3a5c 0%, #1e2d4d 50%, #162040 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.shapes-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 40px 0;
+  gap: 0;
+}
+
+.shape {
+  position: relative;
+  flex-shrink: 0;
+  transform-origin: bottom center;
+  will-change: transform;
+  transition: transform 0.3s ease-out, height 0.3s ease-out;
+}
+
+/* 紫色长方形 - 最高 */
+.shape-rect-purple {
+  width: 200px;
+  height: 55vh;
+  background: #6C3FF5;
+  border-radius: 12px 12px 0 0;
+  margin-right: -20px;
+  z-index: 2;
+}
+
+/* 黑色长方形 - 中等高度 */
+.shape-rect-black {
+  width: 140px;
+  height: 42vh;
+  background: #2D2D2D;
+  border-radius: 10px 10px 0 0;
+  margin-right: -25px;
+  z-index: 3;
+}
+
+/* 橙色半圆 - 最矮最宽 */
+.shape-semicircle-orange {
+  width: 280px;
+  height: 30vh;
+  background: #FF9B6B;
+  border-radius: 280px 280px 0 0;
+  margin-right: -160px;
+  z-index: 1000;
+}
+
+/* 黄色圆角矩形 */
+.shape-rounded-yellow {
+  width: 160px;
+  height: 35vh;
+  background: #E8D754;
+  border-radius: 80px 80px 0 0;
+  z-index: 4;
+}
+
+/* 眼睛容器 */
+.eyes {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 32px;
+  will-change: transform;
+  transition: transform 0.3s ease-out;
+}
+
+.eyes-low {
+  top: 60px;
+  gap: 35px;
+}
+
+/* 白色眼球 (紫色和黑色角色用) */
+.eyeball {
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  will-change: height;
+}
+
+/* 眼球内的瞳孔 */
+.eyeball .pupil {
+  width: 7px;
+  height: 7px;
+  background: #2D2D2D;
+  border-radius: 50%;
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
+
+/* 深色瞳孔 (橙色和黄色角色用，没有白色眼球) */
+.pupil-dark {
+  width: 12px;
+  height: 12px;
+  background: #2D2D2D;
+  border-radius: 50%;
+  will-change: transform;
+  transition: transform 0.2s ease-out;
+}
+
+/* 嘴巴 */
+.mouth {
+  position: absolute;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: #2D2D2D;
+  border-radius: 9999px;
+  will-change: transform;
+  transition: transform 0.2s ease-out;
+}
+
+/* 右侧：登录表单区域 */
+.right-section {
+  width: 50%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: 400px;
+  padding: 0 20px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.login-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+  letter-spacing: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+  letter-spacing: 2px;
+  font-weight: 400;
+}
+
+.login-form {
+  margin-top: 0;
+}
+
+.login-form :deep(.el-form-item) {
+  margin-bottom: 24px;
+}
+
+.login-form :deep(.el-form-item__error) {
+  font-size: 13px;
+  color: #f56c6c;
+  padding-top: 4px;
+}
+
+.login-form :deep(.el-input__wrapper) {
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #e2e8f0 inset;
+  transition: all 0.3s;
+}
+
+.login-form :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #cbd5e0 inset;
+}
+
+.login-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 2px #3b82f6 inset !important;
+}
+
+.login-form :deep(.el-input__inner) {
+  font-size: 14px;
+}
+
+.login-form :deep(.el-checkbox) {
+  height: auto;
+}
+
+.login-form :deep(.el-checkbox__label) {
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.password-toggle {
+  cursor: pointer;
+  color: #718096;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: #3b82f6;
+}
+
+.login-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  transition: all 0.3s;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.login-footer {
+  text-align: center;
+  color: #a0aec0;
+  font-size: 12px;
+  margin-top: 40px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .left-section {
+    width: 40%;
+  }
+  
+  .right-section {
+    width: 60%;
+  }
+}
+
+@media (max-width: 768px) {
+  .left-section {
+    display: none;
+  }
+  
+  .right-section {
+    width: 100%;
+  }
+}

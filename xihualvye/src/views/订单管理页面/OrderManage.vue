@@ -33,6 +33,7 @@
             <el-option label="天枢款-单门-加背板-加固" value="天枢款-单门-加背板-加固" />
             <el-option label="天枢款-双面门" value="天枢款-双面门" />
             <el-option label="天枢款-双面门-背面假门" value="天枢款-双面门-背面假门" />
+            <el-option label="天权款-常用款" value="天权款-常用款" />
           </el-select>
         </el-form-item>
         <el-form-item label="日期">

@@ -49,7 +49,21 @@ let isFirstLoad = true
 // 导航守卫：未登录时跳转到登录页 + 刷新回首页
 router.beforeEach((to, _from, next) => {
   const auth = localStorage.getItem('xhly_auth')
-  const isLoggedIn = !!auth
+  let isLoggedIn = false
+  
+  // 检查是否真正登录（有 loginTime 且在有效期内）
+  if (auth) {
+    try {
+      const authData = JSON.parse(auth)
+      // 只有存在 loginTime 且在 24 小时有效期内才算已登录
+      if (authData.loginTime && Date.now() - authData.loginTime < 24 * 60 * 60 * 1000) {
+        isLoggedIn = true
+      }
+    } catch (e) {
+      // 解析失败，清除无效数据
+      localStorage.removeItem('xhly_auth')
+    }
+  }
 
   if (to.path === '/login') {
     // 已登录用户访问登录页，直接跳到首页

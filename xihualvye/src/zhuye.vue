@@ -73,7 +73,36 @@ const handleLogout = () => {
     type: 'warning',
   })
     .then(() => {
+      // 检查是否有记住密码
+      const saved = localStorage.getItem('xhly_auth')
+      let shouldRemember = false
+      let savedData = { username: '', password: '', rememberMe: false }
+      
+      if (saved) {
+        try {
+          const auth = JSON.parse(saved)
+          if (auth.rememberMe) {
+            shouldRemember = true
+            savedData = {
+              username: auth.username,
+              password: auth.password,
+              rememberMe: true
+              // 注意：不保存 loginTime，这样就不会自动登录
+            }
+          }
+        } catch (e) {
+          console.error('解析认证信息失败', e)
+        }
+      }
+      
+      // 移除当前认证信息
       localStorage.removeItem('xhly_auth')
+      
+      // 如果勾选了记住密码，重新保存账号密码信息（不含 loginTime）
+      if (shouldRemember) {
+        localStorage.setItem('xhly_auth', JSON.stringify(savedData))
+      }
+      
       ElMessage.success('已退出登录')
       router.replace('/login')
     })
