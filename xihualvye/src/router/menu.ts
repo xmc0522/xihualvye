@@ -4,7 +4,7 @@
 const Dashboard = () => import('@/views/首页/Dashboard.vue')
 import ZYXZ from '@/views/自由选择页面/天枢-单门/ZYXZ.vue'
 import OrderManage from '@/views/订单管理页面/OrderManage.vue'
-import { HomeFilled, Document, Operation, Grid } from '@element-plus/icons-vue'
+import { HomeFilled, Document, Operation, Grid, Menu, Pointer } from '@element-plus/icons-vue'
 import { markRaw, type Component } from 'vue'
 import danmengbeibang1 from '@/views/天枢款/danmengbeibang-1.vue'
 import danmengbeibang2 from '@/views/天枢款/danmengbeibang-2.vue'
@@ -44,7 +44,7 @@ export const menuArr = [
     path: '/zyxz',
     name: 'zyxz',
     title: '自由选择',
-    icon: markRaw(Operation),
+    icon: markRaw(Pointer),
     children: [
       { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: ZYXZ },
     ],
@@ -53,7 +53,7 @@ export const menuArr = [
     path: '/tianshu',
     name: 'tianshu',
     title: '天枢款',
-    icon: markRaw(Grid),
+    icon: markRaw(Menu),
     children: [
       { path: '/tianshu/c', title: '天枢款-常用款', component: changyongkuan },
       { path: '/tianshu/d', title: '天枢款-无上包边款', component: wushangbaobian },
@@ -67,7 +67,7 @@ export const menuArr = [
     path: '/tianquan',
     name: 'tianquan',
     title: '天权款',
-    icon: markRaw(Grid),
+    icon: markRaw(Operation),
     children: [
       { path: '/tianquan/a', title: '天权款-常用款', component: changyongkuan1 },
       { path: '/tianquan/b', title: '天权款-单门-加背板', component: danmengbeibang11 },
