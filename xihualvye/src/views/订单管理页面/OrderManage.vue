@@ -91,10 +91,10 @@
       </el-table-column>
       <el-table-column prop="order_no" label="单号" min-width="80" show-overflow-tooltip />
       <el-table-column prop="date" label="日期" min-width="100" />
-      <el-table-column prop="page_type" label="款式" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="page_type" label="款式" min-width="190" show-overflow-tooltip />
       <el-table-column prop="surface" label="表面" min-width="80" />
       <el-table-column prop="quantity" label="数量/套" width="80" />
-      <el-table-column label="尺寸 (长×宽×高)" min-width="130">
+      <el-table-column label="尺寸 (长×宽×高)" min-width="170">
         <template #default="{ row }">
           {{ row.length || '-' }} × {{ row.width || '-' }} × {{ row.height || '-' }}
         </template>
@@ -104,7 +104,7 @@
           {{ row.remark }}
         </template>
       </el-table-column>
-      <el-table-column prop="updated_at" label="更新时间" min-width="150" />
+      <el-table-column prop="updated_at" label="更新时间" min-width="180" />
       <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handleLoad(row)">加载</el-button>
