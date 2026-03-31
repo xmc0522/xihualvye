@@ -9,7 +9,7 @@
   <div class="page-wrapper" ref="pageWrapperRef">
     <div class="table-container" ref="tableContainerRef">
       <!-- 标题 -->
-      <div class="table-title">天权款-立柱</div>
+      <div class="table-title">天枢款-圆弧</div>
       <!-- 基本信息区 -->
       <table
         class="info-table"
@@ -147,13 +147,13 @@
 
       <!-- 底部门板 -->
       <table
-        v-if="doorPanelRows.length > 0"
+        v-if="filteredDoorPanelRows.length > 0"
         class="door-panel-table"
         border="1"
         cellspacing="0"
         cellpadding="0"
       >
-        <tr v-for="(row, index) in doorPanelRows" :key="index">
+        <tr v-for="(row, index) in filteredDoorPanelRows" :key="index">
           <td class="value-cell" style="width: 250px">{{ row.name }}</td>
           <td class="value-cell" style="width: 99px">{{ row.shuju1 }}</td>
           <td class="value-cell" style="width: 100px">{{ row.shuju2 }}</td>
@@ -236,11 +236,43 @@
       <span>中柱数量：</span>
       <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
     </div>
+    <div class="side-height-select" :style="{ top: heightSelectTop + 'px' }">
+      <span>不生成的名称：</span>
+      <el-select
+        v-model="value1"
+        multiple
+        placeholder="请选择"
+        class="side-select"
+        style="width: 110px"
+      >
+        <el-option
+          v-for="item in options1"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+      <span style="margin-left: 15px">不生成的底部门板：</span>
+      <el-select
+        v-model="value6"
+        multiple
+        placeholder="请选择"
+        class="side-select"
+        style="width: 90px"
+      >
+        <el-option
+          v-for="item in options6"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-单门-加背板-加固/天枢款-单门-加背板-加固'
+import { useChangyongBiaoge } from '@/ts/自由选择-单面门-通配款/自由选择-单面门-通配款'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
 import {
@@ -253,22 +285,30 @@ import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { value3, options3 } from '@/ts/xialakuang'
+import {
+  value1,
+  value3,
+  value6,
+  options1,
+  options3,
+  options6,
+} from '@/ts/自由选择-单面门-通配款/xialakuang'
 const {
   info,
   filteredTableData,
   mergeMethod,
   accessoryRows,
   doorPanelRows,
+  filteredDoorPanelRows,
   getImage,
   saveToLocalStorage,
   tableData,
   allAccessories,
   imageModules,
-} = useChangyongBiaoge()
+} = useChangyongBiaoge(value1, value6)
 
 // 页面唯一标识，用于本地存储
-const PAGE_KEY = '天枢款-单门-加背板-加固'
+const PAGE_KEY = '天枢款-单面门-选择款'
 
 // 保存表格数据点击事件
 const handleSave = () => {
@@ -310,6 +350,28 @@ const pageWrapperRef = ref<HTMLElement | null>(null)
 const tableContainerRef = ref<HTMLElement | null>(null)
 const doorCountTop = ref(0)
 const zhongCountTop = ref(0)
+const heightSelectTop = ref(0)
+
+// 计算高度行位置，使下拉框与基本信息表格的高度行水平对齐
+const calcHeightSelectTop = () => {
+  nextTick(() => {
+    const wrapper = pageWrapperRef.value
+    const container = tableContainerRef.value
+    if (!wrapper || !container) return
+    // 查找基本信息表格中高度行（第3个 tr）
+    const infoTable = container.querySelector('.info-table')
+    if (!infoTable) return
+    const rows = infoTable.querySelectorAll('tr')
+    // 高度在第3行（index=2）
+    if (rows.length >= 3) {
+      const heightRow = rows[2]
+      if (!heightRow) return
+      const wrapperRect = wrapper.getBoundingClientRect()
+      const rowRect = heightRow.getBoundingClientRect()
+      heightSelectTop.value = rowRect.top - wrapperRect.top + (rowRect.height - 32) / 2
+    }
+  })
+}
 
 // 计算拉筋行位置，使门数量输入框与拉筋行水平对齐
 const calcDoorCountTop = () => {
@@ -367,6 +429,7 @@ const goBackToOrders = () => {
 }
 
 onMounted(async () => {
+  // 检查是否从订单管理页面跳转过来，带有 orderId 参数
   const orderIdParam = currentRoute.query.orderId
   if (orderIdParam) {
     orderId.value = Number(orderIdParam)
@@ -382,6 +445,7 @@ onMounted(async () => {
       value3.value = info.surface
     }
   } else {
+    // 没有 orderId，从本地存储加载之前保存的数据
     setCurrentOrderId(null)
     loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
     if (info.surface) {
@@ -393,6 +457,7 @@ onMounted(async () => {
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
+    calcHeightSelectTop()
   }, 300)
 })
 

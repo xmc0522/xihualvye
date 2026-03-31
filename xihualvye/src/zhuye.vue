@@ -12,7 +12,7 @@
           @open="handleOpen"
           @close="handleClose"
         >
-          <el-menu-item style="padding-left: 8px; padding-top: 10px; margin-bottom: 20px">
+          <el-menu-item class="title-item" style="padding-left: 8px; padding-top: 10px; margin-bottom: 20px">
             <span style="font-size: 18px">玺华铝业-业务管理系统</span>
           </el-menu-item>
           <div class="menu-items-wrapper">
@@ -192,6 +192,18 @@ const handleLogout = () => {
 /* 菜单项悬浮效果 */
 .el-menu-vertical-demo :deep(.el-menu-item:hover) {
   background-color: rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 标题行取消 hover 高亮、点击效果和手型光标 */
+.el-menu-vertical-demo :deep(.title-item) {
+  cursor: default !important;
+}
+.el-menu-vertical-demo :deep(.title-item:hover) {
+  background-color: transparent !important;
+}
+.el-menu-vertical-demo :deep(.title-item.is-active) {
+  background-color: transparent !important;
+  color: #fff !important;
 }
 
 /* 父级菜单项悬浮效果 */

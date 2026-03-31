@@ -2,7 +2,8 @@
 // Dashboard 使用懒加载，避免与 menu.ts 的循环依赖
 // （Dashboard.ts 中需要 import menuArr，如果同步 import 会造成循环引用导致白屏）
 const Dashboard = () => import('@/views/首页/Dashboard.vue')
-import ZYXZ from '@/views/自由选择页面/天枢-单门/ZYXZ.vue'
+import TSKDM from '@/views/自由选择页面/天枢-单门/TSK-DM.vue'
+import TSKSM from '@/views/自由选择页面/天枢-双门/TSK-SM.vue'
 import OrderManage from '@/views/订单管理页面/OrderManage.vue'
 import { HomeFilled, Document, Operation, Grid, Menu, Pointer } from '@element-plus/icons-vue'
 import { markRaw, type Component } from 'vue'
@@ -46,7 +47,8 @@ export const menuArr = [
     title: '自由选择',
     icon: markRaw(Pointer),
     children: [
-      { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: ZYXZ },
+      { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: TSKDM },
+      { path: '/zyxz/b', title: '天枢款-双面门-选择款', component: TSKSM },
     ],
   },
   {

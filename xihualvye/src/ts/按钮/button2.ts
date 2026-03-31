@@ -293,7 +293,7 @@ export function loadTableData(
     // 恢复基本信息
     if (data.info) {
       info.customer = data.info.customer || ''
-      info.date = data.info.date || ''
+      info.date = data.info.date || info.date  // 空值时保留初始值（今天）
       info.surface = data.info.surface || ''
       info.quantity = data.info.quantity || ''
       info.orderNo = data.info.orderNo || ''

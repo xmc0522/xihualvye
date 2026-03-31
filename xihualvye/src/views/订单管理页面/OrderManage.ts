@@ -57,6 +57,8 @@ export function useOrderManage() {
   // 款式 -> 路由路径映射
   const pageTypeRouteMap: Record<string, string> = {
     天枢款: '/zyxz/a',
+    '天枢款-单面门-选择款': '/zyxz/a',
+    '天枢款-双面门-选择款': '/zyxz/b',
     '天枢款-常用款': '/tianshu/c',
     '天枢款-无上包边': '/tianshu/d',
     '天枢款-单门-加背板': '/tianshu/a',

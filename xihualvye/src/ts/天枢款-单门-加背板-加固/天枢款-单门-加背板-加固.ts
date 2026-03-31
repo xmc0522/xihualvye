@@ -22,6 +22,15 @@ const getImage = (xinghao: string) => {
   return key ? imageModules[key] : ''
 }
 
+// 获取今日日期（YYYY/MM/DD 格式，与 el-date-picker value-format 一致）
+const getTodayStr = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}/${mm}/${dd}`
+}
+
 export function useChangyongBiaoge() {
   const route = useRoute()
 
@@ -38,7 +47,7 @@ export function useChangyongBiaoge() {
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
-    date: '',
+    date: getTodayStr(),
     surface: '',
     quantity: '',
     orderNo: '',

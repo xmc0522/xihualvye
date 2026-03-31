@@ -22,6 +22,15 @@ const getImage = (xinghao: string) => {
   return key ? imageModules[key] : ''
 }
 
+// 获取今日日期（YYYY/MM/DD 格式，与 el-date-picker value-format 一致）
+const getTodayStr = () => {
+  const d = new Date()
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}/${mm}/${dd}`
+}
+
 export function useChangyongBiaoge() {
   const route = useRoute()
 
@@ -38,7 +47,7 @@ export function useChangyongBiaoge() {
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
-    date: '',
+    date: getTodayStr(),
     surface: '',
     quantity: '',
     orderNo: '',
@@ -451,14 +460,14 @@ export function useChangyongBiaoge() {
         } else {
           ceMenBan.shuju2 = ''
         }
-        // 侧门板shuliang = 固定值2 * quantity
-        ceMenBan.shuliang = String(2 * qty)
+        // 侧门板shuliang = 固定值1 * quantity
+        ceMenBan.shuliang = String(1 * qty)
       }
 
-      // 门板shuliang = doorCount * quantity
+      // 门板shuliang = doorCount * quantity * 2
       const menBan = doorPanelRows.value.find((row) => row.name === '门板')
       if (menBan) {
-        menBan.shuliang = info.doorCount ? String(Number(info.doorCount) * qty) : ''
+        menBan.shuliang = info.doorCount ? String(Number(info.doorCount)  * 2 * qty) : ''
       }
 
       // 门板shuju1 = 第一个门料的guige值 - 2.8 = ((length - 80 - (doorCount + 1) * 2) / doorCount) - 2.8

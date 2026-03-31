@@ -301,7 +301,7 @@ const handleClear = () => {
     type: 'warning',
   })
     .then(() => {
-      clearTable(info, tableData, doorPanelRows.value, allAccessories)
+      clearTable(info, tableData, doorPanelRows.value, allAccessories, PAGE_KEY)
       value3.value = '' // 同步清空表面下拉框
     })
     .catch(() => {})

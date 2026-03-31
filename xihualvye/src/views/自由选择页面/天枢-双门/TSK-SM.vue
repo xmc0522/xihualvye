@@ -1,5 +1,6 @@
 <template>
-  <div class="button-row">
+ <div class="button-row">
+    <el-button v-if="orderId" type="info" @click="goBackToOrders">返回订单管理</el-button>
     <el-button type="primary" @click="handleDownload">下载表格</el-button>
     <el-button type="success" @click="handleSave">保存表格数据</el-button>
     <el-button type="warning" @click="handlePrint">打印表格</el-button>
@@ -8,7 +9,7 @@
   <div class="page-wrapper" ref="pageWrapperRef">
     <div class="table-container" ref="tableContainerRef">
       <!-- 标题 -->
-      <div class="table-title">天枢款-圆弧</div>
+      <div class="table-title">天枢款-圆弧-双面门</div>
       <!-- 基本信息区 -->
       <table
         class="info-table"
@@ -117,8 +118,24 @@
         </el-table-column>
         <el-table-column prop="beizhu" label="备注">
           <template #default="{ row }">
+            <!-- 第二个门料（被合并行，_mergeShuliang===0）：显示冲孔下拉框 -->
+            <el-select
+              v-if="row.mingcheng === '门料' && row._mergeShuliang === 0"
+              v-model="value4"
+              placeholder="请选择"
+              class="info-select"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in options4"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+            <!-- 其他固定备注行：纯文本显示 -->
             <span
-              v-if="
+              v-else-if="
                 row.mingcheng === '上包边' ||
                 row.mingcheng === '下包边' ||
                 row.mingcheng === '前后横梁' ||
@@ -146,13 +163,13 @@
 
       <!-- 底部门板 -->
       <table
-        v-if="filteredDoorPanelRows.length > 0"
+        v-if="doorPanelRows.length > 0"
         class="door-panel-table"
         border="1"
         cellspacing="0"
         cellpadding="0"
       >
-        <tr v-for="(row, index) in filteredDoorPanelRows" :key="index">
+        <tr v-for="(row, index) in doorPanelRows" :key="index">
           <td class="value-cell" style="width: 250px">{{ row.name }}</td>
           <td class="value-cell" style="width: 99px">{{ row.shuju1 }}</td>
           <td class="value-cell" style="width: 100px">{{ row.shuju2 }}</td>
@@ -231,47 +248,15 @@
       <span>门数量：</span>
       <el-input v-model="info.doorCount" placeholder="门数量" class="info-meng-input" />
     </div>
-    <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
-      <span>中柱数量：</span>
-      <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
-    </div>
-    <div class="side-height-select" :style="{ top: heightSelectTop + 'px' }">
-      <span>不生成的名称：</span>
-      <el-select
-        v-model="value1"
-        multiple
-        placeholder="请选择"
-        class="side-select"
-        style="width: 110px"
-      >
-        <el-option
-          v-for="item in options1"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-      <span style="margin-left: 15px">不生成的底部门板：</span>
-      <el-select
-        v-model="value6"
-        multiple
-        placeholder="请选择"
-        class="side-select"
-        style="width: 90px"
-      >
-        <el-option
-          v-for="item in options6"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-    </div>
+    <!-- <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
+    <span>中柱数量：</span>
+    <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
+  </div> -->
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/自由选择-单面门-通配款/自由选择-单面门-通配款'
+import { useChangyongBiaoge } from '@/ts/自由选择-双面门/自由选择-双面门-通配款'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
 import {
@@ -282,32 +267,24 @@ import {
 } from '@/ts/按钮/button2'
 import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import {
-  value1,
-  value3,
-  value6,
-  options1,
-  options3,
-  options6,
-} from '@/ts/自由选择-单面门-通配款/xialakuang'
+import { value3, options3,value4,options4 } from '@/ts/自由选择-双面门/xialakuang'
 const {
   info,
   filteredTableData,
   mergeMethod,
   accessoryRows,
   doorPanelRows,
-  filteredDoorPanelRows,
   getImage,
   saveToLocalStorage,
   tableData,
   allAccessories,
   imageModules,
-} = useChangyongBiaoge(value1, value6)
+} = useChangyongBiaoge()
 
 // 页面唯一标识，用于本地存储
-const PAGE_KEY = '天枢款'
+const PAGE_KEY = '天枢款-双面门-选择款'
 
 // 保存表格数据点击事件
 const handleSave = () => {
@@ -317,7 +294,7 @@ const handleSave = () => {
 // 下载表格点击事件
 const handleDownload = async () => {
   await downloadTable(
-    '天枢款-圆弧',
+    '天枢款-圆弧-双面门',
     info,
     filteredTableData.value,
     doorPanelRows.value,
@@ -339,8 +316,12 @@ const handleClear = () => {
     type: 'warning',
   })
     .then(() => {
-      clearTable(info, tableData, doorPanelRows.value, allAccessories)
+      clearTable(info, tableData, doorPanelRows.value, allAccessories, PAGE_KEY)
       value3.value = '' // 同步清空表面下拉框
+      value4.value = '' // 同步清空第二个门料备注下拉框
+      // 手动清空第二个门料的 beizhu（clearTable 对固定备注行不清空，需单独处理）
+      const menLiaoRows = tableData.filter((r) => r.mingcheng === '门料')
+      if (menLiaoRows[1]) menLiaoRows[1].beizhu = ''
     })
     .catch(() => {})
 }
@@ -349,28 +330,6 @@ const pageWrapperRef = ref<HTMLElement | null>(null)
 const tableContainerRef = ref<HTMLElement | null>(null)
 const doorCountTop = ref(0)
 const zhongCountTop = ref(0)
-const heightSelectTop = ref(0)
-
-// 计算高度行位置，使下拉框与基本信息表格的高度行水平对齐
-const calcHeightSelectTop = () => {
-  nextTick(() => {
-    const wrapper = pageWrapperRef.value
-    const container = tableContainerRef.value
-    if (!wrapper || !container) return
-    // 查找基本信息表格中高度行（第3个 tr）
-    const infoTable = container.querySelector('.info-table')
-    if (!infoTable) return
-    const rows = infoTable.querySelectorAll('tr')
-    // 高度在第3行（index=2）
-    if (rows.length >= 3) {
-      const heightRow = rows[2]
-      if (!heightRow) return
-      const wrapperRect = wrapper.getBoundingClientRect()
-      const rowRect = heightRow.getBoundingClientRect()
-      heightSelectTop.value = rowRect.top - wrapperRect.top + (rowRect.height - 32) / 2
-    }
-  })
-}
 
 // 计算拉筋行位置，使门数量输入框与拉筋行水平对齐
 const calcDoorCountTop = () => {
@@ -419,12 +378,19 @@ const calcZhongCountTop = () => {
 }
 
 const currentRoute = useRoute()
+const router = useRouter()
+const orderId = ref<number | null>(null)
+
+// 返回订单管理页面
+const goBackToOrders = () => {
+  router.push({ path: '/orders', query: { highlightId: String(orderId.value) } })
+}
 
 onMounted(async () => {
-  // 检查是否从订单管理页面跳转过来，带有 orderId 参数
-  const orderId = currentRoute.query.orderId
-  if (orderId) {
-    const id = Number(orderId)
+  const orderIdParam = currentRoute.query.orderId
+  if (orderIdParam) {
+    orderId.value = Number(orderIdParam)
+    const id = Number(orderIdParam)
     const loaded = await loadOrderFromServer(
       id,
       info,
@@ -435,12 +401,21 @@ onMounted(async () => {
     if (loaded && info.surface) {
       value3.value = info.surface
     }
+    // 恢复第二个门料的 beizhu 到 value4
+    const menLiaoRows = tableData.filter((r) => r.mingcheng === '门料')
+    if (menLiaoRows[1]?.beizhu) {
+      value4.value = menLiaoRows[1].beizhu
+    }
   } else {
-    // 没有 orderId，从本地存储加载之前保存的数据
     setCurrentOrderId(null)
     loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
     if (info.surface) {
       value3.value = info.surface
+    }
+    // 恢复第二个门料的 beizhu 到 value4
+    const menLiaoRows = tableData.filter((r) => r.mingcheng === '门料')
+    if (menLiaoRows[1]?.beizhu) {
+      value4.value = menLiaoRows[1].beizhu
     }
   }
 
@@ -448,7 +423,6 @@ onMounted(async () => {
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
-    calcHeightSelectTop()
   }, 300)
 })
 
@@ -456,6 +430,27 @@ onMounted(async () => {
 watch(value3, (newVal) => {
   info.surface = newVal
 })
+
+// 监听第二个门料备注下拉框变化，同步写回 tableData 中第二个门料行的 beizhu
+watch(value4, (newVal) => {
+  const menLiaoRows = tableData.filter((r) => r.mingcheng === '门料')
+  if (menLiaoRows[1]) {
+    menLiaoRows[1].beizhu = newVal
+  }
+})
+
+// 监听表格数据变化，重新计算门数量和中柱数量的位置
+watch(
+  () => [filteredTableData.value, doorPanelRows.value],
+  () => {
+    // 延迟执行，等待 DOM 更新完成
+    setTimeout(() => {
+      calcDoorCountTop()
+      calcZhongCountTop()
+    }, 100)
+  },
+  { deep: true },
+)
 
 // 监听数据变化，自动保存到本地存储
 watch(

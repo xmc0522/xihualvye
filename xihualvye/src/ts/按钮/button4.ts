@@ -1,3 +1,5 @@
+import { setCurrentOrderId } from './button2'
+
 // 主表格中各行的默认shuliang值
 const defaultShuliang: Record<string, string> = {
   上包边: '2',
@@ -40,6 +42,7 @@ const fixedBeizhuNames = [
  * @param tableData - 主表格数据数组
  * @param doorPanelRows - 底部门板数据（ref对象的.value）
  * @param allAccessories - 配件数据数组
+ * @param pageKey - 页面唯一标识，用于清除对应的 localStorage 缓存
  */
 export function clearTable(
   info: {
@@ -70,6 +73,7 @@ export function clearTable(
     beizhu: string
   }>,
   allAccessories: Array<{ value: string; [key: string]: any }>,
+  pageKey?: string,
 ) {
   // 1. 清空基本信息
   info.customer = ''
@@ -105,4 +109,12 @@ export function clearTable(
   for (const item of allAccessories) {
     item.value = ''
   }
+
+  // 5. 清除 localStorage 缓存
+  if (pageKey) {
+    localStorage.removeItem(`table_save_${pageKey}`)
+  }
+
+  // 6. 重置当前订单 ID（下次保存将新建订单而非更新）
+  setCurrentOrderId(null)
 }
