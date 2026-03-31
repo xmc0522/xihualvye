@@ -171,9 +171,9 @@ export const tableData = [
   {
     xinghao: 'H-1077',
     tupian: 'H-1077',
-    mingcheng: '侧板',
+    mingcheng: '侧门料',
     guige: '',
-    shuliang: '4',
+    shuliang: '2',
     beizhu: '45度切',
     _mergeXinghao: 0,
     _mergeTupian: 0,
@@ -184,9 +184,9 @@ export const tableData = [
   {
     xinghao: 'H-1077',
     tupian: 'H-1077',
-    mingcheng: '侧板',
+    mingcheng: '侧门料',
     guige: '',
-    shuliang: '4',
+    shuliang: '2',
     beizhu: '45度切',
     _mergeXinghao: 0,
     _mergeTupian: 0,

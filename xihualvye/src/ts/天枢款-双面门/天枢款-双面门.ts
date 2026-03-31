@@ -254,20 +254,20 @@ export function useChangyongBiaoge() {
       }
     }
 
-    // 计算侧板的规格值：第一个侧板规格 = width - 85，第二个侧板规格 = height - 1
-    // 侧板shuliang = 固定值4 * quantity
+    // 计算侧门料的规格值：第一个侧门料规格 = width - 85，第二个侧门料规格 = height - 1
+    // 侧门料shuliang = 固定值2 * quantity
     let ceBanIdx = 0
     for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '侧板') {
+      if (result[i] && result[i]!.mingcheng === '侧门料') {
         ceBanIdx++
         if (ceBanIdx === 1 && info.width) {
-          // 第一个侧板：规格 = 宽度 - 85
+          // 第一个侧门料：规格 = 宽度 - 85
           result[i]!.guige = String(Number(info.width) - 85)
         } else if (ceBanIdx === 2 && info.height) {
-          // 第二个侧板：规格 = 高度 - 1
+          // 第二个侧门料：规格 = 高度 - 1
           result[i]!.guige = String(Number(info.height) - 1)
         }
-        result[i]!.shuliang = String(4 * qty)
+        result[i]!.shuliang = String(2 * qty)
       }
     }
 
@@ -335,11 +335,11 @@ export function useChangyongBiaoge() {
       currentRow._mergeMingcheng = count
       currentRow._mergeShuliang = count
 
-      // 上包边、下包边、侧板的备注列合并逻辑
+      // 上包边、下包边、侧门料的备注列合并逻辑
       if (
         currentRow.mingcheng === '上包边' ||
         currentRow.mingcheng === '下包边' ||
-        currentRow.mingcheng === '侧板'
+        currentRow.mingcheng === '侧门料'
       ) {
         if (
           shangXiaBaoBianTogether &&
@@ -397,7 +397,7 @@ export function useChangyongBiaoge() {
       }
     }
 
-    // 对备注列(5)进行合并（上包边、下包边、侧板）
+    // 对备注列(5)进行合并（上包边、下包边、侧门料）
     if (columnIndex === 5) {
       if (row._mergeBeizhu > 0) {
         return { rowspan: row._mergeBeizhu, colspan: 1 }
@@ -439,13 +439,13 @@ export function useChangyongBiaoge() {
       const qty = Number(info.quantity) || 1
       const ceMenBan = doorPanelRows.value.find((row) => row.name === '侧门板')
       if (ceMenBan) {
-        // 第一个侧板的guige = width - 85，侧门板shuju1 = 第一个侧板guige - 2.8
+        // 第一个侧门料的guige = width - 85，侧门板shuju1 = 第一个侧门料guige - 2.8
         if (info.width) {
           ceMenBan.shuju1 = String(Number(info.width) - 85 - 2.8)
         } else {
           ceMenBan.shuju1 = ''
         }
-        // 第二个侧板的guige = height - 1，侧门板shuju2 = 第二个侧板guige - 2.8
+        // 第二个侧门料的guige = height - 1，侧门板shuju2 = 第二个侧门料guige - 2.8
         if (info.height) {
           ceMenBan.shuju2 = String(Number(info.height) - 1 - 2.8)
         } else {

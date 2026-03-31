@@ -61,13 +61,21 @@ export async function saveTableData(
   }>,
   allAccessories: Array<{ name: string; value: string }>,
 ) {
-  // 构建保存数据
-  const tableRows = tableData.map((row) => ({
-    mingcheng: row.mingcheng,
-    guige: row.guige,
-    shuliang: row.shuliang,
-    beizhu: row.beizhu,
-  }))
+  // 构建保存数据（记录同名行的出现顺序索引，用于区分如两个"门料"行）
+  const mingchengCountMap: Record<string, number> = {}
+  const tableRows = tableData.map((row) => {
+    const key = row.mingcheng
+    if (mingchengCountMap[key] === undefined) mingchengCountMap[key] = 0
+    const idx = mingchengCountMap[key]
+    mingchengCountMap[key]++
+    return {
+      mingcheng: row.mingcheng,
+      _mingchengIndex: idx,
+      guige: row.guige,
+      shuliang: row.shuliang,
+      beizhu: row.beizhu,
+    }
+  })
 
   const panels = doorPanelRows.map((row) => ({
     name: row.name,
@@ -184,11 +192,17 @@ export async function loadOrderFromServer(
     info.zhongCount = data.zhong_count || ''
     info.remark = data.remark || ''
 
-    // 恢复主表格
+    // 恢复主表格（按 mingcheng + 出现顺序索引匹配，避免同名行互相覆盖）
     if (data.table_data) {
+      const mingchengCountMap: Record<string, number> = {}
       for (const row of tableData) {
+        const key = row.mingcheng
+        if (mingchengCountMap[key] === undefined) mingchengCountMap[key] = 0
+        const idx = mingchengCountMap[key]
+        mingchengCountMap[key]++
         const savedRow = data.table_data.find(
-          (r: { mingcheng: string }) => r.mingcheng === row.mingcheng,
+          (r: { mingcheng: string; _mingchengIndex?: number }) =>
+            r.mingcheng === row.mingcheng && (r._mingchengIndex ?? 0) === idx,
         )
         if (savedRow) {
           row.guige = savedRow.guige ?? row.guige
@@ -291,11 +305,17 @@ export function loadTableData(
       info.remark = data.info.remark || ''
     }
 
-    // 恢复主表格中可编辑的字段
+    // 恢复主表格中可编辑的字段（按 mingcheng + 出现顺序索引匹配，避免同名行互相覆盖）
     if (data.tableRows) {
+      const mingchengCountMap: Record<string, number> = {}
       for (const row of tableData) {
+        const key = row.mingcheng
+        if (mingchengCountMap[key] === undefined) mingchengCountMap[key] = 0
+        const idx = mingchengCountMap[key]
+        mingchengCountMap[key]++
         const savedRow = data.tableRows.find(
-          (r: { mingcheng: string }) => r.mingcheng === row.mingcheng,
+          (r: { mingcheng: string; _mingchengIndex?: number }) =>
+            r.mingcheng === row.mingcheng && (r._mingchengIndex ?? 0) === idx,
         )
         if (savedRow) {
           row.guige = savedRow.guige ?? row.guige
