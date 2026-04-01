@@ -24,11 +24,11 @@
           <div class="card-label">今日新增订单</div>
         </div>
       </div>
-      <div class="card card-avg">
-        <div class="card-icon">📐</div>
+      <div class="card card-month">
+        <div class="card-icon">📅</div>
         <div class="card-info">
-          <div class="card-value">{{ avgQuantity }}</div>
-          <div class="card-label">平均每单（套）</div>
+          <div class="card-value">{{ monthOrders }}</div>
+          <div class="card-label">本月新增订单</div>
         </div>
       </div>
     </div>
@@ -136,7 +136,7 @@ const {
   totalOrders,
   totalQuantity,
   todayOrders,
-  avgQuantity,
+  monthOrders,
   recentOrders,
 } = useDashboard()
 </script>

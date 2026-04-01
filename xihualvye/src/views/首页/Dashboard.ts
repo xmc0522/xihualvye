@@ -32,8 +32,8 @@ export function useDashboard() {
   const noData = ref(false)
   const totalOrders = ref(0)
   const totalQuantity = ref(0)
-  const todayOrders = ref(0)       // 今日新增订单数
-  const avgQuantity = ref(0)        // 平均每单套数
+  const todayOrders = ref(0)        // 今日新增订单数
+  const monthOrders = ref(0)        // 本月新增订单数
   const recentOrders = ref<OrderListItem[]>([])  // 最近10条订单
 
   // ========== 柱状图：三大款式数量 ==========
@@ -202,9 +202,6 @@ export function useDashboard() {
 
         totalOrders.value = stats.reduce((sum, s) => sum + s.order_count, 0)
         totalQuantity.value = stats.reduce((sum, s) => sum + s.total_quantity, 0)
-        avgQuantity.value = totalOrders.value > 0
-          ? Math.round((totalQuantity.value / totalOrders.value) * 10) / 10
-          : 0
 
         noData.value = stats.length === 0
 
@@ -232,6 +229,10 @@ export function useDashboard() {
         // 今日新增
         const today = recentDays[recentDays.length - 1]
         todayOrders.value = allOrders.filter((o) => o.date === today).length
+
+        // 本月新增（date 前7位为 YYYY/MM）
+        const thisMonth = today.slice(0, 7)
+        monthOrders.value = allOrders.filter((o) => o.date?.startsWith(thisMonth)).length
 
         await nextTick()
         initLineChart(recentDays, dayCounts)
@@ -274,7 +275,7 @@ export function useDashboard() {
     totalOrders,
     totalQuantity,
     todayOrders,
-    avgQuantity,
+    monthOrders,
     recentOrders,
   }
 }

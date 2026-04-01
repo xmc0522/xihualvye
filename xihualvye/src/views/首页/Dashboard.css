@@ -44,7 +44,7 @@
 .card-total .card-icon   { background-color: #ecf5ff; }
 .card-quantity .card-icon { background-color: #f0f9eb; }
 .card-today .card-icon   { background-color: #fdf6ec; }
-.card-avg .card-icon     { background-color: #fef0f0; }
+.card-month .card-icon    { background-color: #f0f0ff; }
 
 .card-info {
   display: flex;
