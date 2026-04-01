@@ -1,164 +1,243 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { getOrderStatsByPageType } from '@/ts/api'
-import { menuArr } from '@/router/menu'
+import { getOrderStatsByPageType, getOrderList } from '@/ts/api'
+import type { OrderListItem } from '@/ts/api'
 
-// 获取天枢款 children 的 title 列表（作为柱状图横向数据）
-const tianshuMenu = menuArr.find((item) => item.name === 'tianshu')
-const tianshuTitles = tianshuMenu?.children?.map((child) => child.title) || []
+// 三大款式分类
+const CATEGORIES = ['天枢款', '天权款', '天璇款']
 
-// 菜单 title → 后端 page_type 的映射
-// 因为菜单 title 和组件保存时的 PAGE_KEY 可能不完全一致
-// 例如：菜单写的是"天枢款-双面门款"，但组件保存到数据库的是"天枢款-双面门"
-const titleToPageTypeMap: Record<string, string> = {
-  '天枢款-常用款': '天枢款-常用款',
-  '天枢款-无上包边款': '天枢款-无上包边款',
-  '天枢款-单门-加背板': '天枢款-单门-加背板',
-  '天枢款-单门-加背板-加固': '天枢款-单门-加背板-加固',
-  '天枢款-双面门款': '天枢款-双面门',
-  '天枢款-双面门款-背面假门': '天枢款-双面门-背面假门',
-}
-
-// 根据菜单 title 查找对应 page_type 的统计数量
-function matchTitleToPageType(title: string, pageTypes: Map<string, number>): number {
-  // 先通过映射表转换为后端实际的 page_type
-  const pageType = titleToPageTypeMap[title] || title
-  if (pageTypes.has(pageType)) {
-    return pageTypes.get(pageType)!
+// 获取最近 N 天的日期字符串列表（YYYY/MM/DD 格式）
+function getRecentDays(n: number): string[] {
+  const days: string[] = []
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    days.push(`${yyyy}/${mm}/${dd}`)
   }
-  return 0
+  return days
 }
 
 export function useDashboard() {
   const barChartRef = ref<HTMLElement | null>(null)
+  const lineChartRef = ref<HTMLElement | null>(null)
+  const pieChartRef = ref<HTMLElement | null>(null)
   let barChart: echarts.ECharts | null = null
+  let lineChart: echarts.ECharts | null = null
+  let pieChart: echarts.ECharts | null = null
 
   const loading = ref(true)
   const noData = ref(false)
   const totalOrders = ref(0)
   const totalQuantity = ref(0)
-  const typeCount = ref(0)
+  const todayOrders = ref(0)       // 今日新增订单数
+  const avgQuantity = ref(0)        // 平均每单套数
+  const recentOrders = ref<OrderListItem[]>([])  // 最近10条订单
 
-  // 初始化柱状图
+  // ========== 柱状图：三大款式数量 ==========
   function initBarChart(categories: string[], values: number[]) {
     if (!barChartRef.value) return
+    if (!barChart) barChart = echarts.init(barChartRef.value)
 
-    barChart = echarts.init(barChartRef.value)
-
-    const option: echarts.EChartsOption = {
+    barChart.setOption({
       tooltip: {
         trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
+        axisPointer: { type: 'shadow' },
         formatter: (params: any) => {
-          const data = params[0]
-          return `${data.name}<br/>数量：<strong>${data.value}</strong> 套`
+          const d = params[0]
+          return `${d.name}<br/>数量：<strong>${d.value}</strong> 套`
         },
       },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '10%',
-        containLabel: true,
-      },
+      grid: { left: '3%', right: '4%', bottom: '8%', top: '12%', containLabel: true },
       xAxis: {
         type: 'category',
         data: categories,
-        axisLabel: {
-          rotate: 20,
-          fontSize: 12,
-          color: '#333',
-          interval: 0,
-        },
-        axisTick: {
-          alignWithLabel: true,
-        },
+        axisLabel: { fontSize: 14, color: '#333' },
+        axisTick: { alignWithLabel: true },
       },
       yAxis: {
         type: 'value',
         name: '数量（套）',
-        nameTextStyle: {
-          fontSize: 13,
-          color: '#666',
-        },
-        axisLabel: {
-          fontSize: 12,
-          color: '#666',
-        },
-        splitLine: {
-          lineStyle: {
-            type: 'dashed',
-            color: '#e8e8e8',
-          },
-        },
+        nameTextStyle: { fontSize: 13, color: '#666' },
+        axisLabel: { fontSize: 12, color: '#666' },
+        splitLine: { lineStyle: { type: 'dashed', color: '#e8e8e8' } },
+        minInterval: 1,
       },
-      series: [
-        {
-          name: '订单数量',
-          type: 'bar',
-          barWidth: '50%',
-          data: values,
+      series: [{
+        name: '订单数量',
+        type: 'bar',
+        barWidth: '40%',
+        data: values,
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#409EFF' },
+            { offset: 1, color: '#79bbff' },
+          ]),
+        },
+        emphasis: {
           itemStyle: {
-            borderRadius: [6, 6, 0, 0],
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#409EFF' },
-              { offset: 1, color: '#79bbff' },
+              { offset: 0, color: '#337ecc' },
+              { offset: 1, color: '#409EFF' },
             ]),
           },
-          emphasis: {
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#337ecc' },
-                { offset: 1, color: '#409EFF' },
-              ]),
-            },
-          },
-          label: {
-            show: true,
-            position: 'top',
-            fontSize: 13,
-            fontWeight: 'bold',
-            color: '#409EFF',
-          },
         },
-      ],
-    }
-
-    barChart.setOption(option)
+        label: { show: true, position: 'top', fontSize: 14, fontWeight: 'bold', color: '#409EFF' },
+      }],
+    } as echarts.EChartsOption)
   }
 
-  // 加载统计数据
+  // ========== 折线图：近7天每日新增订单数 ==========
+  function initLineChart(days: string[], counts: number[]) {
+    if (!lineChartRef.value) return
+    if (!lineChart) lineChart = echarts.init(lineChartRef.value)
+
+    // X 轴显示为 MM/DD 格式
+    const labels = days.map((d) => d.slice(5))
+
+    lineChart.setOption({
+      tooltip: {
+        trigger: 'axis',
+        formatter: (params: any) => {
+          const d = params[0]
+          return `${days[d.dataIndex]}<br/>新增订单：<strong>${d.value}</strong> 单`
+        },
+      },
+      grid: { left: '3%', right: '4%', bottom: '8%', top: '12%', containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: labels,
+        axisLabel: { fontSize: 12, color: '#555' },
+        axisLine: { lineStyle: { color: '#ddd' } },
+      },
+      yAxis: {
+        type: 'value',
+        name: '订单数',
+        nameTextStyle: { fontSize: 12, color: '#666' },
+        axisLabel: { fontSize: 12, color: '#666' },
+        minInterval: 1,
+        splitLine: { lineStyle: { type: 'dashed', color: '#e8e8e8' } },
+      },
+      series: [{
+        name: '新增订单',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 8,
+        data: counts,
+        lineStyle: { color: '#67c23a', width: 3 },
+        itemStyle: { color: '#67c23a', borderColor: '#fff', borderWidth: 2 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(103,194,58,0.25)' },
+            { offset: 1, color: 'rgba(103,194,58,0.02)' },
+          ]),
+        },
+        label: { show: true, position: 'top', fontSize: 12, color: '#67c23a' },
+      }],
+    } as echarts.EChartsOption)
+  }
+
+  // ========== 饼图：三大款式套数占比 ==========
+  function initPieChart(pieData: { name: string; value: number }[]) {
+    if (!pieChartRef.value) return
+    if (!pieChart) pieChart = echarts.init(pieChartRef.value)
+
+    const colors = ['#409EFF', '#e6a23c', '#f56c6c']
+
+    pieChart.setOption({
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}：{c} 套 ({d}%)',
+      },
+      legend: {
+        orient: 'horizontal',
+        bottom: 8,
+        textStyle: { fontSize: 13, color: '#555' },
+      },
+      series: [{
+        name: '款式占比',
+        type: 'pie',
+        radius: ['38%', '65%'],
+        center: ['50%', '45%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+        label: {
+          show: true,
+          formatter: '{b}\n{d}%',
+          fontSize: 12,
+          color: '#555',
+        },
+        emphasis: {
+          label: { show: true, fontSize: 14, fontWeight: 'bold' },
+          itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.2)' },
+        },
+        data: pieData.map((d, i) => ({ ...d, itemStyle: { color: colors[i % colors.length] } })),
+      }],
+    } as echarts.EChartsOption)
+  }
+
+  // ========== 加载所有数据 ==========
   async function loadStats() {
     loading.value = true
     try {
-      const res = await getOrderStatsByPageType()
-      if (res.code === 0 && res.data) {
-        const stats = res.data
+      // 1. 按款式统计
+      const statsRes = await getOrderStatsByPageType()
+      if (statsRes.code === 0 && statsRes.data) {
+        const stats = statsRes.data
 
-        // 构建 pageType → totalQuantity 映射
-        const pageTypeMap = new Map<string, number>()
+        // 三大类汇总
+        const categoryQuantity: Record<string, number> = { 天枢款: 0, 天权款: 0, 天璇款: 0 }
         for (const s of stats) {
-          pageTypeMap.set(s.page_type, s.total_quantity)
+          for (const cat of CATEGORIES) {
+            if (s.page_type.includes(cat)) {
+              categoryQuantity[cat] += s.total_quantity
+              break
+            }
+          }
         }
 
-        // typeCount 只统计天枢款型号种类，排除自由选择
-        const tianshuPageTypes = new Set(Object.values(titleToPageTypeMap))
-        const tianshuStats = stats.filter((s) => tianshuPageTypes.has(s.page_type))
-        typeCount.value = tianshuStats.length
-
-        // 天枢款各型号的数量（按菜单 children 的 title 顺序）
-        const values = tianshuTitles.map((title) => matchTitleToPageType(title, pageTypeMap))
-
-        // 计算汇总数据
         totalOrders.value = stats.reduce((sum, s) => sum + s.order_count, 0)
         totalQuantity.value = stats.reduce((sum, s) => sum + s.total_quantity, 0)
+        avgQuantity.value = totalOrders.value > 0
+          ? Math.round((totalQuantity.value / totalOrders.value) * 10) / 10
+          : 0
 
-        noData.value = values.every((v) => v === 0) && stats.length === 0
+        noData.value = stats.length === 0
+
+        const barValues = CATEGORIES.map((cat) => categoryQuantity[cat])
+        const pieData = CATEGORIES
+          .map((cat) => ({ name: cat, value: categoryQuantity[cat] }))
+          .filter((d) => d.value > 0)
 
         await nextTick()
-        initBarChart(tianshuTitles, values)
+        initBarChart(CATEGORIES, barValues)
+        if (pieData.length > 0) initPieChart(pieData)
+      }
+
+      // 2. 拉取所有订单，做近7天统计 & 最近10条列表
+      const listRes = await getOrderList({ page: 1, pageSize: 500 })
+      if (listRes.code === 0 && listRes.data) {
+        const allOrders = listRes.data.list
+
+        // 近7天
+        const recentDays = getRecentDays(7)
+        const dayCounts = recentDays.map((day) =>
+          allOrders.filter((o) => o.date === day).length
+        )
+
+        // 今日新增
+        const today = recentDays[recentDays.length - 1]
+        todayOrders.value = allOrders.filter((o) => o.date === today).length
+
+        await nextTick()
+        initLineChart(recentDays, dayCounts)
+
+        // 最近10条（按 updated_at 倒序，后端已按 date DESC 排序，取前10）
+        recentOrders.value = allOrders.slice(0, 10)
       }
     } catch (e) {
       console.error('加载统计数据失败:', e)
@@ -168,9 +247,10 @@ export function useDashboard() {
     }
   }
 
-  // 窗口大小变化时重绘
   function handleResize() {
     barChart?.resize()
+    lineChart?.resize()
+    pieChart?.resize()
   }
 
   onMounted(() => {
@@ -181,14 +261,20 @@ export function useDashboard() {
   onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize)
     barChart?.dispose()
+    lineChart?.dispose()
+    pieChart?.dispose()
   })
 
   return {
     barChartRef,
+    lineChartRef,
+    pieChartRef,
     loading,
     noData,
     totalOrders,
     totalQuantity,
-    typeCount,
+    todayOrders,
+    avgQuantity,
+    recentOrders,
   }
 }
