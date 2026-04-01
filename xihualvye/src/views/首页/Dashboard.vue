@@ -114,6 +114,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="updated_at" label="更新时间" min-width="160" />
+        <el-table-column label="操作" width="80" align="center" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" @click="goToOrders(row.id)">查看</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <div v-if="!loading && recentOrders.length === 0" class="chart-empty">
         <el-empty description="暂无订单数据" />
@@ -125,8 +130,10 @@
 
 <script setup lang="ts">
 import { Loading } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import { useDashboard } from './Dashboard'
 
+const router = useRouter()
 const {
   barChartRef,
   lineChartRef,
@@ -139,6 +146,11 @@ const {
   monthOrders,
   recentOrders,
 } = useDashboard()
+
+// 跳转到订单管理页面并高亮对应订单
+const goToOrders = (id: number) => {
+  router.push({ path: '/orders', query: { highlightId: String(id) } })
+}
 </script>
 
 <style scoped src="./Dashboard.css"></style>

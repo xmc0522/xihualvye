@@ -37,9 +37,39 @@ export function useDashboard() {
   const recentOrders = ref<OrderListItem[]>([])  // 最近10条订单
 
   // ========== 柱状图：三大款式数量 ==========
+  // 与饼图保持一致的三大款式颜色（天枢款蓝、天权款橙、天璇款红）
+  const BAR_COLORS = [
+    { main: '#409EFF', light: '#79bbff', dark: '#337ecc' },
+    { main: '#e6a23c', light: '#f5c678', dark: '#cf8510' },
+    { main: '#f56c6c', light: '#fab6b6', dark: '#dd4444' },
+  ]
+
   function initBarChart(categories: string[], values: number[]) {
     if (!barChartRef.value) return
     if (!barChart) barChart = echarts.init(barChartRef.value)
+
+    // 每根柱子独立颜色
+    const barData = values.map((v, i) => {
+      const c = BAR_COLORS[i] ?? BAR_COLORS[0]
+      return {
+        value: v,
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: c.main },
+            { offset: 1, color: c.light },
+          ]),
+        },
+        emphasis: {
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: c.dark },
+              { offset: 1, color: c.main },
+            ]),
+          },
+        },
+      }
+    })
 
     barChart.setOption({
       tooltip: {
@@ -69,23 +99,14 @@ export function useDashboard() {
         name: '订单数量',
         type: 'bar',
         barWidth: '40%',
-        data: values,
-        itemStyle: {
-          borderRadius: [6, 6, 0, 0],
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#409EFF' },
-            { offset: 1, color: '#79bbff' },
-          ]),
+        data: barData,
+        label: {
+          show: true,
+          position: 'top',
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: 'inherit',
         },
-        emphasis: {
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#337ecc' },
-              { offset: 1, color: '#409EFF' },
-            ]),
-          },
-        },
-        label: { show: true, position: 'top', fontSize: 14, fontWeight: 'bold', color: '#409EFF' },
       }],
     } as echarts.EChartsOption)
   }
