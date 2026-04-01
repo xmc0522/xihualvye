@@ -56,16 +56,32 @@ export function useOrderManage() {
 
   // 款式 -> 路由路径映射
   const pageTypeRouteMap: Record<string, string> = {
+    // 自由选择
     天枢款: '/zyxz/a',
     '天枢款-单面门-选择款': '/zyxz/a',
     '天枢款-双面门-选择款': '/zyxz/b',
+    // 天枢款
     '天枢款-常用款': '/tianshu/c',
     '天枢款-无上包边': '/tianshu/d',
+    '天枢款-无上包边款': '/tianshu/d',
     '天枢款-单门-加背板': '/tianshu/a',
     '天枢款-单门-加背板-加固': '/tianshu/b',
     '天枢款-双面门': '/tianshu/e',
     '天枢款-双面门-背面假门': '/tianshu/f',
+    // 天权款
     '天权款-常用款': '/tianquan/a',
+    '天权款-无上包边款': '/tianquan/d',
+    '天权款-单门-加背板': '/tianquan/b',
+    '天权款-单门-加背板-加固': '/tianquan/c',
+    '天权款-双面门': '/tianquan/e',
+    '天权款-双面门-背面假门': '/tianquan/f',
+    // 天璇款
+    '天璇款-常用款': '/tianxuan/c',
+    '天璇款-无上包边款': '/tianxuan/d',
+    '天璇款-单门-加背板': '/tianxuan/a',
+    '天璇款-单门-加背板-加固': '/tianxuan/b',
+    '天璇款-双面门': '/tianxuan/e',
+    '天璇款-双面门-背面假门': '/tianxuan/f',
   }
 
   // 查询
