@@ -27,19 +27,15 @@
             style="width: 180px"
           >
             <!-- <el-option label="天枢款-单面门-选择款" value="天枢款" /> -->
-            <!-- <el-option label="天枢款-单面门（自由选择）" value="天枢款-单面门-选择款" />
-            <el-option label="天枢款-双面门（自由选择）" value="天枢款-双面门-选择款" /> -->
-            <!-- <el-option label="天枢款-常用款" value="天枢款-常用款" />
+            <el-option label="天枢款-单面门（自由选择）" value="天枢款-单面门-选择款" />
+            <el-option label="天枢款-双面门（自由选择）" value="天枢款-双面门-选择款" />
+            <el-option label="天枢款-常用款" value="天枢款-常用款" />
             <el-option label="天枢款-无上包边" value="天枢款-无上包边" />
             <el-option label="天枢款-单门-加背板" value="天枢款-单门-加背板" />
             <el-option label="天枢款-单门-加背板-加固" value="天枢款-单门-加背板-加固" />
             <el-option label="天枢款-双面门" value="天枢款-双面门" />
             <el-option label="天枢款-双面门-背面假门" value="天枢款-双面门-背面假门" />
-            <el-option label="天权款-常用款" value="天权款-常用款" /> -->
-            <el-option label="天枢款" value="天枢款" />
-            <el-option label="天权款" value="天权款" />
-            <el-option label="天璇款" value="天璇款" /> 
-
+            <el-option label="天权款-常用款" value="天权款-常用款" />
           </el-select>
         </el-form-item>
         <el-form-item label="日期">
