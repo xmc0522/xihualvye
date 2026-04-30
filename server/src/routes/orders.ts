@@ -3,10 +3,27 @@ import db from '../db'
 
 const router = Router()
 
+// 合法状态枚举
+const VALID_STATUS = ['pending', 'producing', 'completed'] as const
+
+// ============ 简单内存缓存（仅缓存统计接口，5秒 TTL）============
+let statsCache: { data: any; expireAt: number } | null = null
+let statusStatsCache: { data: any; expireAt: number } | null = null
+const STATS_TTL = 5_000
+
+function invalidateStatsCache() {
+  statsCache = null
+  statusStatsCache = null
+}
+
 // ============ 按型号统计订单数量 ============
 router.get('/stats/by-page-type', (_req: Request, res: Response) => {
   try {
-    // 按 page_type 分组，汇总 quantity（字符串转数字求和）
+    if (statsCache && statsCache.expireAt > Date.now()) {
+      res.json({ code: 0, data: statsCache.data })
+      return
+    }
+
     const rows = db.prepare(`
       SELECT page_type, COALESCE(SUM(CAST(quantity AS INTEGER)), 0) as total_quantity, COUNT(*) as order_count
       FROM orders
@@ -15,12 +32,35 @@ router.get('/stats/by-page-type', (_req: Request, res: Response) => {
       ORDER BY total_quantity DESC
     `).all() as Array<{ page_type: string; total_quantity: number; order_count: number }>
 
-    res.json({
-      code: 0,
-      data: rows,
-    })
+    statsCache = { data: rows, expireAt: Date.now() + STATS_TTL }
+    res.json({ code: 0, data: rows })
   } catch (e: any) {
     console.error('统计订单失败:', e)
+    res.status(500).json({ code: -1, message: '统计失败: ' + e.message })
+  }
+})
+
+// ============ 按状态统计订单数量 ============
+router.get('/stats/by-status', (_req: Request, res: Response) => {
+  try {
+    if (statusStatsCache && statusStatsCache.expireAt > Date.now()) {
+      res.json({ code: 0, data: statusStatsCache.data })
+      return
+    }
+
+    const rows = db.prepare(`
+      SELECT
+        COALESCE(NULLIF(status, ''), 'pending') as status,
+        COUNT(*) as order_count,
+        COALESCE(SUM(CAST(quantity AS INTEGER)), 0) as total_quantity
+      FROM orders
+      GROUP BY COALESCE(NULLIF(status, ''), 'pending')
+    `).all()
+
+    statusStatsCache = { data: rows, expireAt: Date.now() + STATS_TTL }
+    res.json({ code: 0, data: rows })
+  } catch (e: any) {
+    console.error('按状态统计失败:', e)
     res.status(500).json({ code: -1, message: '统计失败: ' + e.message })
   }
 })
@@ -41,14 +81,17 @@ router.post('/', (req: Request, res: Response) => {
       zhongCount = '',
       remark = '',
       pageType = '',
+      status = 'pending',
       tableData = [],
       doorPanels = [],
       accessories = [],
     } = req.body
 
+    const safeStatus = VALID_STATUS.includes(status) ? status : 'pending'
+
     const stmt = db.prepare(`
-      INSERT INTO orders (customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, table_data, door_panels, accessories)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO orders (customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, status, table_data, door_panels, accessories)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     const result = stmt.run(
@@ -64,11 +107,13 @@ router.post('/', (req: Request, res: Response) => {
       zhongCount,
       remark,
       pageType,
+      safeStatus,
       JSON.stringify(tableData),
       JSON.stringify(doorPanels),
       JSON.stringify(accessories)
     )
 
+    invalidateStatsCache()
     res.json({
       code: 0,
       message: '保存成功',
@@ -83,9 +128,9 @@ router.post('/', (req: Request, res: Response) => {
 // ============ 查询订单列表 ============
 router.get('/', (req: Request, res: Response) => {
   try {
-    const { customer, pageType, orderNo, surface, startDate, endDate, page = '1', pageSize = '20' } = req.query
+    const { customer, pageType, orderNo, surface, status, startDate, endDate, page = '1', pageSize = '20' } = req.query
 
-    let sql = 'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, created_at, updated_at FROM orders WHERE 1=1'
+    let sql = 'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, status, created_at, updated_at FROM orders WHERE 1=1'
     const params: any[] = []
 
     if (customer) {
@@ -104,6 +149,10 @@ router.get('/', (req: Request, res: Response) => {
       sql += ' AND surface = ?'
       params.push(surface)
     }
+    if (status) {
+      sql += ` AND COALESCE(NULLIF(status, ''), 'pending') = ?`
+      params.push(status)
+    }
     if (startDate) {
       sql += ' AND date >= ?'
       params.push(startDate)
@@ -114,7 +163,10 @@ router.get('/', (req: Request, res: Response) => {
     }
 
     // 先查总数
-    const countSql = sql.replace('SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, created_at, updated_at', 'SELECT COUNT(*) as total')
+    const countSql = sql.replace(
+      'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, status, created_at, updated_at',
+      'SELECT COUNT(*) as total'
+    )
     const countResult = db.prepare(countSql).get(...params) as { total: number }
     const total = countResult.total
 
@@ -128,12 +180,7 @@ router.get('/', (req: Request, res: Response) => {
 
     res.json({
       code: 0,
-      data: {
-        list: rows,
-        total,
-        page: p,
-        pageSize: ps,
-      },
+      data: { list: rows, total, page: p, pageSize: ps },
     })
   } catch (e: any) {
     console.error('查询订单列表失败:', e)
@@ -152,10 +199,10 @@ router.get('/:id', (req: Request, res: Response) => {
       return
     }
 
-    // 解析 JSON 字段
     row.table_data = JSON.parse(row.table_data || '[]')
     row.door_panels = JSON.parse(row.door_panels || '[]')
     row.accessories = JSON.parse(row.accessories || '[]')
+    if (!row.status) row.status = 'pending'
 
     res.json({ code: 0, data: row })
   } catch (e: any) {
@@ -181,17 +228,22 @@ router.put('/:id', (req: Request, res: Response) => {
       zhongCount,
       remark,
       pageType,
+      status,
       tableData,
       doorPanels,
       accessories,
     } = req.body
 
-    // 检查订单是否存在
-    const existing = db.prepare('SELECT id FROM orders WHERE id = ?').get(id)
+    const existing = db.prepare('SELECT id, status FROM orders WHERE id = ?').get(id) as any
     if (!existing) {
       res.status(404).json({ code: -1, message: '订单不存在' })
       return
     }
+
+    // 若请求未传 status，保留原值；否则校验合法性
+    const newStatus = status === undefined
+      ? (existing.status || 'pending')
+      : (VALID_STATUS.includes(status) ? status : 'pending')
 
     const stmt = db.prepare(`
       UPDATE orders SET
@@ -207,6 +259,7 @@ router.put('/:id', (req: Request, res: Response) => {
         zhong_count = ?,
         remark = ?,
         page_type = ?,
+        status = ?,
         table_data = ?,
         door_panels = ?,
         accessories = ?,
@@ -227,15 +280,45 @@ router.put('/:id', (req: Request, res: Response) => {
       zhongCount ?? '',
       remark ?? '',
       pageType ?? '',
+      newStatus,
       JSON.stringify(tableData ?? []),
       JSON.stringify(doorPanels ?? []),
       JSON.stringify(accessories ?? []),
       id
     )
 
+    invalidateStatsCache()
     res.json({ code: 0, message: '更新成功' })
   } catch (e: any) {
     console.error('更新订单失败:', e)
+    res.status(500).json({ code: -1, message: '更新失败: ' + e.message })
+  }
+})
+
+// ============ 仅更新订单状态（轻量） ============
+router.patch('/:id/status', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+
+    if (!VALID_STATUS.includes(status)) {
+      res.status(400).json({ code: -1, message: '无效的状态值' })
+      return
+    }
+
+    const existing = db.prepare('SELECT id FROM orders WHERE id = ?').get(id)
+    if (!existing) {
+      res.status(404).json({ code: -1, message: '订单不存在' })
+      return
+    }
+
+    db.prepare(`UPDATE orders SET status = ?, updated_at = datetime('now', 'localtime') WHERE id = ?`)
+      .run(status, id)
+
+    invalidateStatsCache()
+    res.json({ code: 0, message: '状态已更新' })
+  } catch (e: any) {
+    console.error('更新订单状态失败:', e)
     res.status(500).json({ code: -1, message: '更新失败: ' + e.message })
   }
 })
@@ -253,6 +336,7 @@ router.delete('/:id', (req: Request, res: Response) => {
 
     db.prepare('DELETE FROM orders WHERE id = ?').run(id)
 
+    invalidateStatsCache()
     res.json({ code: 0, message: '删除成功' })
   } catch (e: any) {
     console.error('删除订单失败:', e)
@@ -274,6 +358,7 @@ router.post('/batch-delete', (req: Request, res: Response) => {
     const stmt = db.prepare(`DELETE FROM orders WHERE id IN (${placeholders})`)
     const result = stmt.run(...ids)
 
+    invalidateStatsCache()
     res.json({
       code: 0,
       message: `成功删除 ${result.changes} 条订单`,

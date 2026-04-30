@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
 
-    <!-- 顶部概览卡片 -->
+    <!-- 顶部概览卡片（6 张等宽） -->
     <div class="overview-cards">
       <div class="card card-total">
         <div class="card-icon">📦</div>
@@ -21,14 +21,36 @@
         <div class="card-icon">🗓️</div>
         <div class="card-info">
           <div class="card-value">{{ todayOrders }}</div>
-          <div class="card-label">今日新增订单</div>
+          <div class="card-label">今日新增</div>
         </div>
       </div>
       <div class="card card-month">
         <div class="card-icon">📅</div>
         <div class="card-info">
           <div class="card-value">{{ monthOrders }}</div>
-          <div class="card-label">本月新增订单</div>
+          <div class="card-label">本月新增</div>
+        </div>
+      </div>
+      <!-- 订单状态卡片（共用 overview-cards 行） -->
+      <div class="card card-status status-pending" @click="goToOrdersByStatus('pending')">
+        <div class="card-icon">⏳</div>
+        <div class="card-info">
+          <div class="card-value">{{ statusCounts.pending }}</div>
+          <div class="card-label">待生产</div>
+        </div>
+      </div>
+      <div class="card card-status status-producing" @click="goToOrdersByStatus('producing')">
+        <div class="card-icon">🔧</div>
+        <div class="card-info">
+          <div class="card-value">{{ statusCounts.producing }}</div>
+          <div class="card-label">生产中</div>
+        </div>
+      </div>
+      <div class="card card-status status-completed" @click="goToOrdersByStatus('completed')">
+        <div class="card-icon">✅</div>
+        <div class="card-info">
+          <div class="card-value">{{ statusCounts.completed }}</div>
+          <div class="card-label">已完成</div>
         </div>
       </div>
     </div>
@@ -67,8 +89,16 @@
 
       <!-- 折线图 -->
       <div class="chart-section chart-section-half">
-        <div class="chart-header">
-          <h3>📈 近 7 天每日新增订单趋势</h3>
+        <div class="chart-header line-header">
+          <h3>📈 近 {{ lineRange }} 天每日新增订单趋势</h3>
+          <el-radio-group
+            v-model="lineRange"
+            size="small"
+            @change="(v: any) => setLineRange(v)"
+          >
+            <el-radio-button :value="7">7天</el-radio-button>
+            <el-radio-button :value="30">30天</el-radio-button>
+          </el-radio-group>
         </div>
         <div ref="lineChartRef" class="chart-container"></div>
         <div v-if="loading" class="chart-loading">
@@ -145,11 +175,19 @@ const {
   todayOrders,
   monthOrders,
   recentOrders,
+  statusCounts,
+  lineRange,
+  setLineRange,
 } = useDashboard()
 
 // 跳转到订单管理页面并高亮对应订单
 const goToOrders = (id: number) => {
   router.push({ path: '/orders', query: { highlightId: String(id) } })
+}
+
+// 按状态筛选跳转到订单管理（暂用 query 传递，需 OrderManage 接收）
+const goToOrdersByStatus = (status: string) => {
+  router.push({ path: '/orders', query: { status } })
 }
 </script>
 

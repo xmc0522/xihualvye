@@ -35,6 +35,33 @@ export function useDashboard() {
   const todayOrders = ref(0)        // 今日新增订单数
   const monthOrders = ref(0)        // 本月新增订单数
   const recentOrders = ref<OrderListItem[]>([])  // 最近10条订单
+  const lineRange = ref<7 | 30>(7)  // 折线图天数范围
+  let cachedOrders: OrderListItem[] = []  // 缓存所有订单，用于切换天数时复用
+
+  // 各状态订单数量（待生产 / 生产中 / 已完成）
+  const statusCounts = ref({
+    pending: 0,
+    producing: 0,
+    completed: 0,
+  })
+
+  // 根据当前 lineRange 重新渲染折线图
+  function refreshLineChart() {
+    if (!cachedOrders.length) return
+    const getOrderDay = (o: OrderListItem): string => {
+      const src = o.updated_at || o.created_at || ''
+      return src.slice(0, 10).replace(/-/g, '/')
+    }
+    const days = getRecentDays(lineRange.value)
+    const counts = days.map((day) => cachedOrders.filter((o) => getOrderDay(o) === day).length)
+    initLineChart(days, counts)
+  }
+
+  // 外部调用：切换折线图天数
+  function setLineRange(n: 7 | 30) {
+    lineRange.value = n
+    refreshLineChart()
+  }
 
   // ========== 柱状图：三大款式数量 ==========
   // 与饼图保持一致的三大款式颜色（天枢款蓝、天权款橙、天璇款红）
@@ -42,7 +69,9 @@ export function useDashboard() {
     { main: '#409EFF', light: '#79bbff', dark: '#337ecc' },
     { main: '#e6a23c', light: '#f5c678', dark: '#cf8510' },
     { main: '#f56c6c', light: '#fab6b6', dark: '#dd4444' },
-  ]
+  ] as const
+  // 首项作为兜底，类型保证非空
+  const DEFAULT_BAR_COLOR = BAR_COLORS[0]
 
   function initBarChart(categories: string[], values: number[]) {
     if (!barChartRef.value) return
@@ -50,7 +79,7 @@ export function useDashboard() {
 
     // 每根柱子独立颜色
     const barData = values.map((v, i) => {
-      const c = BAR_COLORS[i] ?? BAR_COLORS[0]
+      const c = BAR_COLORS[i] ?? DEFAULT_BAR_COLOR
       return {
         value: v,
         itemStyle: {
@@ -137,7 +166,14 @@ export function useDashboard() {
       yAxis: {
         type: 'value',
         name: '订单数',
-        nameTextStyle: { fontSize: 12, color: '#666' },
+        nameLocation: 'end',
+        nameGap: 15,
+        nameTextStyle: {
+          fontSize: 12,
+          color: '#666',
+          align: 'left',
+          padding: [0, 0, 0, -45],
+        },
         axisLabel: { fontSize: 12, color: '#666' },
         minInterval: 1,
         splitLine: { lineStyle: { type: 'dashed', color: '#e8e8e8' } },
@@ -215,7 +251,7 @@ export function useDashboard() {
         for (const s of stats) {
           for (const cat of CATEGORIES) {
             if (s.page_type.includes(cat)) {
-              categoryQuantity[cat] += s.total_quantity
+              categoryQuantity[cat] = (categoryQuantity[cat] ?? 0) + s.total_quantity
               break
             }
           }
@@ -226,9 +262,9 @@ export function useDashboard() {
 
         noData.value = stats.length === 0
 
-        const barValues = CATEGORIES.map((cat) => categoryQuantity[cat])
+        const barValues = CATEGORIES.map((cat) => categoryQuantity[cat] ?? 0)
         const pieData = CATEGORIES
-          .map((cat) => ({ name: cat, value: categoryQuantity[cat] }))
+          .map((cat) => ({ name: cat, value: categoryQuantity[cat] ?? 0 }))
           .filter((d) => d.value > 0)
 
         await nextTick()
@@ -236,10 +272,11 @@ export function useDashboard() {
         if (pieData.length > 0) initPieChart(pieData)
       }
 
-      // 2. 拉取所有订单，做近7天统计 & 最近10条列表
+      // 2. 拉取所有订单，做近期统计 & 最近10条列表
       const listRes = await getOrderList({ page: 1, pageSize: 500 })
       if (listRes.code === 0 && listRes.data) {
         const allOrders = listRes.data.list
+        cachedOrders = allOrders  // 缓存供切换天数时使用
 
         // 从订单的 updated_at（格式 "YYYY-MM-DD HH:MM:SS"）提取日期部分并转为 YYYY/MM/DD
         const getOrderDay = (o: OrderListItem): string => {
@@ -249,22 +286,32 @@ export function useDashboard() {
           return datePart
         }
 
-        // 近7天（按录入时间统计）
-        const recentDays = getRecentDays(7)
-        const dayCounts = recentDays.map((day) =>
+        // 折线图（按当前选中天数统计）
+        const days = getRecentDays(lineRange.value)
+        const dayCounts = days.map((day) =>
           allOrders.filter((o) => getOrderDay(o) === day).length
         )
 
         // 今日新增（按录入时间）
-        const today = recentDays[recentDays.length - 1]
+        const todayDays = getRecentDays(1)
+        const today = todayDays[todayDays.length - 1] ?? ''
         todayOrders.value = allOrders.filter((o) => getOrderDay(o) === today).length
 
         // 本月新增（按录入时间的 YYYY/MM）
         const thisMonth = today.slice(0, 7)
         monthOrders.value = allOrders.filter((o) => getOrderDay(o).startsWith(thisMonth)).length
 
+        // 各状态订单数量（基于订单列表实时统计，无缓存）
+        const counts = { pending: 0, producing: 0, completed: 0 }
+        for (const o of allOrders) {
+          const s = (o.status || 'pending') as keyof typeof counts
+          if (counts[s] !== undefined) counts[s]++
+          else counts.pending++ // 未知状态归为待生产
+        }
+        statusCounts.value = counts
+
         await nextTick()
-        initLineChart(recentDays, dayCounts)
+        initLineChart(days, dayCounts)
 
         // 最近10条（按 updated_at 倒序，后端已按 date DESC 排序，取前10）
         recentOrders.value = allOrders.slice(0, 10)
@@ -306,5 +353,8 @@ export function useDashboard() {
     todayOrders,
     monthOrders,
     recentOrders,
+    statusCounts,
+    lineRange,
+    setLineRange,
   }
 }

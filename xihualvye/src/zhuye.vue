@@ -164,6 +164,7 @@ const handleLogout = () => {
 .el-menu-vertical-demo :deep(.el-menu-item.is-active) {
   background-color: #1890ff !important;
   color: #fff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.4);
 }
 
 /* 子菜单项选中时的蓝色背景 */

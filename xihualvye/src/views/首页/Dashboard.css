@@ -4,25 +4,26 @@
   min-height: 100%;
 }
 
-/* ========== 顶部概览卡片 ========== */
+/* ========== 顶部概览卡片（6 张等宽，单行） ========== */
 .overview-cards {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .card {
-  flex: 1;
-  min-width: 160px;
+  flex: 1 1 0;
+  min-width: 0;        /* 允许在窄屏被压缩，不溢出 */
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 22px;
+  gap: 12px;
+  padding: 14px 16px;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 4px solid transparent;  /* 状态卡片可染色，普通卡片透明 */
 }
 
 .card:hover {
@@ -31,28 +32,41 @@
 }
 
 .card-icon {
-  font-size: 32px;
-  width: 52px;
-  height: 52px;
+  font-size: 26px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
-.card-total .card-icon   { background-color: #ecf5ff; }
+.card-total .card-icon    { background-color: #ecf5ff; }
 .card-quantity .card-icon { background-color: #f0f9eb; }
-.card-today .card-icon   { background-color: #fdf6ec; }
+.card-today .card-icon    { background-color: #fdf6ec; }
 .card-month .card-icon    { background-color: #f0f0ff; }
+
+/* 状态卡片：可点击，左侧色条标识状态 */
+.card-status {
+  cursor: pointer;
+}
+.card-status .card-icon {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.status-pending   { border-left-color: #909399; }
+.status-producing { border-left-color: #e6a23c; }
+.status-completed { border-left-color: #67c23a; }
 
 .card-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .card-value {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   color: #303133;
   line-height: 1.2;
@@ -62,6 +76,9 @@
   font-size: 13px;
   color: #909399;
   margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ========== 通用卡片容器 ========== */
@@ -85,6 +102,13 @@
   font-size: 16px;
   font-weight: 600;
   color: #303133;
+}
+
+/* 折线图卡片：标题与切换按钮左右对齐 */
+.chart-header.line-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* ========== 第一行：柱状图 + 饼图并排 ========== */

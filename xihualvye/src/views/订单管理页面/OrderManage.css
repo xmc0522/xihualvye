@@ -47,3 +47,79 @@
   font-size: 14px;
   margin-bottom: 8px;
 }
+
+/* ========== 订单状态 Tag 美化 ========== */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.status-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.status-text {
+  line-height: 1;
+}
+
+.status-arrow {
+  font-size: 12px;
+  margin-left: 2px;
+  opacity: 0.6;
+  transition: transform 0.2s;
+}
+.status-tag:hover .status-arrow {
+  opacity: 1;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
+/* 各状态配色（背景柔和、文字深、边框同色） */
+.status-tag-info {
+  background: #f0f1f5;
+  color: #606266;
+  border-color: #e4e7ed;
+}
+.status-tag-warning {
+  background: #fdf6ec;
+  color: #b88230;
+  border-color: #f5dab1;
+}
+.status-tag-primary {
+  background: #ecf5ff;
+  color: #1890ff;
+  border-color: #b3d8ff;
+}
+.status-tag-success {
+  background: #f0f9eb;
+  color: #67c23a;
+  border-color: #c2e7b0;
+}
+.status-tag-danger {
+  background: #fef0f0;
+  color: #f56c6c;
+  border-color: #fbc4c4;
+}
+
+/* 下拉菜单里的小圆点（在状态列表项前） */
+:deep(.el-dropdown-menu__item) .status-dot {
+  box-shadow: none;
+}

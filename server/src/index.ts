@@ -16,8 +16,15 @@ app.use(express.json({ limit: '10mb' }))
 app.use('/api/orders', ordersRouter)
 
 // 登录接口
-const ADMIN_USERNAME = 'xhly'
-const ADMIN_PASSWORD = '123123'
+// 优先从环境变量读取（生产环境强烈推荐），未配置则使用默认值
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'xhly'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123123'
+
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('⚠️  未设置 ADMIN_PASSWORD 环境变量，正在使用默认密码（不安全）！')
+  console.warn('   生产部署请通过 PM2 ecosystem 文件或启动命令设置，例如：')
+  console.warn('   ADMIN_USERNAME=admin ADMIN_PASSWORD=YourStrongPwd pm2 start dist/index.js --name xihualvye --update-env')
+}
 
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body
@@ -43,6 +50,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ code: 0, message: 'ok', timestamp: new Date().toLocaleString() })
 })
 
+// API 404（必须放在所有 /api 路由之后）
+app.use('/api/*', (_req, res) => {
+  res.status(404).json({ code: 404, message: '接口不存在' })
+})
+
 // ============ 生产模式：托管前端静态文件 ============
 const publicDir = path.join(__dirname, '..', 'public')
 if (fs.existsSync(publicDir)) {
@@ -52,6 +64,15 @@ if (fs.existsSync(publicDir)) {
   })
   console.log('📦 生产模式：已加载前端静态文件')
 }
+
+// 全局兜底错误处理（保证最后注册，防止任何异常导致进程崩溃）
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('❌ 未捕获的错误:', err)
+  res.status(500).json({
+    code: -1,
+    message: err?.message || '服务器内部错误',
+  })
+})
 
 // 等待数据库就绪后启动服务
 db.waitForReady().then(() => {

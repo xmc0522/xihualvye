@@ -1,30 +1,38 @@
-
-// Dashboard 使用懒加载，避免与 menu.ts 的循环依赖
-// （Dashboard.ts 中需要 import menuArr，如果同步 import 会造成循环引用导致白屏）
-const Dashboard = () => import('@/views/首页/Dashboard.vue')
-import TSKDM from '@/views/自由选择页面/天枢-单门/TSK-DM.vue'
-import TSKSM from '@/views/自由选择页面/天枢-双门/TSK-SM.vue'
-import OrderManage from '@/views/订单管理页面/OrderManage.vue'
+// 所有路由组件全部使用懒加载（动态 import），减少首屏体积
 import { HomeFilled, Document, Operation, Grid, Menu, Pointer } from '@element-plus/icons-vue'
-import { markRaw, type Component } from 'vue'
-import danmengbeibang1 from '@/views/天枢款/danmengbeibang-1.vue'
-import danmengbeibang2 from '@/views/天枢款/danmengbeibang-2.vue'
-import changyongkuan from '@/views/天枢款/changyongkuan.vue'
-import wushangbaobian from '@/views/天枢款/wushangbaobian.vue'
-import Shuangmianmen1 from '@/views/天枢款/shuangmianmen-1.vue'
-import Shuangmianmen2 from '@/views/天枢款/shuangmianmen-2.vue'
-import danmengbeibang11 from '@/views/天权款/danmengbeibang-1.vue'
-import danmengbeibang21 from '@/views/天权款/danmengbeibang-2.vue'
-import changyongkuan1 from '@/views/天权款/changyongkuan.vue'
-import wushangbaobian1 from '@/views/天权款/wushangbaobian.vue'
-import Shuangmianmen11 from '@/views/天权款/shuangmianmen-1.vue'
-import Shuangmianmen21 from '@/views/天权款/shuangmianmen-2.vue'
-import danmengbeibang111 from '@/views/天璇款/danmengbeibang-1.vue'
-import danmengbeibang211 from '@/views/天璇款/danmengbeibang-2.vue'
-import changyongkuan11 from '@/views/天璇款/changyongkuan.vue'
-import wushangbaobian11 from '@/views/天璇款/wushangbaobian.vue'
-import Shuangmianmen111 from '@/views/天璇款/shuangmianmen-1.vue'
-import Shuangmianmen211 from '@/views/天璇款/shuangmianmen-2.vue'
+import { markRaw } from 'vue'
+
+// ===== 懒加载所有页面组件 =====
+const Dashboard = () => import('@/views/首页/Dashboard.vue')
+const OrderManage = () => import('@/views/订单管理页面/OrderManage.vue')
+
+// 自由选择
+const TSKDM = () => import('@/views/自由选择页面/天枢-单门/TSK-DM.vue')
+const TSKSM = () => import('@/views/自由选择页面/天枢-双门/TSK-SM.vue')
+
+// 天枢款
+const TSChangyong = () => import('@/views/天枢款/changyongkuan.vue')
+const TSWushang = () => import('@/views/天枢款/wushangbaobian.vue')
+const TSDanmeng1 = () => import('@/views/天枢款/danmengbeibang-1.vue')
+const TSDanmeng2 = () => import('@/views/天枢款/danmengbeibang-2.vue')
+const TSShuang1 = () => import('@/views/天枢款/shuangmianmen-1.vue')
+const TSShuang2 = () => import('@/views/天枢款/shuangmianmen-2.vue')
+
+// 天权款
+const TQChangyong = () => import('@/views/天权款/changyongkuan.vue')
+const TQWushang = () => import('@/views/天权款/wushangbaobian.vue')
+const TQDanmeng1 = () => import('@/views/天权款/danmengbeibang-1.vue')
+const TQDanmeng2 = () => import('@/views/天权款/danmengbeibang-2.vue')
+const TQShuang1 = () => import('@/views/天权款/shuangmianmen-1.vue')
+const TQShuang2 = () => import('@/views/天权款/shuangmianmen-2.vue')
+
+// 天璇款
+const TXChangyong = () => import('@/views/天璇款/changyongkuan.vue')
+const TXWushang = () => import('@/views/天璇款/wushangbaobian.vue')
+const TXDanmeng1 = () => import('@/views/天璇款/danmengbeibang-1.vue')
+const TXDanmeng2 = () => import('@/views/天璇款/danmengbeibang-2.vue')
+const TXShuang1 = () => import('@/views/天璇款/shuangmianmen-1.vue')
+const TXShuang2 = () => import('@/views/天璇款/shuangmianmen-2.vue')
 
 export const menuArr = [
   {
@@ -57,12 +65,12 @@ export const menuArr = [
     title: '天枢款',
     icon: markRaw(Menu),
     children: [
-      { path: '/tianshu/c', title: '天枢款-常用款', component: changyongkuan },
-      { path: '/tianshu/d', title: '天枢款-无上包边款', component: wushangbaobian },
-      { path: '/tianshu/a', title: '天枢款-单门-加背板', component: danmengbeibang1 },
-      { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: danmengbeibang2 },
-      { path: '/tianshu/e', title: '天枢款-双面门款', component: Shuangmianmen1 },
-      { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: Shuangmianmen2 },
+      { path: '/tianshu/c', title: '天枢款-常用款', component: TSChangyong },
+      { path: '/tianshu/d', title: '天枢款-无上包边款', component: TSWushang },
+      { path: '/tianshu/a', title: '天枢款-单门-加背板', component: TSDanmeng1 },
+      { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: TSDanmeng2 },
+      { path: '/tianshu/e', title: '天枢款-双面门款', component: TSShuang1 },
+      { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: TSShuang2 },
     ],
   },
   {
@@ -71,12 +79,12 @@ export const menuArr = [
     title: '天权款（暂时作废）',
     icon: markRaw(Operation),
     children: [
-      { path: '/tianquan/a', title: '天权款-常用款', component: changyongkuan1 },
-      { path: '/tianquan/b', title: '天权款-单门-加背板', component: danmengbeibang11 },
-      { path: '/tianquan/c', title: '天权款-单门-加背板-加固', component: danmengbeibang21 },
-      { path: '/tianquan/d', title: '天权款-无上包边款', component: wushangbaobian1 },
-      { path: '/tianquan/e', title: '天权款-双面门款', component: Shuangmianmen11 },
-      { path: '/tianquan/f', title: '天权款-双面门款-背面假门', component: Shuangmianmen21 },
+      { path: '/tianquan/a', title: '天权款-常用款', component: TQChangyong },
+      { path: '/tianquan/b', title: '天权款-单门-加背板', component: TQDanmeng1 },
+      { path: '/tianquan/c', title: '天权款-单门-加背板-加固', component: TQDanmeng2 },
+      { path: '/tianquan/d', title: '天权款-无上包边款', component: TQWushang },
+      { path: '/tianquan/e', title: '天权款-双面门款', component: TQShuang1 },
+      { path: '/tianquan/f', title: '天权款-双面门款-背面假门', component: TQShuang2 },
     ],
   },
   {
@@ -85,16 +93,14 @@ export const menuArr = [
     title: '天璇款（暂时作废）',
     icon: markRaw(Grid),
     children: [
-      { path: '/tianxuan/a', title: '天枢款-单门-加背板', component: danmengbeibang111 },
-      { path: '/tianxuan/b', title: '天枢款-单门-加背板-加固', component: danmengbeibang211 },
-      { path: '/tianxuan/c', title: '天枢款-常用款', component: changyongkuan11 },
-      { path: '/tianxuan/d', title: '天枢款-无上包边款', component: wushangbaobian11 },
-      { path: '/tianxuan/e', title: '天枢款-双面门款', component: Shuangmianmen111 },
-      { path: '/tianxuan/f', title: '天枢款-双面门款-背面假门', component: Shuangmianmen211 },
+      { path: '/tianxuan/a', title: '天枢款-单门-加背板', component: TXDanmeng1 },
+      { path: '/tianxuan/b', title: '天枢款-单门-加背板-加固', component: TXDanmeng2 },
+      { path: '/tianxuan/c', title: '天枢款-常用款', component: TXChangyong },
+      { path: '/tianxuan/d', title: '天枢款-无上包边款', component: TXWushang },
+      { path: '/tianxuan/e', title: '天枢款-双面门款', component: TXShuang1 },
+      { path: '/tianxuan/f', title: '天枢款-双面门款-背面假门', component: TXShuang2 },
     ],
   },
-  
- 
 ]
 
 export default menuArr

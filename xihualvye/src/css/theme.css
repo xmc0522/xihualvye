@@ -1,0 +1,115 @@
+/**
+ * 全局主题变量与基础样式
+ * 统一全站颜色、圆角、阴影、间距，避免各组件散落使用色值
+ */
+
+:root {
+  /* 主色 */
+  --xhly-primary: #1890ff;
+  --xhly-primary-hover: #40a9ff;
+  --xhly-primary-active: #096dd9;
+
+  /* 功能色 */
+  --xhly-success: #67c23a;
+  --xhly-warning: #e6a23c;
+  --xhly-danger: #f56c6c;
+  --xhly-info: #909399;
+
+  /* 三大款式专用色（与首页饼图/柱状图保持一致） */
+  --xhly-tianshu: #1890ff;
+  --xhly-tianquan: #e6a23c;
+  --xhly-tianxuan: #f56c6c;
+
+  /* 文字 */
+  --xhly-text-primary: #303133;
+  --xhly-text-regular: #606266;
+  --xhly-text-secondary: #909399;
+  --xhly-text-placeholder: #c0c4cc;
+
+  /* 背景 */
+  --xhly-bg-page: #f5f7fa;
+  --xhly-bg-card: #ffffff;
+  --xhly-bg-hover: #f5f7fa;
+
+  /* 边框 */
+  --xhly-border-light: #ebeef5;
+  --xhly-border-base: #dcdfe6;
+
+  /* 圆角 */
+  --xhly-radius-sm: 4px;
+  --xhly-radius-md: 8px;
+  --xhly-radius-lg: 12px;
+
+  /* 阴影 */
+  --xhly-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --xhly-shadow-md: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --xhly-shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  /* 过渡 */
+  --xhly-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== 全站基础调整 ========== */
+
+/* 平滑滚动条（Webkit） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  transition: background var(--xhly-transition);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 全站默认字体 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--xhly-bg-page);
+}
+
+/* Element Plus 卡片/按钮微调，全局更柔和 */
+.el-card {
+  border-radius: var(--xhly-radius-md);
+  box-shadow: var(--xhly-shadow-md) !important;
+}
+
+.el-button {
+  transition: all var(--xhly-transition);
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--xhly-primary);
+  --el-button-border-color: var(--xhly-primary);
+  --el-button-hover-bg-color: var(--xhly-primary-hover);
+  --el-button-hover-border-color: var(--xhly-primary-hover);
+}
+
+/* 表格行 hover 更柔和 */
+.el-table__row:hover > td {
+  background-color: var(--xhly-bg-hover) !important;
+}
+
+/* 分页条样式微调 */
+.el-pagination {
+  padding: 12px 0;
+}
+
+/* 通用动画类 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--xhly-transition);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

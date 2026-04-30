@@ -43,19 +43,15 @@ const router = createRouter({
   ],
 })
 
-// 标记是否为页面刷新（首次加载）
-let isFirstLoad = true
-
-// 导航守卫：未登录时跳转到登录页 + 刷新回首页
+// 导航守卫：未登录时跳转到登录页
 router.beforeEach((to, _from, next) => {
   const auth = localStorage.getItem('xhly_auth')
   let isLoggedIn = false
-  
-  // 检查是否真正登录（有 loginTime 且在有效期内）
+
+  // 检查是否真正登录（有 loginTime 且在 24 小时有效期内）
   if (auth) {
     try {
       const authData = JSON.parse(auth)
-      // 只有存在 loginTime 且在 24 小时有效期内才算已登录
       if (authData.loginTime && Date.now() - authData.loginTime < 24 * 60 * 60 * 1000) {
         isLoggedIn = true
       }
@@ -73,15 +69,10 @@ router.beforeEach((to, _from, next) => {
       next()
     }
   } else {
-    // 需要登录的页面
+    // 需要登录的页面：未登录则跳转到登录页
     if (!isLoggedIn) {
       next('/login')
-    } else if (isFirstLoad && to.path !== '/' && to.path !== '/dashboard') {
-      // 刷新浏览器时，回到首页 Dashboard
-      isFirstLoad = false
-      next('/dashboard')
     } else {
-      isFirstLoad = false
       next()
     }
   }

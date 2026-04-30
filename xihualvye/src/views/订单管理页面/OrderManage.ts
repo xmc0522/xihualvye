@@ -1,9 +1,17 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, getOrderDetail, deleteOrder, batchDeleteOrders, updateOrder } from '@/ts/api'
+import {
+  getOrderList,
+  getOrderDetail,
+  deleteOrder,
+  batchDeleteOrders,
+  updateOrder,
+  updateOrderStatus,
+  ORDER_STATUS_OPTIONS,
+} from '@/ts/api'
 import { setCurrentOrderId } from '@/ts/按钮/button2'
-import type { OrderListItem, OrderDetail, OrderSavePayload } from '@/ts/api'
+import type { OrderListItem, OrderDetail, OrderSavePayload, OrderStatus } from '@/ts/api'
 
 export function useOrderManage() {
   const router = useRouter()
@@ -15,6 +23,7 @@ export function useOrderManage() {
     orderNo: '',
     pageType: '',
     surface: '',
+    status: '' as OrderStatus | '',
     dateRange: null as [string, string] | null,
   })
 
@@ -93,6 +102,8 @@ export function useOrderManage() {
         customer: searchForm.value.customer,
         orderNo: searchForm.value.orderNo,
         pageType: searchForm.value.pageType,
+        surface: searchForm.value.surface,
+        status: searchForm.value.status,
         startDate: searchForm.value.dateRange?.[0] || '',
         endDate: searchForm.value.dateRange?.[1] || '',
         page: currentPage.value,
@@ -109,7 +120,7 @@ export function useOrderManage() {
 
   // 重置
   const handleReset = () => {
-    searchForm.value = { customer: '', orderNo: '', pageType: '', surface: '', dateRange: null }
+    searchForm.value = { customer: '', orderNo: '', pageType: '', surface: '', status: '', dateRange: null }
     currentPage.value = 1
     handleSearch()
   }
@@ -224,6 +235,11 @@ export function useOrderManage() {
     if (hlId) {
       highlightId.value = Number(hlId)
     }
+    // 支持从首页按状态跳转过来时自动应用筛选
+    const queryStatus = route.query.status as string | undefined
+    if (queryStatus && ['pending', 'producing', 'completed'].includes(queryStatus)) {
+      searchForm.value.status = queryStatus as OrderStatus
+    }
     handleSearch()
 
     // 返回后首次点击不取消高亮
@@ -255,6 +271,19 @@ export function useOrderManage() {
     return ''
   }
 
+  // 快速更新订单状态（不重新拉详情，避免覆盖未保存修改）
+  const handleStatusChange = async (row: OrderListItem, newStatus: OrderStatus) => {
+    const oldStatus = row.status
+    row.status = newStatus // 乐观更新
+    try {
+      await updateOrderStatus(row.id, newStatus)
+      ElMessage.success('状态已更新')
+    } catch (e: any) {
+      row.status = oldStatus // 回滚
+      ElMessage.error('状态更新失败：' + (e.message || '网络错误'))
+    }
+  }
+
   return {
     searchForm,
     orderList,
@@ -278,6 +307,8 @@ export function useOrderManage() {
     handleEditSave,
     handleDelete,
     handleBatchDelete,
+    handleStatusChange,
     getRowClassName,
+    ORDER_STATUS_OPTIONS,
   }
 }

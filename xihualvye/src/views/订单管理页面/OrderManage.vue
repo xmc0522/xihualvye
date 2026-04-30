@@ -43,6 +43,24 @@
             <el-option label="冰川白" value="冰川白" />
           </el-select>
         </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="searchForm.status"
+            placeholder="全部状态"
+            clearable
+            style="width: 130px"
+          >
+            <el-option
+              v-for="opt in ORDER_STATUS_OPTIONS"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            >
+              <span class="status-dot" :class="`status-tag-${opt.color}`" style="margin-right: 8px"></span>
+              {{ opt.label }}
+            </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="订单日期">
           <el-date-picker
             v-model="searchForm.dateRange"
@@ -111,6 +129,35 @@
           {{ row.remark }}
         </template>
       </el-table-column>
+      <el-table-column label="状态" width="150" align="center">
+        <template #default="{ row }">
+          <el-dropdown trigger="click" @command="(s: any) => handleStatusChange(row, s)">
+            <span
+              class="status-tag"
+              :class="`status-tag-${ORDER_STATUS_OPTIONS.find((o) => o.value === (row.status || 'pending'))?.color || 'info'}`"
+            >
+              <span class="status-dot"></span>
+              <span class="status-text">
+                {{ ORDER_STATUS_OPTIONS.find((o) => o.value === (row.status || 'pending'))?.label || '待生产' }}
+              </span>
+              <el-icon class="status-arrow"><CaretBottom /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="opt in ORDER_STATUS_OPTIONS"
+                  :key="opt.value"
+                  :command="opt.value"
+                  :disabled="(row.status || 'pending') === opt.value"
+                >
+                  <span class="status-dot" :class="`status-tag-${opt.color}`" style="margin-right: 8px"></span>
+                  {{ opt.label }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="220" >
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handleLoad(row)">加载</el-button>
@@ -145,6 +192,18 @@
           <el-descriptions-item label="表面">{{ detailData.surface }}</el-descriptions-item>
           <el-descriptions-item label="数量">{{ detailData.quantity }}</el-descriptions-item>
           <el-descriptions-item label="款式">{{ detailData.page_type }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <span
+              class="status-tag"
+              :class="`status-tag-${ORDER_STATUS_OPTIONS.find((o) => o.value === (detailData?.status || 'pending'))?.color || 'info'}`"
+              style="cursor: default"
+            >
+              <span class="status-dot"></span>
+              <span class="status-text">
+                {{ ORDER_STATUS_OPTIONS.find((o) => o.value === (detailData?.status || 'pending'))?.label || '待生产' }}
+              </span>
+            </span>
+          </el-descriptions-item>
           <el-descriptions-item label="长度">{{ detailData.length }}</el-descriptions-item>
           <el-descriptions-item label="宽度">{{ detailData.width }}</el-descriptions-item>
           <el-descriptions-item label="高度">{{ detailData.height }}</el-descriptions-item>
@@ -269,6 +328,7 @@
 </template>
 
 <script setup lang="ts">
+import { CaretBottom } from '@element-plus/icons-vue'
 import { useOrderManage } from './OrderManage'
 
 const {
@@ -294,7 +354,9 @@ const {
   handleEditSave,
   handleDelete,
   handleBatchDelete,
+  handleStatusChange,
   getRowClassName,
+  ORDER_STATUS_OPTIONS,
 } = useOrderManage()
 </script>
 

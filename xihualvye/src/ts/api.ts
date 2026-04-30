@@ -96,6 +96,20 @@ async function request<T = any>(url: string, options: RequestInit = {}): Promise
 
 // ============ 订单相关接口 ============
 
+/** 订单状态枚举 */
+export type OrderStatus = 'pending' | 'producing' | 'completed'
+
+/** 订单状态显示配置（中文标签 + 颜色） */
+export const ORDER_STATUS_OPTIONS: Array<{
+  value: OrderStatus
+  label: string
+  color: 'info' | 'warning' | 'primary' | 'success' | 'danger'
+}> = [
+  { value: 'pending', label: '待生产', color: 'info' },
+  { value: 'producing', label: '生产中', color: 'warning' },
+  { value: 'completed', label: '已完成', color: 'success' },
+]
+
 export interface OrderInfo {
   customer: string
   orderNo: string
@@ -123,6 +137,7 @@ export interface OrderSavePayload {
   zhongCount: string
   remark: string
   pageType: string
+  status?: OrderStatus
   tableData: Array<{ mingcheng: string; guige: string; shuliang: string; beizhu: string }>
   doorPanels: Array<{
     name: string
@@ -148,6 +163,7 @@ export interface OrderListItem {
   zhong_count: string
   remark: string
   page_type: string
+  status: OrderStatus
   created_at: string
   updated_at: string
 }
@@ -186,6 +202,7 @@ export async function getOrderList(
     pageType?: string
     orderNo?: string
     surface?: string
+    status?: OrderStatus | ''
     startDate?: string
     endDate?: string
     page?: number
@@ -200,6 +217,14 @@ export async function getOrderList(
   })
   const query = searchParams.toString()
   return request<{ code: number; data: OrderListResponse }>(`/orders${query ? '?' + query : ''}`)
+}
+
+/** 仅更新订单状态（轻量接口） */
+export async function updateOrderStatus(id: number, status: OrderStatus) {
+  return request<{ code: number; message: string }>(`/orders/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
 }
 
 /** 获取订单详情 */

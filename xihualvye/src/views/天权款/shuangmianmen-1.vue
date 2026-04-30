@@ -100,6 +100,7 @@
               :src="getImage(row.tupian)"
               :alt="row.tupian"
               class="table-img"
+              loading="lazy"
             />
           </template>
         </el-table-column>

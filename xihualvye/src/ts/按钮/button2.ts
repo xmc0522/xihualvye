@@ -61,6 +61,16 @@ export async function saveTableData(
   }>,
   allAccessories: Array<{ name: string; value: string }>,
 ) {
+  // ===== 保存前必填校验 =====
+  const missing: string[] = []
+  if (!info.customer?.trim()) missing.push('客户')
+  if (!info.orderNo?.trim()) missing.push('客户单号')
+  if (!info.quantity?.trim()) missing.push('数量')
+  if (missing.length > 0) {
+    ElMessage.warning(`请先填写：${missing.join('、')}`)
+    return
+  }
+
   // 构建保存数据（记录同名行的出现顺序索引，用于区分如两个"门料"行）
   const mingchengCountMap: Record<string, number> = {}
   const tableRows = tableData.map((row) => {

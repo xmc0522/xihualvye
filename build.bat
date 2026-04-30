@@ -42,24 +42,31 @@ echo.
 echo [5/5] 打包完成！
 echo.
 echo ========================================
-echo   部署说明：
-echo   用 XFTP 上传以下文件到服务器 /xmc/xihualvye/
+echo   部署上传清单（XFTP 传到服务器 /xmc/xihualvye/）：
 echo.
-echo   需要上传的：
-echo     dist/         (编译后的后端JS)
-echo     public/       (前端静态文件)
-echo     package.json
-echo     package-lock.json
+echo   ✅ 必传：
+echo     server/dist/             (后端 JS)
+echo     server/public/           (前端静态文件)
+echo     server/package.json
+echo     server/package-lock.json
 echo.
-echo   不要上传的：
-echo     data/          (线上数据库，覆盖会丢数据)
-echo     node_modules/  (要在服务器上重新装)
-echo     src/           (源码，服务器不需要)
+echo   ❌ 严禁上传（会覆盖生产数据）：
+echo     server/data/             (服务器上的真实数据库)
+echo     server/node_modules/     (服务器上要重装)
+echo     server/src/              (源代码不需要)
 echo.
-echo   上传后在服务器执行：
+echo   服务器上执行：
 echo     cd /xmc/xihualvye
 echo     npm install --production
 echo     pm2 restart xihualvye
 echo ========================================
 echo.
+
+REM ===== 安全提醒 =====
+if exist server\data (
+    echo ⚠️  注意：本地 server\data\ 目录存在，是开发数据库。
+    echo     上传到服务器时千万不要包含此目录！
+    echo.
+)
+
 pause
