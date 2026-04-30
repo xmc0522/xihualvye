@@ -241,19 +241,27 @@ export function useDashboard() {
       if (listRes.code === 0 && listRes.data) {
         const allOrders = listRes.data.list
 
-        // 近7天
+        // 从订单的 updated_at（格式 "YYYY-MM-DD HH:MM:SS"）提取日期部分并转为 YYYY/MM/DD
+        const getOrderDay = (o: OrderListItem): string => {
+          const src = o.updated_at || o.created_at || ''
+          // 兼容 "YYYY-MM-DD ..." 与 "YYYY/MM/DD ..."
+          const datePart = src.slice(0, 10).replace(/-/g, '/')
+          return datePart
+        }
+
+        // 近7天（按录入时间统计）
         const recentDays = getRecentDays(7)
         const dayCounts = recentDays.map((day) =>
-          allOrders.filter((o) => o.date === day).length
+          allOrders.filter((o) => getOrderDay(o) === day).length
         )
 
-        // 今日新增
+        // 今日新增（按录入时间）
         const today = recentDays[recentDays.length - 1]
-        todayOrders.value = allOrders.filter((o) => o.date === today).length
+        todayOrders.value = allOrders.filter((o) => getOrderDay(o) === today).length
 
-        // 本月新增（date 前7位为 YYYY/MM）
+        // 本月新增（按录入时间的 YYYY/MM）
         const thisMonth = today.slice(0, 7)
-        monthOrders.value = allOrders.filter((o) => o.date?.startsWith(thisMonth)).length
+        monthOrders.value = allOrders.filter((o) => getOrderDay(o).startsWith(thisMonth)).length
 
         await nextTick()
         initLineChart(recentDays, dayCounts)
