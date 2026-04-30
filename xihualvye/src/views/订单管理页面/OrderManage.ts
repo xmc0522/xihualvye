@@ -14,6 +14,7 @@ export function useOrderManage() {
     customer: '',
     orderNo: '',
     pageType: '',
+    surface: '',
     dateRange: null as [string, string] | null,
   })
 
@@ -108,7 +109,7 @@ export function useOrderManage() {
 
   // 重置
   const handleReset = () => {
-    searchForm.value = { customer: '', orderNo: '', pageType: '', dateRange: null }
+    searchForm.value = { customer: '', orderNo: '', pageType: '', surface: '', dateRange: null }
     currentPage.value = 1
     handleSearch()
   }

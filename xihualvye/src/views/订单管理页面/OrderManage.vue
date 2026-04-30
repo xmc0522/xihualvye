@@ -24,21 +24,26 @@
             v-model="searchForm.pageType"
             placeholder="全部款式"
             clearable
-            style="width: 180px"
+            style="width: 150px"
           >
-            <!-- <el-option label="天枢款-单面门-选择款" value="天枢款" /> -->
-            <el-option label="天枢款-单面门（自由选择）" value="天枢款-单面门-选择款" />
-            <el-option label="天枢款-双面门（自由选择）" value="天枢款-双面门-选择款" />
-            <el-option label="天枢款-常用款" value="天枢款-常用款" />
-            <el-option label="天枢款-无上包边" value="天枢款-无上包边" />
-            <el-option label="天枢款-单门-加背板" value="天枢款-单门-加背板" />
-            <el-option label="天枢款-单门-加背板-加固" value="天枢款-单门-加背板-加固" />
-            <el-option label="天枢款-双面门" value="天枢款-双面门" />
-            <el-option label="天枢款-双面门-背面假门" value="天枢款-双面门-背面假门" />
-            <el-option label="天权款-常用款" value="天权款-常用款" />
+            <el-option label="天枢款" value="天枢款" />
+            <el-option label="天权款" value="天权款" />
+            <el-option label="天璇款" value="天璇款" />
           </el-select>
         </el-form-item>
-        <el-form-item label="日期">
+        <el-form-item label="表面">
+          <el-select
+            v-model="searchForm.surface"
+            placeholder="全部表面"
+            clearable
+            style="width: 130px"
+          >
+            <el-option label="幻夜黑" value="幻夜黑" />
+            <el-option label="米兰灰" value="米兰灰" />
+            <el-option label="冰川白" value="冰川白" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="订单日期">
           <el-date-picker
             v-model="searchForm.dateRange"
             type="daterange"
@@ -106,8 +111,7 @@
           {{ row.remark }}
         </template>
       </el-table-column>
-      <el-table-column prop="updated_at" label="更新时间" min-width="180" />
-      <el-table-column label="操作" width="260" fixed="right">
+      <el-table-column label="操作" width="220" >
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handleLoad(row)">加载</el-button>
           <el-button type="info" size="small" @click="handleView(row)">详情</el-button>
@@ -115,6 +119,7 @@
           <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
+      <el-table-column prop="updated_at" label="最新更改订单的时间" min-width="180" />
     </el-table>
 
     <!-- 分页 -->

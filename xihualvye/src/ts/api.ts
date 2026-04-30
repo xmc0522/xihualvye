@@ -185,6 +185,7 @@ export async function getOrderList(
     customer?: string
     pageType?: string
     orderNo?: string
+    surface?: string
     startDate?: string
     endDate?: string
     page?: number

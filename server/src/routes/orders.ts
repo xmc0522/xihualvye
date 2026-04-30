@@ -83,7 +83,7 @@ router.post('/', (req: Request, res: Response) => {
 // ============ 查询订单列表 ============
 router.get('/', (req: Request, res: Response) => {
   try {
-    const { customer, pageType, orderNo, startDate, endDate, page = '1', pageSize = '20' } = req.query
+    const { customer, pageType, orderNo, surface, startDate, endDate, page = '1', pageSize = '20' } = req.query
 
     let sql = 'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, created_at, updated_at FROM orders WHERE 1=1'
     const params: any[] = []
@@ -99,6 +99,10 @@ router.get('/', (req: Request, res: Response) => {
     if (orderNo) {
       sql += ' AND order_no LIKE ?'
       params.push(`%${orderNo}%`)
+    }
+    if (surface) {
+      sql += ' AND surface = ?'
+      params.push(surface)
     }
     if (startDate) {
       sql += ' AND date >= ?'
