@@ -1,14 +1,15 @@
 @echo off
 chcp 65001 >nul
+cd /d "%~dp0"
 echo ========================================
 echo   玺华铝业 - 桌面版打包脚本
 echo ========================================
 echo.
 
-echo [1/3] 进入 electron 目录...
+echo [1/4] 进入 electron 目录...
 cd electron
-if not exist node_modules (
-    echo [2/3] 首次打包，正在安装依赖（可能需要几分钟）...
+if not exist node_modules\typescript (
+    echo [2/4] TypeScript 未安装，正在安装依赖...
     call npm install
     if errorlevel 1 (
         echo ❌ 依赖安装失败！请检查网络。
@@ -16,11 +17,22 @@ if not exist node_modules (
         exit /b 1
     )
 ) else (
-    echo [2/3] 依赖已安装，跳过
+    echo [2/4] 依赖已安装
 )
 
 echo.
-echo [3/3] 正在编译主进程并打包安装程序...
+echo [3/4] 正在编译 TypeScript 主进程...
+call npm run build
+if errorlevel 1 (
+    echo ❌ TypeScript 编译失败！
+    pause
+    exit /b 1
+)
+echo ✅ TypeScript 编译完成
+echo.
+
+echo [4/4] 正在打包安装程序...
+set ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/
 call npm run dist:win
 if errorlevel 1 (
     echo ❌ 打包失败！

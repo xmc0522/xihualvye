@@ -2,6 +2,10 @@ appId: com.xihualvye.desktop
 productName: 玺华铝业业务管理系统
 copyright: Copyright © 2026 玺华铝业
 
+# 国内镜像配置
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
+
 # 打包输出目录
 directories:
   output: release
@@ -35,18 +39,18 @@ win:
 
 # NSIS 安装程序配置
 nsis:
-  oneClick: false                     # 显示安装向导（而非一键安装）
-  allowToChangeInstallationDirectory: true  # 允许用户选择安装目录
-  perMachine: false                   # 仅为当前用户安装（无需管理员权限）
-  createDesktopShortcut: always       # 创建桌面快捷方式
-  createStartMenuShortcut: true       # 创建开始菜单快捷方式
+  oneClick: false # 显示安装向导（而非一键安装）
+  allowToChangeInstallationDirectory: true # 允许用户选择安装目录
+  perMachine: false # 仅为当前用户安装（无需管理员权限）
+  createDesktopShortcut: always # 创建桌面快捷方式
+  createStartMenuShortcut: true # 创建开始菜单快捷方式
   shortcutName: 玺华铝业
   installerIcon: assets/icon.ico
   uninstallerIcon: assets/icon.ico
   installerHeaderIcon: assets/icon.ico
-  deleteAppDataOnUninstall: false     # 卸载时保留用户数据（服务器地址配置等）
-  language: 2052                      # 简体中文
-  runAfterFinish: true                # 安装完成后自动运行
+  deleteAppDataOnUninstall: false # 卸载时保留用户数据（服务器地址配置等）
+  language: 2052 # 简体中文
+  runAfterFinish: true # 安装完成后自动运行
 
 # 自动更新：发布配置（服务器需要放置 latest.yml + exe 文件）
 publish:

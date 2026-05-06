@@ -11,9 +11,9 @@
   "scripts": {
     "dev": "tsc && electron .",
     "build": "tsc",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win"
+    "pack": "npx electron-builder --dir",
+    "dist": "npx electron-builder",
+    "dist:win": "npx electron-builder --win"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
