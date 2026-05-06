@@ -38,19 +38,12 @@
         <tr>
           <td class="label-cell">表面：</td>
           <td class="value-cell" style="width: 160px">
-            <el-select
+            <el-input
               v-model="value3"
-              placeholder="请选择"
-              class="info-select"
+              placeholder="请输入表面"
+              class="info-input"
               style="width: 130px"
-            >
-              <el-option
-                v-for="item in options3"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
+            />
           </td>
           <td class="label-cell" style="width: 99px">数量：</td>
           <td class="value-cell" style="width: 100px;padding-left: 0px;padding-right: 0px;">
@@ -148,13 +141,13 @@
 
       <!-- 底部门板 -->
       <table
-        v-if="doorPanelRows.length > 0"
+        v-if="filteredDoorPanelRows.length > 0"
         class="door-panel-table"
         border="1"
         cellspacing="0"
         cellpadding="0"
       >
-        <tr v-for="(row, index) in doorPanelRows" :key="index">
+        <tr v-for="(row, index) in filteredDoorPanelRows" :key="index">
           <td class="value-cell" style="width: 250px">{{ row.name }}</td>
           <td class="value-cell" style="width: 99px">{{ row.shuju1 }}</td>
           <td class="value-cell" style="width: 100px">{{ row.shuju2 }}</td>
@@ -233,6 +226,60 @@
       <span>门数量：</span>
       <el-input v-model="info.doorCount" placeholder="门数量" class="info-meng-input" />
     </div>
+    <!-- 不生成类型 + 增加配件 下拉选择（并排定位到表格右侧顶部） -->
+    <div class="side-height-select" style="top: 110px">
+      <span>不生成类型：</span>
+      <el-select
+        v-model="excludeList"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="选择不生成的项"
+        class="side-select exclude-select"
+        style="width: 160px; margin-left: 4px"
+      >
+        <el-option
+          v-for="opt in excludeOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
+      <span style="margin-left: 12px">增加配件：</span>
+      <el-select
+        v-model="extraAccessoryList"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="选择增加的配件"
+        class="side-select exclude-select"
+        style="width: 160px; margin-left: 4px"
+      >
+        <el-option
+          v-for="opt in extraAccessoryOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
+      <span style="margin-left: 12px">增加类型：</span>
+      <el-select
+        v-model="extraTypeList"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="选择增加的类型"
+        class="side-select exclude-select"
+        style="width: 160px; margin-left: 4px"
+      >
+        <el-option
+          v-for="opt in extraTypeOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
+    </div>
     <!-- <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
     <span>中柱数量：</span>
     <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
@@ -254,26 +301,99 @@ import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { value3, options3 } from '@/ts/xialakuang'
+import { value3 } from '@/ts/xialakuang'
 const {
   info,
   filteredTableData,
   mergeMethod,
   accessoryRows,
   doorPanelRows,
+  filteredDoorPanelRows,
+  excludeNames,
+  excludeDoorPanels,
   getImage,
   saveToLocalStorage,
   tableData,
   allAccessories,
   imageModules,
+  recalcExtraAccessories,
 } = useChangyongBiaoge()
+
+// 不生成选项（统一下拉框）。type 用于区分归属主表格还是底部门板
+const excludeOptions = [
+  { label: '不生成上包边', value: '上包边', type: 'main' },
+  { label: '不生成横拉', value: '横拉', type: 'main' },
+  { label: '不生成门料', value: '门料', type: 'main' },
+  { label: '不生成侧板', value: '侧板', type: 'main' },
+  { label: '不生成门板', value: '门板', type: 'door' },
+  { label: '不生成侧门板', value: '侧门板', type: 'door' },
+] as const
+
+// 统一绑定的下拉值，双向同步到 excludeNames 和 excludeDoorPanels
+const excludeList = ref<string[]>([])
+watch(excludeList, (val) => {
+  const mains: string[] = []
+  const doors: string[] = []
+  for (const v of val) {
+    const opt = excludeOptions.find((o) => o.value === v)
+    if (!opt) continue
+    if (opt.type === 'main') mains.push(v)
+    else doors.push(v)
+  }
+  excludeNames.value = mains
+  excludeDoorPanels.value = doors
+})
+
+// 可选的额外配件列表
+const extraAccessoryOptions = [
+  { label: '三卡锁', value: '三卡锁' },
+  { label: '堵头(分左右)', value: '堵头(分左右)' },
+  { label: '角码', value: '角码' },
+  { label: '反弹器', value: '反弹器' },
+  { label: '大弯铰链', value: '大弯铰链' },
+  { label: '直臂铰链', value: '直臂铰链' },
+  { label: '铰链垫块', value: '铰链垫块' },
+] as const
+
+// 当前选中要增加的配件
+const extraAccessoryList = ref<string[]>([])
+
+// 可选的"增加类型"列表（暂不处理联动逻辑，仅页面展示）
+const extraTypeOptions = [
+  { label: '背板多块', value: '背板多块' },
+  { label: '侧面加固', value: '侧面加固' },
+  { label: '背板一块', value: '背板一块' },
+] as const
+
+// 当前选中要增加的类型
+const extraTypeList = ref<string[]>([])
+
+// 同步 extraAccessoryList 到 allAccessories：勾选时添加，取消时移除
+watch(extraAccessoryList, (val) => {
+  // 移除已不在选中列表中的额外配件（只操作 extra 范围内的名称）
+  const extraNames = extraAccessoryOptions.map((o) => o.value)
+  for (let i = allAccessories.length - 1; i >= 0; i--) {
+    const item = allAccessories[i]
+    if (item && extraNames.includes(item.name as any) && !val.includes(item.name)) {
+      allAccessories.splice(i, 1)
+    }
+  }
+  // 新增还不在 allAccessories 里的配件
+  for (const name of val) {
+    if (!allAccessories.find((a) => a.name === name)) {
+      allAccessories.push({ name, value: '' })
+    }
+  }
+  // 新增/移除后立即计算一次额外配件的数量（三卡锁/堵头/角码）
+  recalcExtraAccessories()
+})
 
 // 页面唯一标识，用于本地存储
 const PAGE_KEY = '天枢款-常用款'
 
 // 保存表格数据点击事件
 const handleSave = () => {
-  saveTableData(PAGE_KEY, info, filteredTableData.value, doorPanelRows.value, allAccessories)
+  saveTableData(PAGE_KEY, info, filteredTableData.value, filteredDoorPanelRows.value, allAccessories)
 }
 
 // 下载表格点击事件
@@ -282,7 +402,7 @@ const handleDownload = async () => {
     '天枢款-圆弧',
     info,
     filteredTableData.value,
-    doorPanelRows.value,
+    filteredDoorPanelRows.value,
     allAccessories,
     imageModules,
   )

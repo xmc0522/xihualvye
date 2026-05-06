@@ -10,8 +10,8 @@ export const allAccessories = reactive<{ name: string; value: string }[]>([
   // { name: '角码', value: '' },
   // { name: '反弹器', value: '' },
   // { name: '大弯铰链', value: '' },
-  // { name: '直臂铰链', value: '4' },
-  // { name: '铰链垫块', value: '4' },
-  // { name: '4*10螺丝', value: '4' },
-  // { name: '4*19螺丝', value: '4' },
+  // { name: '直臂铰链', value: '' },
+  // { name: '铰链垫块', value: '' },
+  // { name: '4*10螺丝', value: '' },
+  // { name: '4*19螺丝', value: '' },
 ])

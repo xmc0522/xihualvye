@@ -7,8 +7,8 @@ const Dashboard = () => import('@/views/首页/Dashboard.vue')
 const OrderManage = () => import('@/views/订单管理页面/OrderManage.vue')
 
 // 自由选择
-const TSKDM = () => import('@/views/自由选择页面/天枢-单门/TSK-DM.vue')
-const TSKSM = () => import('@/views/自由选择页面/天枢-双门/TSK-SM.vue')
+// const TSKDM = () => import('@/views/自由选择页面/天枢-单门/TSK-DM.vue')
+// const TSKSM = () => import('@/views/自由选择页面/天枢-双门/TSK-SM.vue')
 
 // 天枢款
 const TSChangyong = () => import('@/views/天枢款/changyongkuan.vue')
@@ -49,25 +49,25 @@ export const menuArr = [
     icon: markRaw(Document),
     component: OrderManage,
   },
-  {
-    path: '/zyxz',
-    name: 'zyxz',
-    title: '自由选择',
-    icon: markRaw(Pointer),
-    children: [
-      { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: TSKDM },
-      { path: '/zyxz/b', title: '天枢款-双面门-选择款', component: TSKSM },
-    ],
-  },
+  // {
+  //   path: '/zyxz',
+  //   name: 'zyxz',
+  //   title: '自由选择',
+  //   icon: markRaw(Pointer),
+  //   children: [
+  //     { path: '/zyxz/a', title: '天枢款-单面门-选择款', component: TSKDM },
+  //     { path: '/zyxz/b', title: '天枢款-双面门-选择款', component: TSKSM },
+  //   ],
+  // },
   {
     path: '/tianshu',
     name: 'tianshu',
     title: '天枢款',
     icon: markRaw(Menu),
     children: [
-      { path: '/tianshu/c', title: '天枢款-常用款', component: TSChangyong },
-      { path: '/tianshu/d', title: '天枢款-无上包边款', component: TSWushang },
-      { path: '/tianshu/a', title: '天枢款-单门-加背板', component: TSDanmeng1 },
+      { path: '/tianshu/c', title: '常用款', component: TSChangyong },
+      { path: '/tianshu/d', title: '常用款-双面门', component: TSWushang },
+      { path: '/tianshu/a', title: '常用款-背板全平', component: TSDanmeng1 },
       { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: TSDanmeng2 },
       { path: '/tianshu/e', title: '天枢款-双面门款', component: TSShuang1 },
       { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: TSShuang2 },
