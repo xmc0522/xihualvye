@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>玺华铝业 - 服务器配置</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        background: linear-gradient(135deg, #1d2b3a 0%, #0f1722 100%);
+        color: #fff;
+        overflow: hidden;
+      }
+      .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 40px 20px;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 48px 56px;
+        max-width: 520px;
+        width: 100%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+      .logo {
+        font-size: 64px;
+        text-align: center;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .subtitle {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        margin-bottom: 36px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 8px;
+      }
+      input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        color: #fff;
+        outline: none;
+        transition: all 0.2s;
+      }
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      input:focus {
+        border-color: #1890ff;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .hint {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 8px;
+      }
+      .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      button {
+        flex: 1;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: #1890ff;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #40a9ff;
+        transform: translateY(-1px);
+      }
+      .btn-primary:disabled {
+        background: #555;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .status {
+        margin-top: 16px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        display: none;
+      }
+      .status.success {
+        display: block;
+        background: rgba(103, 194, 58, 0.15);
+        color: #95d475;
+        border: 1px solid rgba(103, 194, 58, 0.3);
+      }
+      .status.error {
+        display: block;
+        background: rgba(245, 108, 108, 0.15);
+        color: #f89898;
+        border: 1px solid rgba(245, 108, 108, 0.3);
+      }
+      .status.loading {
+        display: block;
+        background: rgba(24, 144, 255, 0.15);
+        color: #69c0ff;
+        border: 1px solid rgba(24, 144, 255, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="logo">🏭</div>
+        <h1>玺华铝业业务管理系统</h1>
+        <p class="subtitle">首次使用，请配置服务器地址</p>
+
+        <label for="server-url">服务器地址</label>
+        <input
+          id="server-url"
+          type="text"
+          placeholder="例如：http://192.168.1.100:3456"
+          autofocus
+        />
+        <div class="hint">
+          请输入后端服务器的完整地址（包含 http:// 前缀和端口号），由管理员提供
+        </div>
+
+        <div class="btn-row">
+          <button id="btn-test" class="btn-secondary">测试连接</button>
+          <button id="btn-connect" class="btn-primary">保存并进入系统</button>
+        </div>
+
+        <div id="status" class="status"></div>
+      </div>
+    </div>
+
+    <script>
+      const urlInput = document.getElementById('server-url')
+      const btnTest = document.getElementById('btn-test')
+      const btnConnect = document.getElementById('btn-connect')
+      const statusEl = document.getElementById('status')
+
+      function setStatus(type, message) {
+        statusEl.className = 'status ' + type
+        statusEl.textContent = message
+      }
+
+      // 读取之前保存过的地址（如有）
+      window.xhly?.getServerUrl().then((url) => {
+        if (url) urlInput.value = url
+      })
+
+      async function testConnection() {
+        const url = urlInput.value.trim()
+        if (!url) {
+          setStatus('error', '请输入服务器地址')
+          return null
+        }
+        setStatus('loading', '正在测试连接...')
+        const result = await window.xhly.testServer(url)
+        if (result.success) {
+          setStatus('success', '✓ 连接成功')
+          return true
+        } else {
+          setStatus('error', '✗ 连接失败：' + (result.message || '无法访问服务器'))
+          return false
+        }
+      }
+
+      btnTest.addEventListener('click', testConnection)
+
+      btnConnect.addEventListener('click', async () => {
+        btnConnect.disabled = true
+        const ok = await testConnection()
+        if (ok) {
+          setTimeout(async () => {
+            await window.xhly.setServerUrl(urlInput.value.trim())
+          }, 500)
+        } else {
+          btnConnect.disabled = false
+        }
+      })
+
+      // 回车直接连接
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') btnConnect.click()
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "xihualvye-desktop",
+  "productName": "玺华铝业业务管理系统",
+  "version": "1.0.0",
+  "description": "玺华铝业业务管理系统桌面版",
+  "author": {
+    "name": "玺华铝业",
+    "email": "admin@xihualvye.local"
+  },
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsc && electron .",
+    "build": "tsc",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.1",
+    "typescript": "~5.3.0"
+  }
+}
