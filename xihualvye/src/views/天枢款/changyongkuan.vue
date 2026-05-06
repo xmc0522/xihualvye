@@ -223,11 +223,11 @@
       </table>
     </div>
     <div class="side-door-count" :style="{ top: doorCountTop + 'px' }">
-      <span>门数量：</span>
-      <el-input v-model="info.doorCount" placeholder="门数量" class="info-meng-input" />
+      <span>门柱数量：</span>
+      <el-input v-model="info.doorCount" placeholder="门柱数量" class="info-meng-input" />
     </div>
     <!-- 不生成类型 + 增加配件 下拉选择（并排定位到表格右侧顶部） -->
-    <div class="side-height-select" style="top: 110px">
+    <div class="side-height-select" style="top: 150px">
       <span>不生成类型：</span>
       <el-select
         v-model="excludeList"
@@ -236,7 +236,7 @@
         collapse-tags-tooltip
         placeholder="选择不生成的项"
         class="side-select exclude-select"
-        style="width: 160px; margin-left: 4px"
+        style="width: 140px; margin-left: 4px"
       >
         <el-option
           v-for="opt in excludeOptions"
@@ -253,7 +253,7 @@
         collapse-tags-tooltip
         placeholder="选择增加的配件"
         class="side-select exclude-select"
-        style="width: 160px; margin-left: 4px"
+        style="width: 140px; margin-left: 4px"
       >
         <el-option
           v-for="opt in extraAccessoryOptions"
@@ -270,7 +270,7 @@
         collapse-tags-tooltip
         placeholder="选择增加的类型"
         class="side-select exclude-select"
-        style="width: 160px; margin-left: 4px"
+        style="width: 140px; margin-left: 4px"
       >
         <el-option
           v-for="opt in extraTypeOptions"
