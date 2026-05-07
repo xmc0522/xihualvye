@@ -290,7 +290,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-常用款/天枢款-常用款'
+import { useChangyongBiaoge } from '@/ts/天枢款/天枢款-常用款/天枢款-常用款'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
 import {

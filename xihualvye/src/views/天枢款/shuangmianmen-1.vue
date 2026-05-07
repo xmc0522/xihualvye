@@ -38,19 +38,12 @@
         <tr>
           <td class="label-cell">表面：</td>
           <td class="value-cell" style="width: 160px">
-            <el-select
-              v-model="value3"
-              placeholder="请选择"
-              class="info-select"
+            <el-input
+              v-model="info.surface"
+              placeholder="请输入表面"
+              class="info-input"
               style="width: 130px"
-            >
-              <el-option
-                v-for="item in options3"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
+            />
           </td>
           <td class="label-cell" style="width: 99px">数量：</td>
           <td class="value-cell" style="width: 100px;padding-left: 0px;padding-right: 0px;">
@@ -119,8 +112,18 @@
         </el-table-column>
         <el-table-column prop="beizhu" label="备注">
           <template #default="{ row }">
+            <!-- 第二个门料（被合并行）：备注可输入 -->
+            <el-input
+              v-if="row.mingcheng === '门料' && row._mergeShuliang === 0"
+              v-model="row.beizhu"
+              type="textarea"
+              :rows="1"
+              resize="none"
+              class="beizhu-input"
+              placeholder="请输入备注"
+            />
             <span
-              v-if="
+              v-else-if="
                 row.mingcheng === '上包边' ||
                 row.mingcheng === '下包边' ||
                 row.mingcheng === '前后横梁' ||
@@ -148,13 +151,13 @@
 
       <!-- 底部门板 -->
       <table
-        v-if="doorPanelRows.length > 0"
+        v-if="filteredDoorPanelRows.length > 0"
         class="door-panel-table"
         border="1"
         cellspacing="0"
         cellpadding="0"
       >
-        <tr v-for="(row, index) in doorPanelRows" :key="index">
+        <tr v-for="(row, index) in filteredDoorPanelRows" :key="index">
           <td class="value-cell" style="width: 250px">{{ row.name }}</td>
           <td class="value-cell" style="width: 99px">{{ row.shuju1 }}</td>
           <td class="value-cell" style="width: 100px">{{ row.shuju2 }}</td>
@@ -229,9 +232,46 @@
         </tr>
       </table>
     </div>
-    <div class="side-door-count" :style="{ top: doorCountTop + 'px' }">
-      <span>门数量：</span>
-      <el-input v-model="info.doorCount" placeholder="门数量" class="info-meng-input" />
+    <div class="side-door-count" style="top: 100px">
+      <span>门板数量：</span>
+      <el-input v-model="info.doorCount" placeholder="门板数量" class="info-meng-input" />
+    </div>
+    <!-- 不生成类型下拉 -->
+    <div class="side-height-select" style="top: 150px">
+      <span>不生成类型：</span>
+      <el-select
+        v-model="excludeList"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="选择不生成的项"
+        class="side-select exclude-select"
+        style="width: 140px; margin-left: 4px"
+      >
+        <el-option
+          v-for="opt in excludeOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
+      <span style="margin-left: 12px">增加类型：</span>
+      <el-select
+        v-model="extraTypeList"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="选择增加的类型"
+        class="side-select exclude-select"
+        style="width: 140px; margin-left: 4px"
+      >
+        <el-option
+          v-for="opt in extraTypeOptions"
+          :key="opt.value"
+          :label="opt.label"
+          :value="opt.value"
+        />
+      </el-select>
     </div>
     <!-- <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
     <span>中柱数量：</span>
@@ -241,7 +281,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useChangyongBiaoge } from '@/ts/天枢款-双面门/天枢款-双面门'
+import { useChangyongBiaoge } from '@/ts/天枢款/天枢款-双面门/天枢款-双面门'
 import { clearTable } from '@/ts/按钮/button4'
 import { downloadTable } from '@/ts/按钮/button1'
 import {
@@ -254,26 +294,196 @@ import { printTable } from '@/ts/按钮/button3'
 import { watch, ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { value3, options3 } from '@/ts/xialakuang'
 const {
   info,
   filteredTableData,
   mergeMethod,
   accessoryRows,
   doorPanelRows,
+  filteredDoorPanelRows,
+  excludeNames,
+  excludeDoorPanels,
   getImage,
   saveToLocalStorage,
   tableData,
   allAccessories,
   imageModules,
+  bumpTableDataVersion,
 } = useChangyongBiaoge()
+
+// 不生成选项
+const excludeOptions = [
+  { label: '不生成上包边', value: '上包边', type: 'main' },
+  { label: '不生成横拉', value: '横拉', type: 'main' },
+  { label: '不生成门料', value: '门料', type: 'main' },
+  { label: '不生成侧板', value: '侧板', type: 'main' },
+  { label: '不生成门板', value: '门板', type: 'door' },
+  { label: '不生成侧门板', value: '侧门板', type: 'door' },
+] as const
+
+// 统一绑定的下拉值，双向同步到 excludeNames 和 excludeDoorPanels
+const excludeList = ref<string[]>([])
+watch(excludeList, (val) => {
+  const mains: string[] = []
+  const doors: string[] = []
+  for (const v of val) {
+    const opt = excludeOptions.find((o) => o.value === v)
+    if (!opt) continue
+    if (opt.type === 'main') mains.push(v)
+    else doors.push(v)
+  }
+  excludeNames.value = mains
+  excludeDoorPanels.value = doors
+})
+
+// 增加类型选项
+const extraTypeOptions = [
+  { label: '侧面加固', value: '侧面加固' },
+  { label: '需要配件', value: '需要配件' },
+  { label: '假门-需要配件', value: '假门-需要配件' },
+] as const
+
+const extraTypeList = ref<string[]>([])
+
+// 需要配件：所有配件名称（与 allAccessories 里注释的一致）
+const PEIJIAN_NAMES = ['三卡锁', '堵头(分左右)', '角码', '反弹器', '大弯铰链', '直臂铰链', '铰链垫块']
+
+/**
+ * 根据 filteredTableData 和 doorCount 重新计算所有配件数量
+ * mode: 'normal'（需要配件）| 'jiamen'（假门需要配件）
+ *
+ * 三类公式差异（其余相同）：
+ *   铰链垫块：normal = doorCount*2*2，jiamen = doorCount*2
+ *   反弹器：  normal = doorCount*2，  jiamen = doorCount
+ *   大弯铰链：normal = doorCount*2*2 - 直臂铰链，jiamen = doorCount*2*2 - 直臂铰链（相同）
+ */
+function recalcPeijian(mode: 'normal' | 'jiamen' = 'normal') {
+  const rows = filteredTableData.value
+  const doorCount = Number(info.doorCount) || 0
+
+  const getShu = (mingcheng: string, idx = 0): number => {
+    const matched = rows.filter((r) => r.mingcheng === mingcheng)
+    return Number(matched[idx]?.shuliang) || 0
+  }
+
+  const qianHouHengLiang = getShu('前后横梁')
+  const ceHengLiang = getShu('侧横梁')
+  const zhongZhu = getShu('中柱')
+  const laJin = getShu('拉筋')
+  const hengLa = getShu('横拉')
+  const liZhu = getShu('立柱')
+  const menLiao0 = getShu('门料', 0)
+  const menLiao1 = getShu('门料', 1)
+  const ceBan0 = getShu('侧板', 0)
+  const ceBan1 = getShu('侧板', 1)
+
+  const sanKaSuo = (qianHouHengLiang + ceHengLiang + zhongZhu + laJin + hengLa) * 2
+  const duTou = liZhu * 2
+  const jiaoMa = menLiao0 + menLiao1 + ceBan0 + ceBan1
+
+  // 直臂/大弯铰链：两种模式公式不同
+  // normal: 直臂 = (doorCount-2)*2*2，大弯 = doorCount*2*2 - 直臂
+  // jiamen: 直臂 = (doorCount-2)*2，  大弯 = doorCount*2   - 直臂
+  let zhiBiJiaoLian: number
+  let daWanJiaoLian: number
+  if (mode === 'jiamen') {
+    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 : 0
+    daWanJiaoLian = doorCount * 2 - zhiBiJiaoLian
+  } else {
+    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 * 2 : 0
+    daWanJiaoLian = doorCount * 2 * 2 - zhiBiJiaoLian
+  }
+
+  // 反弹器、铰链垫块两种模式有差异
+  const fanTanQi = mode === 'jiamen' ? doorCount : doorCount * 2
+  const jiaoLianDianKuai = mode === 'jiamen' ? doorCount * 2 : doorCount * 2 * 2
+
+  const valMap: Record<string, number> = {
+    '三卡锁': sanKaSuo,
+    '堵头(分左右)': duTou,
+    '角码': jiaoMa,
+    '反弹器': fanTanQi,
+    '大弯铰链': daWanJiaoLian,
+    '直臂铰链': zhiBiJiaoLian,
+    '铰链垫块': jiaoLianDianKuai,
+  }
+
+  for (const item of allAccessories) {
+    if (PEIJIAN_NAMES.includes(item.name)) {
+      item.value = String(valMap[item.name] ?? 0)
+    }
+  }
+}
+
+// 侧面加固 + 需要配件 + 假门需要配件：统一在 watch(extraTypeList) 里处理
+watch(extraTypeList, (val) => {
+  // ===== 1. 侧面加固 =====
+  const hasReinforce = val.includes('侧面加固')
+  const reinforceIdx = (tableData as any[]).findIndex((r) => r.mingcheng === '加固')
+
+  if (hasReinforce && reinforceIdx === -1) {
+    const zhongIdx = (tableData as any[]).findIndex((r) => r.mingcheng === '中柱')
+    const insertAt = zhongIdx >= 0 ? zhongIdx + 1 : (tableData as any[]).length
+    ;(tableData as any[]).splice(insertAt, 0, {
+      xinghao: 'H-1005',
+      tupian: 'H-1005',
+      mingcheng: '加固',
+      guige: '',
+      shuliang: '',
+      beizhu: '冲孔',
+      _mergeXinghao: 1,
+      _mergeTupian: 1,
+      _mergeMingcheng: 1,
+      _mergeShuliang: 1,
+    })
+    bumpTableDataVersion()
+  } else if (!hasReinforce && reinforceIdx >= 0) {
+    ;(tableData as any[]).splice(reinforceIdx, 1)
+    bumpTableDataVersion()
+  }
+
+  // ===== 2. 需要配件 / 假门需要配件（互斥，以最后勾选的为准）=====
+  const hasPeijian = val.includes('需要配件')
+  const hasJiaMen = val.includes('假门-需要配件')
+  const needAny = hasPeijian || hasJiaMen
+
+  if (needAny) {
+    // 添加还不在 allAccessories 里的配件项
+    for (const name of PEIJIAN_NAMES) {
+      if (!allAccessories.find((a) => a.name === name)) {
+        allAccessories.push({ name, value: '' })
+      }
+    }
+    // 立即计算一次（假门模式优先）
+    recalcPeijian(hasJiaMen ? 'jiamen' : 'normal')
+  } else {
+    // 两个都没勾，移除所有配件项
+    for (let i = allAccessories.length - 1; i >= 0; i--) {
+      if (PEIJIAN_NAMES.includes(allAccessories[i]?.name ?? '')) {
+        allAccessories.splice(i, 1)
+      }
+    }
+  }
+})
+
+// 监听相关数值变化，实时重算配件数量
+watch(
+  () => [filteredTableData.value, info.doorCount],
+  () => {
+    const hasJiaMen = extraTypeList.value.includes('假门-需要配件')
+    const hasPeijian = extraTypeList.value.includes('需要配件')
+    if (hasJiaMen) recalcPeijian('jiamen')
+    else if (hasPeijian) recalcPeijian('normal')
+  },
+  { deep: true },
+)
 
 // 页面唯一标识，用于本地存储
 const PAGE_KEY = '天枢款-双面门'
 
 // 保存表格数据点击事件
 const handleSave = () => {
-  saveTableData(PAGE_KEY, info, filteredTableData.value, doorPanelRows.value, allAccessories)
+  saveTableData(PAGE_KEY, info, filteredTableData.value, filteredDoorPanelRows.value, allAccessories)
 }
 
 // 下载表格点击事件
@@ -282,7 +492,7 @@ const handleDownload = async () => {
     '天枢款-圆弧-双面门',
     info,
     filteredTableData.value,
-    doorPanelRows.value,
+    filteredDoorPanelRows.value,
     allAccessories,
     imageModules,
   )
@@ -302,7 +512,8 @@ const handleClear = () => {
   })
     .then(() => {
       clearTable(info, tableData, doorPanelRows.value, allAccessories, PAGE_KEY)
-      value3.value = '' // 同步清空表面下拉框
+      excludeList.value = [] // 同步清空不生成选项
+      extraTypeList.value = [] // 同步清空增加类型（移除加固行等）
     })
     .catch(() => {})
 }
@@ -380,26 +591,30 @@ onMounted(async () => {
       allAccessories,
     )
     if (loaded && info.surface) {
-      value3.value = info.surface
+      // surface 直接绑定 info.surface，无需额外同步
     }
   } else {
     setCurrentOrderId(null)
     loadTableData(PAGE_KEY, info, tableData, doorPanelRows.value, allAccessories)
-    if (info.surface) {
-      value3.value = info.surface
-    }
   }
+
+  // 加载完数据后，若保存的主表格含"加固"行则自动勾选"侧面加固"
+  try {
+    const saved = localStorage.getItem(`table_save_${PAGE_KEY}`)
+    if (saved) {
+      const data = JSON.parse(saved)
+      const rows: Array<{ mingcheng?: string }> = data?.tableRows || []
+      if (rows.some((r) => r?.mingcheng === '加固') && !extraTypeList.value.includes('侧面加固')) {
+        extraTypeList.value = [...extraTypeList.value, '侧面加固']
+      }
+    }
+  } catch { /* 忽略恢复失败 */ }
 
   // el-table 内部渲染是异步的，延迟执行确保表格完全渲染
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
   }, 300)
-})
-
-// 监听表面下拉框变化，同步到 info.surface（供下载和保存使用）
-watch(value3, (newVal) => {
-  info.surface = newVal
 })
 
 // 监听表格数据变化，重新计算门数量和中柱数量的位置
