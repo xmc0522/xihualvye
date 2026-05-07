@@ -1,8 +1,8 @@
-import { reactive, computed, watch, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { tableData } from './天枢款-单门-加背板-加固-主表格数据'
-import { allAccessories } from './天枢款-单门-加背板-加固-配件数据'
-import { doorPanelRows } from './天枢款-单门-加背板-加固-底部门板数据'
+import { tableData } from './天枢款-背板全平-主表格数据'
+import { allAccessories } from './天枢款-背板全平-配件数据'
+import { doorPanelRows } from './天枢款-背板全平-底部门板数据'
 
 // 本地存储 key 生成函数
 const getStorageKey = (customer: string, orderNo: string) => {
@@ -10,7 +10,7 @@ const getStorageKey = (customer: string, orderNo: string) => {
 }
 
 // 批量导入JPG文件夹下的所有图片
-const imageModules = import.meta.glob('../../../JPG/*.jpg', {
+const imageModules = import.meta.glob('../../../../JPG/*.jpg', {
   eager: true,
   import: 'default',
 }) as Record<string, string>
@@ -34,8 +34,8 @@ const getTodayStr = () => {
 export function useChangyongBiaoge() {
   const route = useRoute()
 
-  // 从路由参数中获取不生成的名称列表
-  const excludeNames: string[] = (() => {
+  // 从路由参数中获取不生成的名称列表作为初始值
+  const initialExcludeNames: string[] = (() => {
     try {
       const raw = route.query.excludeNames as string
       return raw ? JSON.parse(raw) : []
@@ -44,10 +44,26 @@ export function useChangyongBiaoge() {
     }
   })()
 
+  // 不生成的名称列表（主表格），页面内下拉框可动态控制
+  const excludeNames = ref<string[]>(initialExcludeNames)
+
+  // 不生成的名称列表（底部门板：门板、侧门板等），页面内下拉框可动态控制
+  const excludeDoorPanels = ref<string[]>([])
+
+  // tableData 是从外部模块 import 进来的普通数组，splice 等修改不会触发 Vue 响应。
+  // 用一个版本号当触发器，外部修改 tableData 后调用 bumpTableDataVersion()，computed 即可重算。
+  const tableDataVersion = ref(0)
+  function bumpTableDataVersion() {
+    tableDataVersion.value++
+  }
+
+  // "背板一块"模式开关（由 vue 同步写入）
+  const isBeibanOneMode = ref(false)
+
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
-    date: getTodayStr(),
+    date: '',
     surface: '',
     quantity: '',
     orderNo: '',
@@ -55,6 +71,7 @@ export function useChangyongBiaoge() {
     width: '',
     height: '',
     doorCount: '',
+    beibanCount: '',
     zhongCount: '',
     remark: '',
   })
@@ -108,11 +125,14 @@ export function useChangyongBiaoge() {
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
+    // 触发依赖：当外部修改 tableData 后调用 bumpTableDataVersion() 即可重算
+    void tableDataVersion.value
+
     // 数量倍率：所有 shuliang 都要乘以 quantity
     const qty = Number(info.quantity) || 1
 
     // 过滤掉被排除的名称对应的行
-    const filtered = tableData.filter((row) => !excludeNames.includes(row.mingcheng))
+    const filtered = tableData.filter((row) => !excludeNames.value.includes(row.mingcheng))
 
     // 重新计算合并标记
     const result = filtered.map((row, index) => ({ ...row }))
@@ -185,7 +205,9 @@ export function useChangyongBiaoge() {
     }
 
     // 计算中柱的规格值：中柱规格 = height - 90
-    // 第一个中柱shuliang = (doorCount - 1) * 2 / 2，第二个中柱shuliang = 第一个中柱shuliang
+    // 普通模式：shuliang = (doorCount - 1) * 2 * qty
+    // 背板一块模式：shuliang = (门板数量-1)*2/2 + 背板数量-1
+    const beibanOne = isBeibanOneMode.value
     let zhongZhuIdx = 0
     let zhongZhuShuliang = ''
     for (let i = 0; i < result.length; i++) {
@@ -195,29 +217,43 @@ export function useChangyongBiaoge() {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (zhongZhuIdx === 1) {
-          if (info.doorCount) {
-            zhongZhuShuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
+          if (beibanOne) {
+            // 背板一块模式公式
+            const d = Number(info.doorCount) || 0
+            const b = Number(info.beibanCount) || 0
+            zhongZhuShuliang = (d > 0 || b > 0) ? String(((d - 1) * 2) / 2 + (b - 1)) : ''
+            result[i]!.shuliang = zhongZhuShuliang
+          } else if (info.doorCount) {
+            zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 * qty)
             result[i]!.shuliang = zhongZhuShuliang
           } else {
             result[i]!.shuliang = ''
           }
         } else if (zhongZhuIdx === 2) {
-          // 第二个中柱shuliang = 第一个中柱shuliang
           result[i]!.shuliang = zhongZhuShuliang
         }
       }
     }
 
-    // 计算加固的规格值：加固规格 = height - 90，加固shuliang = 中柱shuliang = (doorCount - 1) * 2 / 2 * quantity
+    // 计算小中柱（仅背板一块模式插入）：guige = height - 90，shuliang = 中柱新数量
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] && result[i]!.mingcheng === '小中柱') {
+        if (info.height) {
+          result[i]!.guige = String(Number(info.height) - 90)
+        } else {
+          result[i]!.guige = ''
+        }
+        result[i]!.shuliang = zhongZhuShuliang
+      }
+    }
+
+    // 计算加固的规格值：加固规格 = height - 90（数量由用户手动输入，不重置）
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '加固') {
         if (info.height) {
           result[i]!.guige = String(Number(info.height) - 90)
-        }
-        if (info.doorCount) {
-          result[i]!.shuliang = String((((Number(info.doorCount) - 1) * 2) / 2) * qty)
         } else {
-          result[i]!.shuliang = ''
+          result[i]!.guige = ''
         }
       }
     }
@@ -360,7 +396,8 @@ export function useChangyongBiaoge() {
       if (
         currentRow.mingcheng === '上包边' ||
         currentRow.mingcheng === '下包边' ||
-        currentRow.mingcheng === '侧板'
+        currentRow.mingcheng === '侧板' ||
+        currentRow.mingcheng === '侧门料'
       ) {
         if (
           shangXiaBaoBianTogether &&
@@ -453,9 +490,89 @@ export function useChangyongBiaoge() {
     return rows
   })
 
+  // 计算额外配件数量（三卡锁、堵头(分左右)、角码），供 watch 和外部（vue 勾选新增配件时）调用
+  const recalcExtraAccessories = () => {
+    const qty = Number(info.quantity) || 1
+    // 辅助：被排除的名称不计入
+    const isExcluded = (name: string) => excludeNames.value.includes(name)
+
+    // 各主表项对应的数量（与 filteredTableData 中 shuliang 计算口径保持一致）
+    const qianHouHengLiang = isExcluded('前后横梁') ? 0 : 4 * qty // 前后横梁
+    const ceHengLiang = isExcluded('侧横梁') ? 0 : 4 * qty // 侧横梁
+    // 中柱：两行合计 = (doorCount - 1) * 2 * qty * 2
+    const zhongZhuTotal =
+      isExcluded('中柱') || !info.doorCount ? 0 : (Number(info.doorCount) - 1) * 2 * qty * 2
+    // 拉筋：doorCount * 2 * qty
+    const laJin =
+      isExcluded('拉筋') || !info.doorCount ? 0 : Number(info.doorCount) * 2 * qty
+    const hengLa = isExcluded('横拉') ? 0 : 1 * qty // 横拉
+    const liZhu = isExcluded('立柱') ? 0 : 4 * qty // 立柱
+    // 门料：两行合计 = doorCount * 2 * qty * 2
+    const menLiaoTotal =
+      isExcluded('门料') || !info.doorCount ? 0 : Number(info.doorCount) * 2 * qty * 2
+    // 侧板：两行合计 = 4 * qty * 2
+    const ceBanTotal = isExcluded('侧板') ? 0 : 4 * qty * 2
+
+    // 三卡锁 = (前后横梁 + 侧横梁 + 中柱 + 拉筋 + 横拉) * 2
+    const sanKaSuo = allAccessories.find((item) => item.name === '三卡锁')
+    if (sanKaSuo) {
+      sanKaSuo.value = String(
+        (qianHouHengLiang + ceHengLiang + zhongZhuTotal + laJin + hengLa) * 2,
+      )
+    }
+
+    // 堵头(分左右) = 立柱数量 * 2
+    const duTou = allAccessories.find((item) => item.name === '堵头(分左右)')
+    if (duTou) {
+      duTou.value = String(liZhu * 2)
+    }
+
+    // 角码 = 门料第一个数量 + 门料第二个数量 + 侧板第一个数量 + 侧板第二个数量
+    const jiaoMa = allAccessories.find((item) => item.name === '角码')
+    if (jiaoMa) {
+      jiaoMa.value = String(menLiaoTotal + ceBanTotal)
+    }
+
+    // 门数量（不乘 qty，按用户需求以门数量原始值计算）
+    const doorCountNum = Number(info.doorCount) || 0
+
+    // 铰链垫块 = 门数量 * 2
+    const jiaoLianDianKuai = allAccessories.find((item) => item.name === '铰链垫块')
+    if (jiaoLianDianKuai) {
+      jiaoLianDianKuai.value = doorCountNum ? String(doorCountNum * 2) : '0'
+    }
+
+    // 反弹器 = 门数量
+    const fanTanQi = allAccessories.find((item) => item.name === '反弹器')
+    if (fanTanQi) {
+      fanTanQi.value = doorCountNum ? String(doorCountNum) : '0'
+    }
+
+    // 直臂铰链 = (门数量 - 2) * 2，结果为负时取 0
+    const zhiBiJiaoLianCount = doorCountNum >= 2 ? (doorCountNum - 2) * 2 : 0
+    const zhiBiJiaoLian = allAccessories.find((item) => item.name === '直臂铰链')
+    if (zhiBiJiaoLian) {
+      zhiBiJiaoLian.value = String(zhiBiJiaoLianCount)
+    }
+
+    // 大弯铰链 = 门数量 * 2 - 直臂铰链
+    const daWanJiaoLian = allAccessories.find((item) => item.name === '大弯铰链')
+    if (daWanJiaoLian) {
+      daWanJiaoLian.value = String(doorCountNum * 2 - zhiBiJiaoLianCount)
+    }
+  }
+
   // 监听基本信息变化，自动计算侧门板的数据值
   watch(
-    () => [info.width, info.height, info.length, info.doorCount, info.zhongCount, info.quantity],
+    () => [
+      info.width,
+      info.height,
+      info.length,
+      info.doorCount,
+      info.zhongCount,
+      info.quantity,
+      excludeNames.value,
+    ],
     () => {
       const qty = Number(info.quantity) || 1
       const ceMenBan = doorPanelRows.value.find((row) => row.name === '侧门板')
@@ -500,40 +617,33 @@ export function useChangyongBiaoge() {
         menBan.shuju2 = ''
       }
 
-      // 上包转角的value = 上包边shuliang(2 * qty) * 2
+      // 上包转角的value = 上包边shuliang(2 * qty) * 2；若上包边被排除则为 0
       const shangBaoZhuanJiao = allAccessories.find((item) => item.name === '上包转角')
       if (shangBaoZhuanJiao) {
-        shangBaoZhuanJiao.value = String(2 * qty * 2)
+        shangBaoZhuanJiao.value = excludeNames.value.includes('上包边')
+          ? '0'
+          : String(2 * qty * 2)
       }
 
-      // 下包转角的value = 下包边shuliang(2 * qty) * 2
+      // 下包转角的value = 下包边shuliang(2 * qty) * 2；若下包边被排除则为 0
       const xiaBaoZhuanJiao = allAccessories.find((item) => item.name === '下包转角')
       if (xiaBaoZhuanJiao) {
-        xiaBaoZhuanJiao.value = String(2 * qty * 2)
+        xiaBaoZhuanJiao.value = excludeNames.value.includes('下包边')
+          ? '0'
+          : String(2 * qty * 2)
       }
 
-      // 背板shuliang = (zhongCount + 1) * quantity
-      const beiBan = doorPanelRows.value.find((row) => row.name === '背板')
-      if (beiBan) {
-        beiBan.shuliang = info.zhongCount ? String((Number(info.zhongCount) + 1) * qty) : ''
-      }
+      // 计算额外配件数量（三卡锁、堵头(分左右)、角码）
+      recalcExtraAccessories()
 
-      // 背板shuju1 = (length - 80 - zhongCount * 38) / (zhongCount + 1) + 5
-      if (beiBan && info.length && info.zhongCount) {
-        const zhongCount = Number(info.zhongCount)
-        beiBan.shuju1 = String((Number(info.length) - 80 - zhongCount * 38) / (zhongCount + 1) + 5)
-      } else if (beiBan) {
-        beiBan.shuju1 = ''
-      }
-
-      // 背板shuju2 = height - 85.5
-      if (beiBan && info.height) {
-        beiBan.shuju2 = String(Number(info.height) - 85.5)
-      } else if (beiBan) {
-        beiBan.shuju2 = ''
-      }
+      // 注：背板的计算已迁移到页面的"背板多块"勾选联动逻辑里（按"门数量"公式），此处不再重复计算，避免覆盖
     },
     { immediate: true },
+  )
+
+  // 过滤后的底部门板数据：根据 excludeDoorPanels 剔除对应行
+  const filteredDoorPanelRows = computed(() =>
+    doorPanelRows.value.filter((row) => !excludeDoorPanels.value.includes(row.name)),
   )
 
   return {
@@ -542,10 +652,16 @@ export function useChangyongBiaoge() {
     mergeMethod,
     accessoryRows,
     doorPanelRows,
+    filteredDoorPanelRows,
+    excludeNames,
+    excludeDoorPanels,
     getImage,
     saveToLocalStorage,
     tableData,
     allAccessories,
     imageModules,
+    recalcExtraAccessories,
+    bumpTableDataVersion,
+    isBeibanOneMode,
   }
 }
