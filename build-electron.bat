@@ -44,7 +44,7 @@ echo.
 echo ========================================
 echo ✅ 打包完成！
 echo.
-echo 安装包位置：electron\release\玺华铝业-Setup-1.0.0.exe
+echo 安装包位置：electron\release\玺华铝业-Setup.exe
 echo.
 echo 用户首次使用：
 echo   1. 双击安装包，按向导安装

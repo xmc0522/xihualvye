@@ -55,5 +55,5 @@ nsis:
 # 自动更新：发布配置（服务器需要放置 latest.yml + exe 文件）
 publish:
   provider: generic
-  url: https://your-update-server.com/xihualvye-updates/
+  url: http://42.194.214.100/xihualvye-updates/
   channel: latest

@@ -66,7 +66,7 @@ export const menuArr = [
     children: [
       { path: '/tianshu/c', title: '常用款', component: TSChangyong },
       { path: '/tianshu/e', title: '双面门款', component: TSShuang1 },
-      { path: '/tianshu/a', title: '常用款-背板全平', component: TSDanmeng1 },
+      { path: '/tianshu/a', title: '背板全平款', component: TSDanmeng1 },
       // { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: TSDanmeng2 },
       // { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: TSShuang2 },
     ],
