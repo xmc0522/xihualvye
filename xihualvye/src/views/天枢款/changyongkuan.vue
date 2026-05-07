@@ -222,9 +222,11 @@
         </tr>
       </table>
     </div>
-    <div class="side-door-count" :style="{ top: doorCountTop + 'px' }">
-      <span>门柱数量：</span>
-      <el-input v-model="info.doorCount" placeholder="门柱数量" class="info-meng-input" />
+    <div class="side-door-count" style="top: 100px">
+      <span>门板数量：</span>
+      <el-input v-model="info.doorCount" placeholder="门板数量" class="info-meng-input" />
+      <span style="margin-left: 20px">背板数量：</span>
+      <el-input v-model="info.beibanCount" placeholder="背板数量" class="info-meng-input" />
     </div>
     <!-- 不生成类型 + 增加配件 下拉选择（并排定位到表格右侧顶部） -->
     <div class="side-height-select" style="top: 150px">
@@ -317,6 +319,8 @@ const {
   allAccessories,
   imageModules,
   recalcExtraAccessories,
+  bumpTableDataVersion,
+  isBeibanOneMode,
 } = useChangyongBiaoge()
 
 // 不生成选项（统一下拉框）。type 用于区分归属主表格还是底部门板
@@ -388,6 +392,146 @@ watch(extraAccessoryList, (val) => {
   recalcExtraAccessories()
 })
 
+// ============ "背板多块" 联动 ============
+
+/**
+ * 按"门板数量"公式计算背板三个值并写入 doorPanelRows 中的背板行
+ * shuju1 = (长度 - 80 - (门数量 - 1) * 38) / 门数量 + 5
+ * shuju2 = 高度 - 85.5
+ * shuliang = 门数量
+ */
+function recalcBackPanelByDoorCount() {
+  const beiBan = doorPanelRows.value.find((r) => r.name === '背板')
+  if (!beiBan) return
+  const doorCount = Number(info.doorCount) || 0
+  if (info.length && doorCount > 0) {
+    beiBan.shuju1 = String((Number(info.length) - 80 - (doorCount - 1) * 38) / doorCount + 5)
+  } else {
+    beiBan.shuju1 = ''
+  }
+  beiBan.shuju2 = info.height ? String(Number(info.height) - 85.5) : ''
+  beiBan.shuliang = doorCount > 0 ? String(doorCount) : ''
+}
+
+// 勾选/取消增加类型：背板多块 / 侧面加固 / 背板一块
+watch(extraTypeList, (val) => {
+  // ===== 1. 背板多块：底部门板"侧门板"后插入"背板" =====
+  const hasBackPanel = val.includes('背板多块')
+  const backIdx = doorPanelRows.value.findIndex((r) => r.name === '背板')
+
+  if (hasBackPanel && backIdx === -1) {
+    const sideIdx = doorPanelRows.value.findIndex((r) => r.name === '侧门板')
+    const insertAt = sideIdx >= 0 ? sideIdx + 1 : doorPanelRows.value.length
+    doorPanelRows.value.splice(insertAt, 0, {
+      name: '背板',
+      shuju1: '',
+      shuju2: '',
+      shuliang: '',
+      beizhu: '',
+    })
+    recalcBackPanelByDoorCount()
+  } else if (!hasBackPanel && backIdx >= 0) {
+    doorPanelRows.value.splice(backIdx, 1)
+  }
+
+  // ===== 2. 侧面加固：主表格"中柱"后插入"加固" =====
+  const hasReinforce = val.includes('侧面加固')
+  const reinforceIdx = tableData.findIndex((r: any) => r.mingcheng === '加固')
+
+  if (hasReinforce && reinforceIdx === -1) {
+    const zhongIdx = tableData.findIndex((r: any) => r.mingcheng === '中柱')
+    const insertAt = zhongIdx >= 0 ? zhongIdx + 1 : tableData.length
+    tableData.splice(insertAt, 0, {
+      xinghao: 'H-1005',
+      tupian: 'H-1005',
+      mingcheng: '加固',
+      guige: '',
+      shuliang: '',
+      beizhu: '冲孔',
+      _mergeXinghao: 1,
+      _mergeTupian: 1,
+      _mergeMingcheng: 1,
+      _mergeShuliang: 1,
+    } as any)
+    bumpTableDataVersion()
+  } else if (!hasReinforce && reinforceIdx >= 0) {
+    tableData.splice(reinforceIdx, 1)
+    bumpTableDataVersion()
+  }
+
+  // ===== 3. 背板一块：底部门板"侧门板"后插入"背板"，主表格"中柱"后插入"小中柱" =====
+  const hasBeibanOne = val.includes('背板一块')
+
+  // 3a. 切换 isBeibanOneMode（触发 filteredTableData 重算中柱公式）
+  isBeibanOneMode.value = hasBeibanOne
+
+  // 3b. 底部门板里的"背板"行
+  const backOneIdx = doorPanelRows.value.findIndex((r) => r.name === '背板')
+  if (hasBeibanOne && backOneIdx === -1) {
+    const sideIdx = doorPanelRows.value.findIndex((r) => r.name === '侧门板')
+    const insertAt = sideIdx >= 0 ? sideIdx + 1 : doorPanelRows.value.length
+    doorPanelRows.value.splice(insertAt, 0, {
+      name: '背板',
+      shuju1: '',
+      shuju2: '',
+      shuliang: '',
+      beizhu: '',
+    })
+    recalcBeibanOne()
+  } else if (!hasBeibanOne && backOneIdx >= 0 && !hasBackPanel) {
+    // 只在"背板多块"也没勾的时候才移除（避免两个模式冲突）
+    doorPanelRows.value.splice(backOneIdx, 1)
+  }
+
+  // 3c. 主表格里的"小中柱"行
+  const xiaoZhongIdx = tableData.findIndex((r: any) => r.mingcheng === '小中柱')
+  if (hasBeibanOne && xiaoZhongIdx === -1) {
+    const zhongIdx = tableData.findIndex((r: any) => r.mingcheng === '中柱')
+    const insertAt = zhongIdx >= 0 ? zhongIdx + 1 : tableData.length
+    tableData.splice(insertAt, 0, {
+      xinghao: 'H-1005',
+      tupian: 'H-1005',
+      mingcheng: '小中柱',
+      guige: '',
+      shuliang: '',
+      beizhu: '冲孔',
+      _mergeXinghao: 1,
+      _mergeTupian: 1,
+      _mergeMingcheng: 1,
+      _mergeShuliang: 1,
+    } as any)
+    bumpTableDataVersion()
+  } else if (!hasBeibanOne && xiaoZhongIdx >= 0) {
+    tableData.splice(xiaoZhongIdx, 1)
+    bumpTableDataVersion()
+  }
+})
+
+// 背板一块：背板底部门板的值计算
+// shuju1 = 长度 - 80 + 5，shuju2 = 高度 - 85.5，shuliang = 背板数量
+function recalcBeibanOne() {
+  const beiBan = doorPanelRows.value.find((r) => r.name === '背板')
+  if (!beiBan) return
+  beiBan.shuju1 = info.length ? String(Number(info.length) - 80 + 5) : ''
+  beiBan.shuju2 = info.height ? String(Number(info.height) - 85.5) : ''
+  beiBan.shuliang = info.beibanCount || ''
+}
+
+// 监听尺寸/背板数量变化，实时同步相关计算
+watch(
+  () => [info.length, info.height, info.doorCount, info.beibanCount],
+  () => {
+    if (extraTypeList.value.includes('背板多块')) {
+      recalcBackPanelByDoorCount()
+    }
+    if (extraTypeList.value.includes('背板一块')) {
+      recalcBeibanOne()
+      // 背板一块模式下，触发 filteredTableData 重算（中柱/小中柱数量依赖门板数量和背板数量）
+      bumpTableDataVersion()
+    }
+  },
+)
+
 // 页面唯一标识，用于本地存储
 const PAGE_KEY = '天枢款-常用款'
 
@@ -423,6 +567,8 @@ const handleClear = () => {
     .then(() => {
       clearTable(info, tableData, doorPanelRows.value, allAccessories, PAGE_KEY)
       value3.value = '' // 同步清空表面下拉框
+      extraTypeList.value = [] // 同步清空"增加类型"，移除背板多块等
+      extraAccessoryList.value = [] // 同步清空"额外配件"
     })
     .catch(() => {})
 }
@@ -510,12 +656,49 @@ onMounted(async () => {
     }
   }
 
+  // 加载历史数据后，根据保存数据自动勾选"背板多块"/"侧面加固"以保持 UI 一致
+  await restoreExtraTypeCheckboxes()
+
   // el-table 内部渲染是异步的，延迟执行确保表格完全渲染
   setTimeout(() => {
     calcDoorCountTop()
     calcZhongCountTop()
   }, 300)
 })
+
+// 从持久化数据中恢复 extraTypeList 勾选状态
+async function restoreExtraTypeCheckboxes() {
+  // 1. 优先检测当前 doorPanelRows / tableData（适用于从订单管理加载场景）
+  const restored: string[] = []
+  if (doorPanelRows.value.some((p) => p.name === '背板')) restored.push('背板多块')
+  if ((tableData as any[]).some((r) => r.mingcheng === '加固')) restored.push('侧面加固')
+  if ((tableData as any[]).some((r) => r.mingcheng === '小中柱')) restored.push('背板一块')
+
+  // 2. 兜底从 localStorage 检测（适用于本地缓存场景，因 button2.load 不会新增行）
+  try {
+    const saved = localStorage.getItem(`table_save_${PAGE_KEY}`)
+    if (saved) {
+      const data = JSON.parse(saved)
+      const panels: Array<{ name?: string }> = data?.doorPanels || []
+      const rows: Array<{ mingcheng?: string }> = data?.tableRows || []
+      if (panels.some((p) => p?.name === '背板') && !restored.includes('背板多块')) {
+        restored.push('背板多块')
+      }
+      if (rows.some((r) => r?.mingcheng === '加固') && !restored.includes('侧面加固')) {
+        restored.push('侧面加固')
+      }
+      if (rows.some((r) => r?.mingcheng === '小中柱') && !restored.includes('背板一块')) {
+        restored.push('背板一块')
+      }
+    }
+  } catch {
+    // 忽略恢复失败
+  }
+
+  if (restored.length > 0) {
+    extraTypeList.value = Array.from(new Set([...extraTypeList.value, ...restored]))
+  }
+}
 
 // 监听表面下拉框变化，同步到 info.surface（供下载和保存使用）
 watch(value3, (newVal) => {

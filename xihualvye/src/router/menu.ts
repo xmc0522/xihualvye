@@ -12,10 +12,10 @@ const OrderManage = () => import('@/views/订单管理页面/OrderManage.vue')
 
 // 天枢款
 const TSChangyong = () => import('@/views/天枢款/changyongkuan.vue')
-const TSDanmeng1 = () => import('@/views/天枢款/danmengbeibang-1.vue')
-const TSDanmeng2 = () => import('@/views/天枢款/danmengbeibang-2.vue')
+// const TSDanmeng1 = () => import('@/views/天枢款/danmengbeibang-1.vue')
+// const TSDanmeng2 = () => import('@/views/天枢款/danmengbeibang-2.vue')
 const TSShuang1 = () => import('@/views/天枢款/shuangmianmen-1.vue')
-const TSShuang2 = () => import('@/views/天枢款/shuangmianmen-2.vue')
+// const TSShuang2 = () => import('@/views/天枢款/shuangmianmen-2.vue')
 
 // 天权款
 // const TQChangyong = () => import('@/views/天权款/changyongkuan.vue')
@@ -65,10 +65,10 @@ export const menuArr = [
     icon: markRaw(Menu),
     children: [
       { path: '/tianshu/c', title: '常用款', component: TSChangyong },
-      { path: '/tianshu/a', title: '常用款-背板全平', component: TSDanmeng1 },
-      { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: TSDanmeng2 },
-      { path: '/tianshu/e', title: '天枢款-双面门款', component: TSShuang1 },
-      { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: TSShuang2 },
+      // { path: '/tianshu/a', title: '常用款-背板全平', component: TSDanmeng1 },
+      // { path: '/tianshu/b', title: '天枢款-单门-加背板-加固', component: TSDanmeng2 },
+      { path: '/tianshu/e', title: '双面门款', component: TSShuang1 },
+      // { path: '/tianshu/f', title: '天枢款-双面门款-背面假门', component: TSShuang2 },
     ],
   },
   // {

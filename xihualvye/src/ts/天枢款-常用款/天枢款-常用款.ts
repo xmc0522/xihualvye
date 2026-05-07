@@ -50,6 +50,16 @@ export function useChangyongBiaoge() {
   // 不生成的名称列表（底部门板：门板、侧门板等），页面内下拉框可动态控制
   const excludeDoorPanels = ref<string[]>([])
 
+  // tableData 是从外部模块 import 进来的普通数组，splice 等修改不会触发 Vue 响应。
+  // 用一个版本号当触发器，外部修改 tableData 后调用 bumpTableDataVersion()，computed 即可重算。
+  const tableDataVersion = ref(0)
+  function bumpTableDataVersion() {
+    tableDataVersion.value++
+  }
+
+  // "背板一块"模式开关（由 vue 同步写入）
+  const isBeibanOneMode = ref(false)
+
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
@@ -61,6 +71,7 @@ export function useChangyongBiaoge() {
     width: '',
     height: '',
     doorCount: '',
+    beibanCount: '',
     zhongCount: '',
     remark: '',
   })
@@ -114,6 +125,9 @@ export function useChangyongBiaoge() {
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
+    // 触发依赖：当外部修改 tableData 后调用 bumpTableDataVersion() 即可重算
+    void tableDataVersion.value
+
     // 数量倍率：所有 shuliang 都要乘以 quantity
     const qty = Number(info.quantity) || 1
 
@@ -191,7 +205,9 @@ export function useChangyongBiaoge() {
     }
 
     // 计算中柱的规格值：中柱规格 = height - 90
-    // 第一个中柱shuliang = (doorCount - 1) * 2 / 2，第二个中柱shuliang = 第一个中柱shuliang
+    // 普通模式：shuliang = (doorCount - 1) * 2 * qty
+    // 背板一块模式：shuliang = (门板数量-1)*2/2 + 背板数量-1
+    const beibanOne = isBeibanOneMode.value
     let zhongZhuIdx = 0
     let zhongZhuShuliang = ''
     for (let i = 0; i < result.length; i++) {
@@ -201,15 +217,43 @@ export function useChangyongBiaoge() {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (zhongZhuIdx === 1) {
-          if (info.doorCount) {
+          if (beibanOne) {
+            // 背板一块模式公式
+            const d = Number(info.doorCount) || 0
+            const b = Number(info.beibanCount) || 0
+            zhongZhuShuliang = (d > 0 || b > 0) ? String(((d - 1) * 2) / 2 + (b - 1)) : ''
+            result[i]!.shuliang = zhongZhuShuliang
+          } else if (info.doorCount) {
             zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 * qty)
             result[i]!.shuliang = zhongZhuShuliang
           } else {
             result[i]!.shuliang = ''
           }
         } else if (zhongZhuIdx === 2) {
-          // 第二个中柱shuliang = 第一个中柱shuliang
           result[i]!.shuliang = zhongZhuShuliang
+        }
+      }
+    }
+
+    // 计算小中柱（仅背板一块模式插入）：guige = height - 90，shuliang = 中柱新数量
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] && result[i]!.mingcheng === '小中柱') {
+        if (info.height) {
+          result[i]!.guige = String(Number(info.height) - 90)
+        } else {
+          result[i]!.guige = ''
+        }
+        result[i]!.shuliang = zhongZhuShuliang
+      }
+    }
+
+    // 计算加固的规格值：加固规格 = height - 90（数量由用户手动输入，不重置）
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] && result[i]!.mingcheng === '加固') {
+        if (info.height) {
+          result[i]!.guige = String(Number(info.height) - 90)
+        } else {
+          result[i]!.guige = ''
         }
       }
     }
@@ -591,26 +635,7 @@ export function useChangyongBiaoge() {
       // 计算额外配件数量（三卡锁、堵头(分左右)、角码）
       recalcExtraAccessories()
 
-      // 背板shuliang = (zhongCount + 1) * quantity
-      const beiBan = doorPanelRows.value.find((row) => row.name === '背板')
-      if (beiBan) {
-        beiBan.shuliang = info.zhongCount ? String((Number(info.zhongCount) + 1) * qty) : ''
-      }
-
-      // 背板shuju1 = (length - 80 - zhongCount * 38) / (zhongCount + 1) + 5
-      if (beiBan && info.length && info.zhongCount) {
-        const zhongCount = Number(info.zhongCount)
-        beiBan.shuju1 = String((Number(info.length) - 80 - zhongCount * 38) / (zhongCount + 1) + 5)
-      } else if (beiBan) {
-        beiBan.shuju1 = ''
-      }
-
-      // 背板shuju2 = height - 85.5
-      if (beiBan && info.height) {
-        beiBan.shuju2 = String(Number(info.height) - 85.5)
-      } else if (beiBan) {
-        beiBan.shuju2 = ''
-      }
+      // 注：背板的计算已迁移到页面的"背板多块"勾选联动逻辑里（按"门数量"公式），此处不再重复计算，避免覆盖
     },
     { immediate: true },
   )
@@ -635,5 +660,7 @@ export function useChangyongBiaoge() {
     allAccessories,
     imageModules,
     recalcExtraAccessories,
+    bumpTableDataVersion,
+    isBeibanOneMode,
   }
 }

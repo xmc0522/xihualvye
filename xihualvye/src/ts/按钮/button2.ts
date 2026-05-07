@@ -42,6 +42,7 @@ export async function saveTableData(
     width: string
     height: string
     doorCount: string
+    beibanCount?: string
     zhongCount: string
     remark: string
   },
@@ -166,6 +167,7 @@ export async function loadOrderFromServer(
     width: string
     height: string
     doorCount: string
+    beibanCount?: string
     zhongCount: string
     remark: string
   },
@@ -199,6 +201,7 @@ export async function loadOrderFromServer(
     info.width = data.width || ''
     info.height = data.height || ''
     info.doorCount = data.door_count || ''
+    if ('beibanCount' in info) info.beibanCount = data.beiban_count || ''
     info.zhongCount = data.zhong_count || ''
     info.remark = data.remark || ''
 
@@ -274,6 +277,7 @@ export function loadTableData(
     width: string
     height: string
     doorCount: string
+    beibanCount?: string
     zhongCount: string
     remark: string
   },
@@ -311,6 +315,7 @@ export function loadTableData(
       info.width = data.info.width || ''
       info.height = data.info.height || ''
       info.doorCount = data.info.doorCount || ''
+      if ('beibanCount' in info) info.beibanCount = data.info.beibanCount || ''
       info.zhongCount = data.info.zhongCount || ''
       info.remark = data.info.remark || ''
     }

@@ -460,8 +460,8 @@ export function useChangyongBiaoge() {
         } else {
           ceMenBan.shuju2 = ''
         }
-        // 侧门板shuliang = 固定值1 * quantity
-        ceMenBan.shuliang = String(1 * qty)
+        // 侧门板shuliang = 固定值2 * quantity
+        ceMenBan.shuliang = String(2 * qty)
       }
 
       // 门板shuliang = doorCount * quantity * 2
