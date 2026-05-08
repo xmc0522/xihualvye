@@ -57,9 +57,6 @@ export function useChangyongBiaoge() {
     tableDataVersion.value++
   }
 
-  // "背板一块"模式开关（由 vue 同步写入）
-  const isBeibanOneMode = ref(false)
-
   // 基本信息（页面手动输入）
   const info = reactive({
     customer: '',
@@ -71,7 +68,7 @@ export function useChangyongBiaoge() {
     width: '',
     height: '',
     doorCount: '',
-    beibanCount: '',
+    // zhongCount 为其他页面/公共按钮工具类型里要求的字段，此页面未实际使用，保留空字符串仅为类型兼容
     zhongCount: '',
     remark: '',
   })
@@ -205,9 +202,7 @@ export function useChangyongBiaoge() {
     }
 
     // 计算中柱的规格值：中柱规格 = height - 90
-    // 普通模式：shuliang = (doorCount - 1) * 2 * qty
-    // 背板一块模式：shuliang = (门板数量-1)*2/2 + 背板数量-1
-    const beibanOne = isBeibanOneMode.value
+    // shuliang = (doorCount - 1) * 2 * qty
     let zhongZhuIdx = 0
     let zhongZhuShuliang = ''
     for (let i = 0; i < result.length; i++) {
@@ -217,13 +212,7 @@ export function useChangyongBiaoge() {
           result[i]!.guige = String(Number(info.height) - 90)
         }
         if (zhongZhuIdx === 1) {
-          if (beibanOne) {
-            // 背板一块模式公式
-            const d = Number(info.doorCount) || 0
-            const b = Number(info.beibanCount) || 0
-            zhongZhuShuliang = (d > 0 || b > 0) ? String(((d - 1) * 2) / 2 + (b - 1)) : ''
-            result[i]!.shuliang = zhongZhuShuliang
-          } else if (info.doorCount) {
+          if (info.doorCount) {
             zhongZhuShuliang = String((Number(info.doorCount) - 1) * 2 * qty)
             result[i]!.shuliang = zhongZhuShuliang
           } else {
@@ -232,18 +221,6 @@ export function useChangyongBiaoge() {
         } else if (zhongZhuIdx === 2) {
           result[i]!.shuliang = zhongZhuShuliang
         }
-      }
-    }
-
-    // 计算小中柱（仅背板一块模式插入）：guige = height - 90，shuliang = 中柱新数量
-    for (let i = 0; i < result.length; i++) {
-      if (result[i] && result[i]!.mingcheng === '小中柱') {
-        if (info.height) {
-          result[i]!.guige = String(Number(info.height) - 90)
-        } else {
-          result[i]!.guige = ''
-        }
-        result[i]!.shuliang = zhongZhuShuliang
       }
     }
 
@@ -325,6 +302,21 @@ export function useChangyongBiaoge() {
           result[i]!.guige = String(Number(info.height) - 1)
         }
         result[i]!.shuliang = String(4 * qty)
+      }
+    }
+
+    // 计算侧门料的规格值：第一个侧门料规格 = length - 82，第二个侧门料规格 = height - 1
+    let ceMenLiaoIdx = 0
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] && result[i]!.mingcheng === '侧门料') {
+        ceMenLiaoIdx++
+        if (ceMenLiaoIdx === 1 && info.length) {
+          // 第一个侧门料：规格 = 长度 - 82
+          result[i]!.guige = String(Number(info.length) - 82)
+        } else if (ceMenLiaoIdx === 2 && info.height) {
+          // 第二个侧门料：规格 = 高度 - 1
+          result[i]!.guige = String(Number(info.height) - 1)
+        }
       }
     }
 
@@ -569,7 +561,6 @@ export function useChangyongBiaoge() {
       info.height,
       info.length,
       info.doorCount,
-      info.zhongCount,
       info.quantity,
       excludeNames.value,
     ],
@@ -636,7 +627,13 @@ export function useChangyongBiaoge() {
       // 计算额外配件数量（三卡锁、堵头(分左右)、角码）
       recalcExtraAccessories()
 
-      // 注：背板的计算已迁移到页面的"背板多块"勾选联动逻辑里（按"门数量"公式），此处不再重复计算，避免覆盖
+      // 背板 shuju1 = 第一个侧门料的 guige 值 - 2.8 = (length - 82) - 2.8
+      // 背板 shuju2 = 第二个侧门料的 guige 值 - 2.8 = (height - 1) - 2.8
+      const beiBan = doorPanelRows.value.find((row) => row.name === '背板')
+      if (beiBan) {
+        beiBan.shuju1 = info.length ? String(Number(info.length) - 82 - 2.8) : ''
+        beiBan.shuju2 = info.height ? String(Number(info.height) - 1 - 2.8) : ''
+      }
     },
     { immediate: true },
   )
@@ -660,8 +657,6 @@ export function useChangyongBiaoge() {
     tableData,
     allAccessories,
     imageModules,
-    recalcExtraAccessories,
     bumpTableDataVersion,
-    isBeibanOneMode,
   }
 }
