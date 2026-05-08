@@ -22,15 +22,6 @@ const getImage = (xinghao: string) => {
   return key ? imageModules[key] : ''
 }
 
-// 获取今日日期（YYYY/MM/DD 格式，与 el-date-picker value-format 一致）
-const getTodayStr = () => {
-  const d = new Date()
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${yyyy}/${mm}/${dd}`
-}
-
 export function useChangyongBiaoge() {
   const route = useRoute()
 
@@ -135,7 +126,7 @@ export function useChangyongBiaoge() {
     const filtered = tableData.filter((row) => !excludeNames.value.includes(row.mingcheng))
 
     // 重新计算合并标记
-    const result = filtered.map((row, index) => ({ ...row }))
+    const result = filtered.map((row) => ({ ...row }))
 
     // 计算上包边的规格值：第一个上包边 = length - 84，第二个上包边 = width - 84
     // 上包边shuliang = 固定值2 * quantity
@@ -442,7 +433,7 @@ export function useChangyongBiaoge() {
   })
 
   // 合并单元格方法
-  const mergeMethod = ({ row, column, rowIndex, columnIndex }: any) => {
+  const mergeMethod = ({ row, columnIndex }: any) => {
     // 对 型号(0)、图片(1)、名称(2) 列进行合并
     if (columnIndex <= 2) {
       const mergeKey =
@@ -568,7 +559,6 @@ export function useChangyongBiaoge() {
       info.height,
       info.length,
       info.doorCount,
-      info.zhongCount,
       info.quantity,
       excludeNames.value,
     ],
@@ -634,8 +624,6 @@ export function useChangyongBiaoge() {
 
       // 计算额外配件数量（三卡锁、堵头(分左右)、角码）
       recalcExtraAccessories()
-
-      // 注：背板的计算已迁移到页面的"背板多块"勾选联动逻辑里（按"门数量"公式），此处不再重复计算，避免覆盖
     },
     { immediate: true },
   )

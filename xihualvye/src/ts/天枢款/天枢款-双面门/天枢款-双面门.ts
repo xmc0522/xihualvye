@@ -122,7 +122,7 @@ export function useChangyongBiaoge() {
     const filtered = tableData.filter((row) => !excludeNames.value.includes(row.mingcheng))
 
     // 重新计算合并标记
-    const result = filtered.map((row, index) => ({ ...row }))
+    const result = filtered.map((row) => ({ ...row }))
 
     // 计算上包边的规格值：第一个上包边 = length - 84，第二个上包边 = width - 84
     // 上包边shuliang = 固定值2 * quantity
@@ -407,7 +407,7 @@ export function useChangyongBiaoge() {
   })
 
   // 合并单元格方法
-  const mergeMethod = ({ row, column, rowIndex, columnIndex }: any) => {
+  const mergeMethod = ({ row, columnIndex }: any) => {
     // 对 型号(0)、图片(1)、名称(2) 列进行合并
     if (columnIndex <= 2) {
       const mergeKey =
@@ -456,7 +456,7 @@ export function useChangyongBiaoge() {
 
   // 监听基本信息变化，自动计算侧门板的数据值
   watch(
-    () => [info.width, info.height, info.length, info.doorCount, info.zhongCount, info.quantity, excludeNames.value],
+    () => [info.width, info.height, info.length, info.doorCount, info.quantity, excludeNames.value],
     () => {
       const qty = Number(info.quantity) || 1
       const ceMenBan = doorPanelRows.value.find((row) => row.name === '侧门板')
@@ -515,27 +515,6 @@ export function useChangyongBiaoge() {
         xiaBaoZhuanJiao.value = excludeNames.value.includes('下包边')
           ? '0'
           : String(2 * qty * 2)
-      }
-
-      // 背板shuliang = (zhongCount + 1) * quantity
-      const beiBan = doorPanelRows.value.find((row) => row.name === '背板')
-      if (beiBan) {
-        beiBan.shuliang = info.zhongCount ? String((Number(info.zhongCount) + 1) * qty) : ''
-      }
-
-      // 背板shuju1 = (length - 80 - zhongCount * 38) / (zhongCount + 1) + 5
-      if (beiBan && info.length && info.zhongCount) {
-        const zhongCount = Number(info.zhongCount)
-        beiBan.shuju1 = String((Number(info.length) - 80 - zhongCount * 38) / (zhongCount + 1) + 5)
-      } else if (beiBan) {
-        beiBan.shuju1 = ''
-      }
-
-      // 背板shuju2 = height - 85.5
-      if (beiBan && info.height) {
-        beiBan.shuju2 = String(Number(info.height) - 85.5)
-      } else if (beiBan) {
-        beiBan.shuju2 = ''
       }
     },
     { immediate: true },

@@ -61,61 +61,61 @@
   }
   /* 名称为上包边、下包边、门料、侧板、门板、侧门板、背板的行 → 34px */
   .main-table :deep(tr.print-row-tall td) {
-    height: 34px !important;
-    font-size: 19px !important;
+    height: 30px !important;
+    font-size: 16px !important;
   }
   .main-table :deep(tr.print-row-tall .el-table__cell) {
-    height: 34px !important;
-    font-size: 19px !important;
+    height: 30px !important;
+    font-size: 16px !important;
   }
   /* 其他名称的行 → 14px，同时缩小字号和行高确保能生效 */
   .main-table :deep(tr.print-row-short td) {
-    height: 32px !important;
-    font-size: 17.5px !important;
+    height: 30px !important;
+    font-size: 16px !important;
     line-height: 1.1 !important;
     padding: 0 !important;
     overflow: hidden !important;
   }
   .main-table :deep(tr.print-row-short .el-table__cell) {
-    height: 32px !important;
-    font-size: 17.5px !important;
+    height: 30px !important;
+    font-size: 16px !important;
     line-height: 1.1 !important;
     padding: 0 !important;
     overflow: hidden !important;
   }
   /* print-row-short 行内的输入框/文本域也要缩小 */
   .main-table :deep(tr.print-row-short .el-textarea__inner) {
-    min-height: 32px !important;
-    height: 32px !important;
-    font-size: 17.5px !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    font-size: 16px !important;
     line-height: 1.1 !important;
     padding: 0 !important;
   }
   .main-table :deep(tr.print-row-short .el-input__inner) {
-    height: 32px !important;
-    font-size: 17.5px !important;
+    height: 30px !important;
+    font-size: 16px !important;
     line-height: 1.1 !important;
   }
   /* print-row-short 行内的图片也缩小 */
   .main-table :deep(tr.print-row-short .table-img) {
-    max-height: 32px !important;
+    max-height: 30px !important;
   }
   /* 缩小其他表格行高 */
   .info-table td {
     padding: 1px 2px !important;
-    height: 26px !important;
+    height: 30px !important;
     font-size: 18px !important;
     line-height: 1.3 !important;
   }
   .door-panel-table td {
     padding: 1px 2px !important;
-    font-size: 18px !important;
+    font-size: 16px !important;
     line-height: 1.3 !important;
   }
   /* 门板表：名称为门板、侧门板、背板的行 → 34px */
   .door-panel-table tr.print-row-tall td {
-    height: 34px !important;
-    font-size: 19px !important;
+    height: 30px !important;
+    font-size: 16px !important;
   }
   /* 门板表：其他行 → 14px */
   /* .door-panel-table tr.print-row-short td {
@@ -352,6 +352,96 @@
   }
   :deep(.el-textarea__inner)::-moz-placeholder {
     color: transparent !important;
+  }
+  /* 打印时规格列和数量列字体加大加粗
+     - 主表格：第 4 列(规格 guige) 第 5 列(数量 shuliang，所有合并行中的 input 一并放大)
+     - 门板表：第 2、3 列(shuju1/shuju2 规格) 第 4 列(数量)
+     - 配件表：.acc-value 单元格(数量)
+  */
+  /* 主表格规格列：通过 class-name="guige-col" 稳定命中（不受行合并影响） */
+  .main-table :deep(td.guige-col),
+  .main-table :deep(td.guige-col .cell),
+  .main-table :deep(td.guige-col .cell *) {
+    font-size: 20px !important;
+    font-weight: bold !important;
+  }
+  /* ================================
+     主表格数量列（class-name="shuliang-col" 会自动下发到每一行的数量 td，
+     包括合并行中被视觉隐藏但 DOM 仍存在的那个 td）
+     目标：字号/字重统一 22px bold，内容水平垂直居中
+     策略：回归 table-cell 原生居中 —— td 设 vertical-align:middle，
+           内容保持自然高度（不强制撑满），由 table-cell 负责垂直居中
+     ================================ */
+  .main-table :deep(td.shuliang-col),
+  .main-table :deep(td.shuliang-col .cell),
+  .main-table :deep(td.shuliang-col .cell *),
+  .main-table :deep(td.shuliang-col .el-textarea__inner),
+  .main-table :deep(td.shuliang-col .el-input__inner) {
+    font-size: 20px !important;
+    font-weight: bold !important;
+  }
+  /* td 本身：利用 table-cell 原生 vertical-align: middle 垂直居中 */
+  .main-table :deep(td.shuliang-col),
+  .door-panel-table td:nth-child(4) {
+    vertical-align: middle !important;
+    text-align: center !important;
+  }
+  /* .cell / el-input 外壳 / el-textarea 外壳：回到 block 自然高度，水平居中。
+     不要设 height:100%，否则在合并行会被错误地拉伸到 2 行高并靠顶。
+     不要用 display:flex，它会破坏 td 的 vertical-align:middle 对 block 子元素的作用。 */
+  .main-table :deep(td.shuliang-col .cell),
+  .main-table :deep(td.shuliang-col .shuliang-input),
+  .main-table :deep(td.shuliang-col .el-textarea),
+  .door-panel-table td:nth-child(4) :deep(.shuliang-input),
+  .door-panel-table td:nth-child(4) :deep(.el-textarea) {
+    display: block !important;
+    height: auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: center !important;
+  }
+  /* textarea 真正的内容区：用 line-height 撑满行高，实现垂直居中 */
+  .main-table :deep(td.shuliang-col textarea.el-textarea__inner),
+  .door-panel-table td:nth-child(4) :deep(textarea.el-textarea__inner) {
+    text-align: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 28px !important;
+    height: 28px !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    resize: none !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    overflow: hidden !important;
+  }
+  /* print-row-short 行内数量列 textarea 行高匹配 26px */
+  .main-table :deep(tr.print-row-short td.shuliang-col textarea.el-textarea__inner) {
+    line-height: 26px !important;
+    height: 26px !important;
+  }
+  /* 门板表规格列 (shuju1 / shuju2) 和数量列 */
+  .door-panel-table td:nth-child(2),
+  .door-panel-table td:nth-child(3),
+  .door-panel-table td:nth-child(4) {
+    font-size: 22px !important;
+    font-weight: bold !important;
+  }
+  .door-panel-table td:nth-child(4) :deep(.el-textarea__inner),
+  .door-panel-table td:nth-child(4) :deep(.el-input__inner) {
+    font-size: 22px !important;
+    font-weight: bold !important;
+  }
+  /* 配件表数量单元格 */
+  .accessory-table .acc-value {
+    font-size: 22px !important;
+    font-weight: bold !important;
   }
   /* 去掉页面顶部外边距，表格从顶部开始 */
   body {

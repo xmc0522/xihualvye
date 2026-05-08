@@ -98,8 +98,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="mingcheng" label="名称" width="99" />
-        <el-table-column prop="guige" label="规格" width="100" />
-        <el-table-column prop="shuliang" label="数量" width="70">
+        <el-table-column prop="guige" label="规格" width="100" class-name="guige-col" />
+        <el-table-column prop="shuliang" label="数量" width="70" class-name="shuliang-col">
           <template #default="{ row }">
             <el-input
               v-model="row.shuliang"

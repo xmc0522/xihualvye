@@ -6,8 +6,8 @@
     <el-button type="warning" @click="handlePrint">打印表格</el-button>
     <el-button type="danger" @click="handleClear">清空表格</el-button>
   </div>
-  <div class="page-wrapper" ref="pageWrapperRef">
-    <div class="table-container" ref="tableContainerRef">
+  <div class="page-wrapper">
+    <div class="table-container">
       <!-- 标题 -->
       <div class="table-title">天枢款-圆弧-双面门</div>
       <!-- 基本信息区 -->
@@ -98,8 +98,8 @@
           </template>
         </el-table-column>
         <el-table-column prop="mingcheng" label="名称" width="99" />
-        <el-table-column prop="guige" label="规格" width="100" />
-        <el-table-column prop="shuliang" label="数量" width="70">
+        <el-table-column prop="guige" label="规格" width="100" class-name="guige-col" />
+        <el-table-column prop="shuliang" label="数量" width="70" class-name="shuliang-col">
           <template #default="{ row }">
             <el-input
               v-model="row.shuliang"
@@ -273,10 +273,6 @@
         />
       </el-select>
     </div>
-    <!-- <div class="side-zhong-count" :style="{ top: zhongCountTop + 'px' }">
-    <span>中柱数量：</span>
-    <el-input v-model="info.zhongCount" placeholder="中柱数量" class="info-zz-input" />
-  </div> -->
   </div>
 </template>
 
@@ -291,7 +287,7 @@ import {
   setCurrentOrderId,
 } from '@/ts/按钮/button2'
 import { printTable } from '@/ts/按钮/button3'
-import { watch, ref, onMounted, nextTick } from 'vue'
+import { watch, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 const {
@@ -518,57 +514,6 @@ const handleClear = () => {
     .catch(() => {})
 }
 
-const pageWrapperRef = ref<HTMLElement | null>(null)
-const tableContainerRef = ref<HTMLElement | null>(null)
-const doorCountTop = ref(0)
-const zhongCountTop = ref(0)
-
-// 计算拉筋行位置，使门数量输入框与拉筋行水平对齐
-const calcDoorCountTop = () => {
-  nextTick(() => {
-    const wrapper = pageWrapperRef.value
-    const container = tableContainerRef.value
-    if (!wrapper || !container) return
-    // 查找主表格中拉筋行
-    const rows = container.querySelectorAll('.main-table .el-table__body tbody tr')
-    for (const row of rows) {
-      const cells = row.querySelectorAll('td')
-      for (const cell of cells) {
-        if (cell.textContent?.trim() === '拉筋') {
-          const wrapperRect = wrapper.getBoundingClientRect()
-          const rowRect = row.getBoundingClientRect()
-          doorCountTop.value = rowRect.top - wrapperRect.top + (rowRect.height - 32) / 2
-          return
-        }
-      }
-    }
-  })
-}
-
-// 计算背板行位置，使中柱数量输入框与背板行水平对齐
-const calcZhongCountTop = () => {
-  nextTick(() => {
-    const wrapper = pageWrapperRef.value
-    const container = tableContainerRef.value
-    if (!wrapper || !container) return
-    // 查找底部门板表格中背板行
-    const doorPanelTable = container.querySelector('.door-panel-table')
-    if (!doorPanelTable) return
-    const rows = doorPanelTable.querySelectorAll('tr')
-    for (const row of rows) {
-      const cells = row.querySelectorAll('td')
-      for (const cell of cells) {
-        if (cell.textContent?.trim() === '背板') {
-          const wrapperRect = wrapper.getBoundingClientRect()
-          const rowRect = row.getBoundingClientRect()
-          zhongCountTop.value = rowRect.top - wrapperRect.top + (rowRect.height - 32) / 2
-          return
-        }
-      }
-    }
-  })
-}
-
 const currentRoute = useRoute()
 const router = useRouter()
 const orderId = ref<number | null>(null)
@@ -609,26 +554,7 @@ onMounted(async () => {
       }
     }
   } catch { /* 忽略恢复失败 */ }
-
-  // el-table 内部渲染是异步的，延迟执行确保表格完全渲染
-  setTimeout(() => {
-    calcDoorCountTop()
-    calcZhongCountTop()
-  }, 300)
 })
-
-// 监听表格数据变化，重新计算门数量和中柱数量的位置
-watch(
-  () => [filteredTableData.value, doorPanelRows.value],
-  () => {
-    // 延迟执行，等待 DOM 更新完成
-    setTimeout(() => {
-      calcDoorCountTop()
-      calcZhongCountTop()
-    }, 100)
-  },
-  { deep: true },
-)
 
 // 监听数据变化，自动保存到本地存储
 watch(
