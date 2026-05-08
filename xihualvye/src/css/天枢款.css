@@ -792,3 +792,30 @@
   padding: 2px 4px;
   resize: none;
 }
+
+/* 左侧竖向页面标识标签条 */
+.page-label-bar {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 20px;
+  width: 50px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  letter-spacing: 4px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+  padding: 16px 0;
+  user-select: none;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* 打印时隐藏标签条 */
+@media print {
+  .page-label-bar {
+    display: none !important;
+  }
+}

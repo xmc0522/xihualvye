@@ -7,6 +7,8 @@
     <el-button type="danger" @click="handleClear">清空表格</el-button>
   </div>
   <div class="page-wrapper">
+    <!-- 左侧页面标识标签条 -->
+    <div class="page-label-bar" style="background: #409eff;">双面门</div>
     <div class="table-container">
       <!-- 标题 -->
       <div class="table-title">天枢款-圆弧-双面门</div>
