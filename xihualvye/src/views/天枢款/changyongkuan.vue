@@ -315,7 +315,7 @@ const {
   saveToLocalStorage,
   tableData,
   allAccessories,
-  imageModules,
+  loadImageModules,
   recalcExtraAccessories,
   bumpTableDataVersion,
   isBeibanOneMode,
@@ -540,6 +540,8 @@ const handleSave = () => {
 
 // 下载表格点击事件
 const handleDownload = async () => {
+  // 仅在点击时才加载图片，不进首屏 bundle
+  const imageModules = await loadImageModules()
   await downloadTable(
     '天枢款-圆弧',
     info,

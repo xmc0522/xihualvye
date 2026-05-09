@@ -1,22 +1,26 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import menuArr from '../router/menu'
 
-// 将菜单配置扁平化为一维路由数组
-// 有 children 的菜单项（如"天枢款"）→ 提取子路由
-// 没有 children 但有 component 的菜单项（如"订单管理"）→ 直接作为路由
-const childRoutes: Array<{ path: string; name?: string; component: any }> = []
+// 把绝对路径（`/foo/bar`）转为相对路径（`foo/bar`），用于注册到父路由 `/` 的 children。
+// Vue Router 4 子路由建议用相对路径；菜单配置仍保留绝对路径以方便 el-menu 的 index 绑定与 router.push。
+function toRelative(p: string): string {
+  return p.startsWith('/') ? p.slice(1) : p
+}
+
+// 将菜单配置扁平化为 children 路由数组
+const childRoutes: RouteRecordRaw[] = []
 
 for (const item of menuArr) {
   if (item.children && item.children.length > 0) {
     for (const child of item.children) {
       childRoutes.push({
-        path: child.path,
+        path: toRelative(child.path),
         component: child.component,
       })
     }
   } else if ('component' in item && item.component) {
     childRoutes.push({
-      path: item.path,
+      path: toRelative(item.path),
       name: item.name,
       component: item.component,
     })

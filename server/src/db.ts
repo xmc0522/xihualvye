@@ -17,13 +17,103 @@ let rawDb: any = null
 let dbReady = false
 const readyCallbacks: Array<() => void> = []
 
-// 保存数据库到文件
-function saveToFile() {
-  if (!rawDb) return
-  const data = rawDb.export()
-  const buffer = Buffer.from(data)
-  fs.writeFileSync(dbPath, buffer)
+// ============ 异步 + debounce 写盘机制 ============
+// sql.js 的局限：每次写入都需要 export 整库 -> 写文件。
+// 之前的 saveToFile 是同步写盘，订单批量操作时延迟很高。
+// 这里改为：所有写操作只标记 dirty，由一个 debounce 定时器（默认 200ms）合并后异步写入。
+const SAVE_DEBOUNCE_MS = 200
+let saveTimer: NodeJS.Timeout | null = null
+let saving = false        // 防止并发写
+let pendingSave = false   // 上次 debounce 期间又来了新写入
+let dirty = false         // 是否有未持久化的修改
+
+function flushToFile(): Promise<void> {
+  return new Promise((resolve) => {
+    if (!rawDb || !dirty) {
+      resolve()
+      return
+    }
+    if (saving) {
+      // 正在写盘，标记一下，写完后再触发一次
+      pendingSave = true
+      resolve()
+      return
+    }
+    saving = true
+    dirty = false
+    try {
+      const data = rawDb.export()
+      const buffer = Buffer.from(data)
+      // 异步写盘：先写到 tmp 文件，再 rename，避免半写状态损坏数据库
+      const tmpPath = dbPath + '.tmp'
+      fs.writeFile(tmpPath, buffer, (err) => {
+        if (err) {
+          console.error('❌ 数据库写盘失败:', err)
+          dirty = true // 写失败，标记为脏，下次重试
+          saving = false
+          resolve()
+          return
+        }
+        fs.rename(tmpPath, dbPath, (renameErr) => {
+          saving = false
+          if (renameErr) {
+            console.error('❌ 数据库 rename 失败:', renameErr)
+            dirty = true
+          }
+          // 写盘期间又有新写入，立刻再 flush 一次
+          if (pendingSave) {
+            pendingSave = false
+            scheduleSave()
+          }
+          resolve()
+        })
+      })
+    } catch (e) {
+      saving = false
+      dirty = true
+      console.error('❌ 数据库导出失败:', e)
+      resolve()
+    }
+  })
 }
+
+// 调度一次 debounce 写盘（多次调用会被合并）
+function scheduleSave() {
+  if (!rawDb) return
+  dirty = true
+  if (saveTimer) return
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    void flushToFile()
+  }, SAVE_DEBOUNCE_MS)
+}
+
+// 同步等待写盘（用于进程退出前）
+function flushSync() {
+  if (saveTimer) {
+    clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  if (!rawDb || !dirty) return
+  try {
+    const data = rawDb.export()
+    fs.writeFileSync(dbPath, Buffer.from(data))
+    dirty = false
+  } catch (e) {
+    console.error('❌ 数据库同步写盘失败:', e)
+  }
+}
+
+// 进程退出前兜底：把脏数据落盘，避免丢失最后一批写入
+process.on('beforeExit', () => flushSync())
+process.on('SIGINT', () => {
+  flushSync()
+  process.exit(0)
+})
+process.on('SIGTERM', () => {
+  flushSync()
+  process.exit(0)
+})
 
 // 异步初始化
 async function initDatabase() {
@@ -86,7 +176,23 @@ async function initDatabase() {
     console.warn('迁移 status 列时出现警告:', e)
   }
 
-  saveToFile()
+  // ============ 索引：加速订单列表查询/统计 ============
+  // 1) 列表默认 ORDER BY date DESC, updated_at DESC
+  // 2) 状态筛选 / 状态统计
+  // 3) 客户、款式、单号 LIKE 查询（前缀有效）
+  try {
+    rawDb.run(`CREATE INDEX IF NOT EXISTS idx_orders_date_updated ON orders(date DESC, updated_at DESC)`)
+    rawDb.run(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`)
+    rawDb.run(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer)`)
+    rawDb.run(`CREATE INDEX IF NOT EXISTS idx_orders_page_type ON orders(page_type)`)
+    rawDb.run(`CREATE INDEX IF NOT EXISTS idx_orders_order_no ON orders(order_no)`)
+  } catch (e) {
+    console.warn('创建索引时出现警告:', e)
+  }
+
+  // 初始化阶段同步落盘一次（保证 schema/索引立即生效）
+  dirty = true
+  flushSync()
 
   dbReady = true
   readyCallbacks.forEach((cb) => cb())
@@ -107,11 +213,14 @@ const db = {
   /** 等待数据库初始化完成 */
   waitForReady,
 
+  /** 主动 flush（同步），用于热备份等场景 */
+  flushSync,
+
   prepare(sql: string) {
     return {
       run(...params: any[]) {
         rawDb.run(sql, params)
-        saveToFile()
+        scheduleSave()
         const lastId = rawDb.exec('SELECT last_insert_rowid() as id')
         const changesResult = rawDb.exec('SELECT changes() as c')
         return {
@@ -151,7 +260,7 @@ const db = {
   },
   exec(sql: string) {
     rawDb.run(sql)
-    saveToFile()
+    scheduleSave()
   },
   pragma(pragmaStr: string) {
     rawDb.run(`PRAGMA ${pragmaStr}`)

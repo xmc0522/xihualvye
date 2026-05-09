@@ -26,6 +26,12 @@ export function useLogin() {
   let lookingTimer: number | null = null
   const isLookingAtEachOther = ref(false)
 
+  // ============ 鼠标跟随 rAF 节流 ============
+  // 之前 onmousemove 每次都做大量 DOM 读写 + getBoundingClientRect()，CPU 占用高。
+  // 改为 rAF 节流：原始事件只缓存最新坐标，真正的计算在浏览器下一次绘制前批量处理。
+  let pendingMouseEvent: { clientX: number; clientY: number } | null = null
+  let mouseRafId: number | null = null
+
   const form = reactive({
     username: '',
     password: '',
@@ -37,36 +43,36 @@ export function useLogin() {
     password: [{ required: true, message: '密码不能为空', trigger: 'blur' }],
   }
 
-  // 鼠标跟随效果
-  function handleMouseMove(e: MouseEvent) {
+  // 实际执行 DOM 计算的内部函数（每帧最多调用一次）
+  function applyMouseMove(clientX: number, clientY: number) {
     if (isPasswordVisible.value || isLookingAtEachOther.value) return
-    
+
     const shapes = [
       { shape: purpleShape.value, eyes: purpleEyes.value },
       { shape: blackShape.value, eyes: blackEyes.value },
       { shape: orangeShape.value, eyes: orangeEyes.value },
       { shape: yellowShape.value, eyes: yellowEyes.value }
     ]
-    
+
     shapes.forEach(({ shape, eyes }) => {
       if (!shape || !eyes) return
-      
+
       const shapeRect = shape.getBoundingClientRect()
       const centerX = shapeRect.left + shapeRect.width / 2
       const centerY = shapeRect.top + shapeRect.height / 3
-      
-      const dx = e.clientX - centerX
-      const dy = e.clientY - centerY
-      
+
+      const dx = clientX - centerX
+      const dy = clientY - centerY
+
       // 计算身体倾斜
       const bodySkew = Math.max(-6, Math.min(6, -dx / 120))
       shape.style.transform = `skewX(${bodySkew}deg)`
-      
+
       // 计算眼睛位置
       const faceX = Math.max(-15, Math.min(15, dx / 20))
       const faceY = Math.max(-10, Math.min(10, dy / 30))
       eyes.style.transform = `translate(calc(-50% + ${faceX}px), ${faceY}px)`
-      
+
       // 计算瞳孔位置
       const pupils = eyes.querySelectorAll('.pupil')
       pupils.forEach(pupil => {
@@ -74,16 +80,28 @@ export function useLogin() {
         const pupilRect = pupilEl.getBoundingClientRect()
         const pupilCenterX = pupilRect.left + pupilRect.width / 2
         const pupilCenterY = pupilRect.top + pupilRect.height / 2
-        
-        const pupilDx = e.clientX - pupilCenterX
-        const pupilDy = e.clientY - pupilCenterY
+
+        const pupilDx = clientX - pupilCenterX
+        const pupilDy = clientY - pupilCenterY
         const angle = Math.atan2(pupilDy, pupilDx)
         const distance = Math.min(5, Math.hypot(pupilDx, pupilDy) / 50)
-        
+
         const x = Math.cos(angle) * distance
         const y = Math.sin(angle) * distance
         pupilEl.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
       })
+    })
+  }
+
+  // rAF 节流后的对外入口（替代原 handleMouseMove）
+  function handleMouseMove(e: MouseEvent) {
+    pendingMouseEvent = { clientX: e.clientX, clientY: e.clientY }
+    if (mouseRafId !== null) return
+    mouseRafId = requestAnimationFrame(() => {
+      mouseRafId = null
+      const ev = pendingMouseEvent
+      pendingMouseEvent = null
+      if (ev) applyMouseMove(ev.clientX, ev.clientY)
     })
   }
 
@@ -226,6 +244,11 @@ export function useLogin() {
   onUnmounted(() => {
     if (typingTimer) clearTimeout(typingTimer)
     if (lookingTimer) clearTimeout(lookingTimer)
+    if (mouseRafId !== null) {
+      cancelAnimationFrame(mouseRafId)
+      mouseRafId = null
+    }
+    pendingMouseEvent = null
   })
 
   async function handleLogin() {

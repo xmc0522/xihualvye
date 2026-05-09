@@ -13,9 +13,6 @@ export default defineConfig({
       '@jpg': fileURLToPath(new URL('./JPG', import.meta.url)),
     },
   },
-  optimizeDeps: {
-    include: ['exceljs'],
-  },
   server: {
     proxy: {
       '/api': {
@@ -29,12 +26,13 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        // 把第三方大依赖单独拆出来，便于 CDN 缓存与并行下载
+        // 把第三方大依赖单独拆出来，便于按需加载
+        // exceljs / xlsx-js-style / file-saver 已经改为函数内 dynamic import，会被自动拆成独立 chunk，
+        // 这里不再放进 manualChunks，避免被首屏入口提前引入。
+        // echarts 同样已改为按需注册（echarts/core 体积小很多）。
         manualChunks: {
           'vendor-vue': ['vue', 'vue-router', 'pinia'],
           'vendor-element': ['element-plus', '@element-plus/icons-vue'],
-          'vendor-echarts': ['echarts'],
-          'vendor-excel': ['exceljs', 'file-saver', 'xlsx-js-style'],
         },
       },
     },

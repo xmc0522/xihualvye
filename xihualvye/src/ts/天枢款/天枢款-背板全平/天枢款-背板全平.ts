@@ -1,28 +1,23 @@
 import { reactive, computed, watch, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { tableData } from './天枢款-背板全平-主表格数据'
-import { allAccessories } from './天枢款-背板全平-配件数据'
-import { doorPanelRows } from './天枢款-背板全平-底部门板数据'
+import { tableData as DEFAULT_TABLE_DATA } from './天枢款-背板全平-主表格数据'
+import { allAccessories as DEFAULT_ACCESSORIES } from './天枢款-背板全平-配件数据'
+import { doorPanelRows as DEFAULT_DOOR_PANELS } from './天枢款-背板全平-底部门板数据'
+import { getImageByXinghao, buildImageModulesForExport } from '@/ts/image-loader'
 
 // 本地存储 key 生成函数
 const getStorageKey = (customer: string, orderNo: string) => {
   return `tianshu_${customer}_${orderNo}`
 }
 
-// 批量导入JPG文件夹下的所有图片
-const imageModules = import.meta.glob('../../../../JPG/*.jpg', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>
+// 图片懒加载：首次访问返回 '' 同时异步加载，加载完成后响应式缓存驱动模板刷新
+const getImage = (xinghao: string) => getImageByXinghao(xinghao)
 
-// 根据型号获取对应图片路径
-const getImage = (xinghao: string) => {
-  // 匹配键名中包含该型号的图片
-  const key = Object.keys(imageModules).find((k) => k.includes(xinghao))
-  return key ? imageModules[key] : ''
+// 深拷贝工具
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
 }
 
-// 获取今日日期（YYYY/MM/DD 格式，与 el-date-picker value-format 一致）
 const getTodayStr = () => {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -50,11 +45,14 @@ export function useChangyongBiaoge() {
   // 不生成的名称列表（底部门板：门板、侧门板等），页面内下拉框可动态控制
   const excludeDoorPanels = ref<string[]>([])
 
-  // tableData 是从外部模块 import 进来的普通数组，splice 等修改不会触发 Vue 响应。
-  // 用一个版本号当触发器，外部修改 tableData 后调用 bumpTableDataVersion()，computed 即可重算。
-  const tableDataVersion = ref(0)
+  // ============ 页面独立的响应式副本（避免多页面共用同一个模块级数组互相污染）============
+  const tableData = reactive(deepClone(DEFAULT_TABLE_DATA)) as typeof DEFAULT_TABLE_DATA
+  const doorPanelRows = ref(deepClone(DEFAULT_DOOR_PANELS.value))
+  const allAccessories = reactive(deepClone(DEFAULT_ACCESSORIES)) as typeof DEFAULT_ACCESSORIES
+
+  // 兼容老调用：tableData 现在是 reactive，splice 自动触发重算，无需手动 bump。
   function bumpTableDataVersion() {
-    tableDataVersion.value++
+    /* no-op */
   }
 
   // 基本信息（页面手动输入）
@@ -122,8 +120,7 @@ export function useChangyongBiaoge() {
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
-    // 触发依赖：当外部修改 tableData 后调用 bumpTableDataVersion() 即可重算
-    void tableDataVersion.value
+    // tableData 现在是 reactive，splice / push 会自动触发重算。
 
     // 数量倍率：所有 shuliang 都要乘以 quantity
     const qty = Number(info.quantity) || 1
@@ -656,7 +653,13 @@ export function useChangyongBiaoge() {
     saveToLocalStorage,
     tableData,
     allAccessories,
-    imageModules,
+    /** 异步加载当前表格所需图片，仅在下载表格时调用 */
+    loadImageModules: () => {
+      const xinghaoList: string[] = [
+        ...tableData.map((r: any) => r.tupian).filter(Boolean),
+      ]
+      return buildImageModulesForExport(xinghaoList)
+    },
     bumpTableDataVersion,
   }
 }
