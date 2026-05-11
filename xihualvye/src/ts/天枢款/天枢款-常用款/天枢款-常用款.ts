@@ -491,7 +491,7 @@ export function useChangyongBiaoge() {
     const ceHengLiang = isExcluded('侧横梁') ? 0 : 4 * qty // 侧横梁
     // 中柱：两行合计 = (doorCount - 1) * 2 * qty * 2
     const zhongZhuTotal =
-      isExcluded('中柱') || !info.doorCount ? 0 : (Number(info.doorCount) - 1) * 2 * qty * 2
+      isExcluded('中柱') || !info.doorCount ? 0 : (Number(info.doorCount) - 1) * 2 * qty
     // 拉筋：doorCount * 2 * qty
     const laJin =
       isExcluded('拉筋') || !info.doorCount ? 0 : Number(info.doorCount) * 2 * qty
