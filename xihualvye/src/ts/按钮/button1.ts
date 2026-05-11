@@ -1,5 +1,6 @@
-import ExcelJS from 'exceljs'
-import { saveAs } from 'file-saver'
+// exceljs 和 file-saver 体积较大（合计 900KB+），仅在用户点击"下载表格"时才需要。
+// 这里只做类型导入，运行时实例在函数内部 dynamic import 加载。
+import type ExcelJS from 'exceljs'
 
 /**
  * 将图片URL转换为ArrayBuffer（用于ExcelJS嵌入图片）
@@ -65,7 +66,13 @@ export async function downloadTable(
   allAccessories: Array<{ name: string; value: string }>,
   imageModules?: Record<string, string>,
 ) {
-  const workbook = new ExcelJS.Workbook()
+  // 动态加载大体积依赖：避免进入首屏 bundle
+  const [{ default: ExcelJSImpl }, { saveAs }] = await Promise.all([
+    import('exceljs'),
+    import('file-saver'),
+  ])
+
+  const workbook = new ExcelJSImpl.Workbook()
   const ws = workbook.addWorksheet('表格数据')
 
   // 通用边框样式

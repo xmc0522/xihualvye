@@ -1,5 +1,27 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import * as echarts from 'echarts'
+
+// 按需引入 echarts，减少首屏体积（完整 echarts ~1MB → 按需 ~400KB）
+import * as echarts from 'echarts/core'
+import { BarChart, LineChart, PieChart } from 'echarts/charts'
+import {
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+import type { EChartsCoreOption as EChartsOption, ECharts } from 'echarts/core'
+
+// 一次性注册图表所需模块
+echarts.use([
+  BarChart,
+  LineChart,
+  PieChart,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  CanvasRenderer,
+])
+
 import { getOrderStatsByPageType, getOrderList } from '@/ts/api'
 import type { OrderListItem } from '@/ts/api'
 
@@ -24,9 +46,9 @@ export function useDashboard() {
   const barChartRef = ref<HTMLElement | null>(null)
   const lineChartRef = ref<HTMLElement | null>(null)
   const pieChartRef = ref<HTMLElement | null>(null)
-  let barChart: echarts.ECharts | null = null
-  let lineChart: echarts.ECharts | null = null
-  let pieChart: echarts.ECharts | null = null
+  let barChart: ECharts | null = null
+  let lineChart: ECharts | null = null
+  let pieChart: ECharts | null = null
 
   const loading = ref(true)
   const noData = ref(false)
@@ -137,7 +159,7 @@ export function useDashboard() {
           color: 'inherit',
         },
       }],
-    } as echarts.EChartsOption)
+    } as EChartsOption)
   }
 
   // ========== 折线图：近7天每日新增订单数 ==========
@@ -195,7 +217,7 @@ export function useDashboard() {
         },
         label: { show: true, position: 'top', fontSize: 12, color: '#67c23a' },
       }],
-    } as echarts.EChartsOption)
+    } as EChartsOption)
   }
 
   // ========== 饼图：三大款式套数占比 ==========
@@ -234,7 +256,7 @@ export function useDashboard() {
         },
         data: pieData.map((d, i) => ({ ...d, itemStyle: { color: colors[i % colors.length] } })),
       }],
-    } as echarts.EChartsOption)
+    } as EChartsOption)
   }
 
   // ========== 加载所有数据 ==========

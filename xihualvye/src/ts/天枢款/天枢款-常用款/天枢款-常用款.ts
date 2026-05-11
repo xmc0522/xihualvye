@@ -1,25 +1,22 @@
 import { reactive, computed, watch, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { tableData } from './天枢款-常用款-主表格数据'
-import { allAccessories } from './天枢款-常用款-配件数据'
-import { doorPanelRows } from './天枢款-常用款-底部门板数据'
+import { tableData as DEFAULT_TABLE_DATA } from './天枢款-常用款-主表格数据'
+import { allAccessories as DEFAULT_ACCESSORIES } from './天枢款-常用款-配件数据'
+import { doorPanelRows as DEFAULT_DOOR_PANELS } from './天枢款-常用款-底部门板数据'
+import { getImageByXinghao, buildImageModulesForExport } from '@/ts/image-loader'
 
 // 本地存储 key 生成函数
 const getStorageKey = (customer: string, orderNo: string) => {
   return `tianshu_${customer}_${orderNo}`
 }
 
-// 批量导入JPG文件夹下的所有图片
-const imageModules = import.meta.glob('../../../../JPG/*.jpg', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>
+// 图片懒加载（替代之前 eager: true 的 import.meta.glob）：
+// 第一次访问 getImage(xinghao) 时返回 '' 同时异步加载，加载完成后响应式缓存驱动模板刷新。
+const getImage = (xinghao: string) => getImageByXinghao(xinghao)
 
-// 根据型号获取对应图片路径
-const getImage = (xinghao: string) => {
-  // 匹配键名中包含该型号的图片
-  const key = Object.keys(imageModules).find((k) => k.includes(xinghao))
-  return key ? imageModules[key] : ''
+// 深拷贝工具：仅复制纯数据对象/数组
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
 }
 
 export function useChangyongBiaoge() {
@@ -41,11 +38,18 @@ export function useChangyongBiaoge() {
   // 不生成的名称列表（底部门板：门板、侧门板等），页面内下拉框可动态控制
   const excludeDoorPanels = ref<string[]>([])
 
-  // tableData 是从外部模块 import 进来的普通数组，splice 等修改不会触发 Vue 响应。
-  // 用一个版本号当触发器，外部修改 tableData 后调用 bumpTableDataVersion()，computed 即可重算。
-  const tableDataVersion = ref(0)
+  // ============ 页面独立的响应式副本（每个页面实例都拿到一份独立数据，不再共用全局单例）============
+  // 之前：tableData / doorPanelRows / allAccessories 都是模块顶层导出的全局单例，
+  //   A 页面修改后切换到 B 页面会看到脏状态，且 tableData 不是响应式还要靠版本号触发重算。
+  // 现在：以模块导出作为 DEFAULT 模板，hook 内部生成独立的 reactive / ref 副本。
+  const tableData = reactive(deepClone(DEFAULT_TABLE_DATA)) as typeof DEFAULT_TABLE_DATA
+  const doorPanelRows = ref(deepClone(DEFAULT_DOOR_PANELS.value))
+  const allAccessories = reactive(deepClone(DEFAULT_ACCESSORIES)) as typeof DEFAULT_ACCESSORIES
+
+  // 兼容老调用：vue 页面以前依赖 bumpTableDataVersion() 手动触发 computed 重算，
+  // 现在 tableData 已是 reactive，splice 会自动触发；保留 noop 函数让 vue 调用方零改动。
   function bumpTableDataVersion() {
-    tableDataVersion.value++
+    /* no-op: tableData 现在是 reactive，无需手动 bump */
   }
 
   // "背板一块"模式开关（由 vue 同步写入）
@@ -116,8 +120,7 @@ export function useChangyongBiaoge() {
 
   // 根据不生成的名称过滤表格数据，并重新计算合并单元格
   const filteredTableData = computed(() => {
-    // 触发依赖：当外部修改 tableData 后调用 bumpTableDataVersion() 即可重算
-    void tableDataVersion.value
+    // tableData 现在是 reactive，splice / push 会自动触发重算，无需额外的版本号依赖。
 
     // 数量倍率：所有 shuliang 都要乘以 quantity
     const qty = Number(info.quantity) || 1
@@ -646,7 +649,16 @@ export function useChangyongBiaoge() {
     saveToLocalStorage,
     tableData,
     allAccessories,
-    imageModules,
+    /**
+     * 异步加载当前表格所需图片，返回与之前 imageModules 同结构的对象。
+     * 仅在用户点击"下载表格"时调用，不会进入首屏 bundle。
+     */
+    loadImageModules: () => {
+      const xinghaoList: string[] = [
+        ...tableData.map((r: any) => r.tupian).filter(Boolean),
+      ]
+      return buildImageModulesForExport(xinghaoList)
+    },
     recalcExtraAccessories,
     bumpTableDataVersion,
     isBeibanOneMode,

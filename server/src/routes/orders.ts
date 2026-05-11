@@ -130,53 +130,54 @@ router.get('/', (req: Request, res: Response) => {
   try {
     const { customer, pageType, orderNo, surface, status, startDate, endDate, page = '1', pageSize = '20' } = req.query
 
-    let sql = 'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, status, created_at, updated_at FROM orders WHERE 1=1'
+    // 把 WHERE 子句单独构建，count 与 list 共用同一个条件
+    let where = ' WHERE 1=1'
     const params: any[] = []
 
     if (customer) {
-      sql += ' AND customer LIKE ?'
+      where += ' AND customer LIKE ?'
       params.push(`%${customer}%`)
     }
     if (pageType) {
-      sql += ' AND page_type LIKE ?'
+      where += ' AND page_type LIKE ?'
       params.push(`%${pageType}%`)
     }
     if (orderNo) {
-      sql += ' AND order_no LIKE ?'
+      where += ' AND order_no LIKE ?'
       params.push(`%${orderNo}%`)
     }
     if (surface) {
-      sql += ' AND surface = ?'
+      where += ' AND surface = ?'
       params.push(surface)
     }
     if (status) {
-      sql += ` AND COALESCE(NULLIF(status, ''), 'pending') = ?`
+      where += ` AND COALESCE(NULLIF(status, ''), 'pending') = ?`
       params.push(status)
     }
     if (startDate) {
-      sql += ' AND date >= ?'
+      where += ' AND date >= ?'
       params.push(startDate)
     }
     if (endDate) {
-      sql += ' AND date <= ?'
+      where += ' AND date <= ?'
       params.push(endDate)
     }
 
-    // 先查总数
-    const countSql = sql.replace(
-      'SELECT id, customer, order_no, date, surface, quantity, length, width, height, door_count, zhong_count, remark, page_type, status, created_at, updated_at',
-      'SELECT COUNT(*) as total'
-    )
+    // 先查总数（直接拼独立 SQL，不再用 replace）
+    const countSql = `SELECT COUNT(*) as total FROM orders${where}`
     const countResult = db.prepare(countSql).get(...params) as { total: number }
     const total = countResult.total
 
-    // 分页
-    const p = Math.max(1, parseInt(page as string))
-    const ps = Math.max(1, Math.min(100, parseInt(pageSize as string)))
-    sql += ' ORDER BY date DESC, updated_at DESC LIMIT ? OFFSET ?'
-    params.push(ps, (p - 1) * ps)
+    // 分页参数校验
+    const p = Math.max(1, parseInt(page as string) || 1)
+    const ps = Math.max(1, Math.min(100, parseInt(pageSize as string) || 20))
 
-    const rows = db.prepare(sql).all(...params)
+    // 列表查询（仅取列表展示需要的列；大字段 table_data/door_panels/accessories 走详情接口）
+    const listSql =
+      `SELECT id, customer, order_no, date, surface, quantity, length, width, height, ` +
+      `door_count, zhong_count, remark, page_type, status, created_at, updated_at ` +
+      `FROM orders${where} ORDER BY date DESC, updated_at DESC LIMIT ? OFFSET ?`
+    const rows = db.prepare(listSql).all(...params, ps, (p - 1) * ps)
 
     res.json({
       code: 0,

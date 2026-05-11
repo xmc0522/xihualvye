@@ -201,7 +201,8 @@ export async function loadOrderFromServer(
     info.width = data.width || ''
     info.height = data.height || ''
     info.doorCount = data.door_count || ''
-    if ('beibanCount' in info) info.beibanCount = data.beiban_count || ''
+    if ('beibanCount' in info)
+      info.beibanCount = (data as { beiban_count?: string }).beiban_count || ''
     info.zhongCount = data.zhong_count || ''
     info.remark = data.remark || ''
 
