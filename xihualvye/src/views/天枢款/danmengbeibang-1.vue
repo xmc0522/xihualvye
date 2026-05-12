@@ -105,7 +105,7 @@
         <td>门板</td>
         <td>门料第一个规格值-2.8</td>
         <td>高度-25-2.8</td>
-        <td class="hl" colspan="2">门板数量*2</td>
+        <td colspan="2">门板数量*2</td>
       </tr>
       <tr>
         <td>侧门板</td>
@@ -463,6 +463,9 @@ const PEIJIAN_NAMES = ['三卡锁', '堵头(分左右)', '角码', '反弹器', 
 function recalcPeijianJiamen() {
   const rows = filteredTableData.value
   const doorCount = Number(info.doorCount) || 0
+  // 数量倍率：用于直接基于 doorCount 计算的配件（铰链类、反弹器）
+  // 注意：三卡锁/堵头/角码 是从主表 shuliang 派生的，主表 shuliang 已乘 qty，故此处不再叠加
+  const qty = Number(info.quantity) || 1
 
   const getShu = (mingcheng: string, idx = 0): number => {
     const matched = rows.filter((r: any) => r.mingcheng === mingcheng)
@@ -488,11 +491,11 @@ function recalcPeijianJiamen() {
   const duTou = liZhu * 2
   const jiaoMa = menLiao0 + menLiao1 + ceBan0 + ceBan1 + ceMenLiao0 + ceMenLiao1
 
-  // 配件模式：直臂 = (doorCount-2)*2，大弯 = doorCount*2 - 直臂
-  const zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 : 0
-  const daWanJiaoLian = doorCount * 2 - zhiBiJiaoLian
-  const fanTanQi = doorCount
-  const jiaoLianDianKuai = doorCount * 2
+  // 配件模式：直臂 = (doorCount-2)*2*qty，大弯 = doorCount*2*qty - 直臂
+  const zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 * qty : 0
+  const daWanJiaoLian = doorCount * 2 * qty - zhiBiJiaoLian
+  const fanTanQi = doorCount * qty
+  const jiaoLianDianKuai = doorCount * 2 * qty
 
   const valMap: Record<string, number> = {
     '三卡锁': sanKaSuo,
@@ -562,7 +565,7 @@ watch(extraTypeList, (val) => {
 
 // 监听相关数值变化，实时重算配件数量
 watch(
-  () => [filteredTableData.value, info.doorCount],
+  () => [filteredTableData.value, info.doorCount, info.quantity],
   () => {
     if (extraTypeList.value.includes('需要配件')) {
       recalcPeijianJiamen()

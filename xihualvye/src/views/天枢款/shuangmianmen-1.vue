@@ -462,6 +462,9 @@ const PEIJIAN_NAMES = ['三卡锁', '堵头(分左右)', '角码', '反弹器', 
 function recalcPeijian(mode: 'normal' | 'jiamen' = 'normal') {
   const rows = filteredTableData.value
   const doorCount = Number(info.doorCount) || 0
+  // 数量倍率：用于直接基于 doorCount 计算的配件（铰链类、反弹器）
+  // 注意：三卡锁/堵头/角码 是从主表 shuliang 派生的，主表 shuliang 已乘 qty，故此处不再叠加
+  const qty = Number(info.quantity) || 1
 
   const getShu = (mingcheng: string, idx = 0): number => {
     const matched = rows.filter((r) => r.mingcheng === mingcheng)
@@ -485,22 +488,22 @@ function recalcPeijian(mode: 'normal' | 'jiamen' = 'normal') {
   const duTou = liZhu * 2
   const jiaoMa = menLiao0 + menLiao1 + ceBan0 + ceBan1
 
-  // 直臂/大弯铰链：两种模式公式不同
-  // normal: 直臂 = (doorCount-2)*2*2，大弯 = doorCount*2*2 - 直臂
-  // jiamen: 直臂 = (doorCount-2)*2，  大弯 = doorCount*2   - 直臂
+  // 直臂/大弯铰链：两种模式公式不同（均需乘 qty）
+  // normal: 直臂 = (doorCount-2)*2*2*qty，大弯 = doorCount*2*2*qty - 直臂
+  // jiamen: 直臂 = (doorCount-2)*2*qty，  大弯 = doorCount*2*qty   - 直臂
   let zhiBiJiaoLian: number
   let daWanJiaoLian: number
   if (mode === 'jiamen') {
-    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 : 0
-    daWanJiaoLian = doorCount * 2 - zhiBiJiaoLian
+    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 * qty : 0
+    daWanJiaoLian = doorCount * 2 * qty - zhiBiJiaoLian
   } else {
-    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 * 2 : 0
-    daWanJiaoLian = doorCount * 2 * 2 - zhiBiJiaoLian
+    zhiBiJiaoLian = doorCount > 2 ? (doorCount - 2) * 2 * 2 * qty : 0
+    daWanJiaoLian = doorCount * 2 * 2 * qty - zhiBiJiaoLian
   }
 
-  // 反弹器、铰链垫块两种模式有差异
-  const fanTanQi = mode === 'jiamen' ? doorCount : doorCount * 2
-  const jiaoLianDianKuai = mode === 'jiamen' ? doorCount * 2 : doorCount * 2 * 2
+  // 反弹器、铰链垫块两种模式有差异（均需乘 qty）
+  const fanTanQi = mode === 'jiamen' ? doorCount * qty : doorCount * 2 * qty
+  const jiaoLianDianKuai = mode === 'jiamen' ? doorCount * 2 * qty : doorCount * 2 * 2 * qty
 
   const valMap: Record<string, number> = {
     '三卡锁': sanKaSuo,
@@ -572,7 +575,7 @@ watch(extraTypeList, (val) => {
 
 // 监听相关数值变化，实时重算配件数量
 watch(
-  () => [filteredTableData.value, info.doorCount],
+  () => [filteredTableData.value, info.doorCount, info.quantity],
   () => {
     const hasJiaMen = extraTypeList.value.includes('假门-需要配件')
     const hasPeijian = extraTypeList.value.includes('需要配件')
