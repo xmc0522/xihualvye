@@ -22,25 +22,11 @@ echarts.use([
   CanvasRenderer,
 ])
 
-import { getOrderStatsByPageType, getOrderList } from '@/ts/api'
+import { getDashboardStats } from '@/ts/api'
 import type { OrderListItem } from '@/ts/api'
 
 // 三大款式分类
 const CATEGORIES = ['天枢款', '天权款', '天璇款']
-
-// 获取最近 N 天的日期字符串列表（YYYY/MM/DD 格式）
-function getRecentDays(n: number): string[] {
-  const days: string[] = []
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    days.push(`${yyyy}/${mm}/${dd}`)
-  }
-  return days
-}
 
 export function useDashboard() {
   const barChartRef = ref<HTMLElement | null>(null)
@@ -58,7 +44,6 @@ export function useDashboard() {
   const monthOrders = ref(0)        // 本月新增订单数
   const recentOrders = ref<OrderListItem[]>([])  // 最近10条订单
   const lineRange = ref<7 | 30>(7)  // 折线图天数范围
-  let cachedOrders: OrderListItem[] = []  // 缓存所有订单，用于切换天数时复用
 
   // 各状态订单数量（待生产 / 生产中 / 已完成）
   const statusCounts = ref({
@@ -67,22 +52,11 @@ export function useDashboard() {
     completed: 0,
   })
 
-  // 根据当前 lineRange 重新渲染折线图
-  function refreshLineChart() {
-    if (!cachedOrders.length) return
-    const getOrderDay = (o: OrderListItem): string => {
-      const src = o.updated_at || o.created_at || ''
-      return src.slice(0, 10).replace(/-/g, '/')
-    }
-    const days = getRecentDays(lineRange.value)
-    const counts = days.map((day) => cachedOrders.filter((o) => getOrderDay(o) === day).length)
-    initLineChart(days, counts)
-  }
-
-  // 外部调用：切换折线图天数
+  // 外部调用：切换折线图天数 → 重新拉取后端聚合数据
   function setLineRange(n: 7 | 30) {
+    if (lineRange.value === n) return
     lineRange.value = n
-    refreshLineChart()
+    void loadStats()
   }
 
   // ========== 柱状图：三大款式数量 ==========
@@ -259,85 +233,40 @@ export function useDashboard() {
     } as EChartsOption)
   }
 
-  // ========== 加载所有数据 ==========
+  // ========== 加载所有数据（一站式后端聚合） ==========
   async function loadStats() {
     loading.value = true
     try {
-      // 1. 按款式统计
-      const statsRes = await getOrderStatsByPageType()
-      if (statsRes.code === 0 && statsRes.data) {
-        const stats = statsRes.data
-
-        // 三大类汇总
-        const categoryQuantity: Record<string, number> = { 天枢款: 0, 天权款: 0, 天璇款: 0 }
-        for (const s of stats) {
-          for (const cat of CATEGORIES) {
-            if (s.page_type.includes(cat)) {
-              categoryQuantity[cat] = (categoryQuantity[cat] ?? 0) + s.total_quantity
-              break
-            }
-          }
-        }
-
-        totalOrders.value = stats.reduce((sum, s) => sum + s.order_count, 0)
-        totalQuantity.value = stats.reduce((sum, s) => sum + s.total_quantity, 0)
-
-        noData.value = stats.length === 0
-
-        const barValues = CATEGORIES.map((cat) => categoryQuantity[cat] ?? 0)
-        const pieData = CATEGORIES
-          .map((cat) => ({ name: cat, value: categoryQuantity[cat] ?? 0 }))
-          .filter((d) => d.value > 0)
-
-        await nextTick()
-        initBarChart(CATEGORIES, barValues)
-        if (pieData.length > 0) initPieChart(pieData)
+      const res = await getDashboardStats(lineRange.value)
+      if (res.code !== 0 || !res.data) {
+        noData.value = true
+        return
       }
+      const d = res.data
 
-      // 2. 拉取所有订单，做近期统计 & 最近10条列表
-      const listRes = await getOrderList({ page: 1, pageSize: 500 })
-      if (listRes.code === 0 && listRes.data) {
-        const allOrders = listRes.data.list
-        cachedOrders = allOrders  // 缓存供切换天数时使用
+      // 总计数量
+      totalOrders.value = d.totalOrders
+      totalQuantity.value = d.totalQuantity
+      todayOrders.value = d.todayOrders
+      monthOrders.value = d.monthOrders
+      statusCounts.value = d.statusCounts
+      recentOrders.value = d.recentOrders
+      noData.value = d.totalOrders === 0
 
-        // 从订单的 updated_at（格式 "YYYY-MM-DD HH:MM:SS"）提取日期部分并转为 YYYY/MM/DD
-        const getOrderDay = (o: OrderListItem): string => {
-          const src = o.updated_at || o.created_at || ''
-          // 兼容 "YYYY-MM-DD ..." 与 "YYYY/MM/DD ..."
-          const datePart = src.slice(0, 10).replace(/-/g, '/')
-          return datePart
-        }
+      // 柱状图 / 饼图：三大款式数量
+      const barValues = CATEGORIES.map((cat) => d.categoryQuantity[cat] || 0)
+      const pieData = CATEGORIES
+        .map((cat) => ({ name: cat, value: d.categoryQuantity[cat] || 0 }))
+        .filter((x) => x.value > 0)
 
-        // 折线图（按当前选中天数统计）
-        const days = getRecentDays(lineRange.value)
-        const dayCounts = days.map((day) =>
-          allOrders.filter((o) => getOrderDay(o) === day).length
-        )
+      await nextTick()
+      initBarChart([...CATEGORIES], barValues)
+      if (pieData.length > 0) initPieChart(pieData)
 
-        // 今日新增（按录入时间）
-        const todayDays = getRecentDays(1)
-        const today = todayDays[todayDays.length - 1] ?? ''
-        todayOrders.value = allOrders.filter((o) => getOrderDay(o) === today).length
-
-        // 本月新增（按录入时间的 YYYY/MM）
-        const thisMonth = today.slice(0, 7)
-        monthOrders.value = allOrders.filter((o) => getOrderDay(o).startsWith(thisMonth)).length
-
-        // 各状态订单数量（基于订单列表实时统计，无缓存）
-        const counts = { pending: 0, producing: 0, completed: 0 }
-        for (const o of allOrders) {
-          const s = (o.status || 'pending') as keyof typeof counts
-          if (counts[s] !== undefined) counts[s]++
-          else counts.pending++ // 未知状态归为待生产
-        }
-        statusCounts.value = counts
-
-        await nextTick()
-        initLineChart(days, dayCounts)
-
-        // 最近10条（按 updated_at 倒序，后端已按 date DESC 排序，取前10）
-        recentOrders.value = allOrders.slice(0, 10)
-      }
+      // 折线图：后端返回的 dailyTrend 直接使用
+      const days = d.dailyTrend.map((x) => x.date)
+      const counts = d.dailyTrend.map((x) => x.count)
+      initLineChart(days, counts)
     } catch (e) {
       console.error('加载统计数据失败:', e)
       noData.value = true

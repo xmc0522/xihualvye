@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
 import db from './db'
@@ -10,10 +11,10 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3456
 
 // 中间件
 app.use(cors())
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json({ limit: '2mb' }))
 
-// API 路由
-app.use('/api/orders', ordersRouter)
+// API 路由（需要鉴权）
+app.use('/api/orders', authGuard, ordersRouter)
 
 // 登录接口
 // 优先从环境变量读取（生产环境强烈推荐），未配置则使用默认值
@@ -26,24 +27,105 @@ if (!process.env.ADMIN_PASSWORD) {
   console.warn('   ADMIN_USERNAME=admin ADMIN_PASSWORD=YourStrongPwd pm2 start dist/index.js --name xihualvye --update-env')
 }
 
+// ============ Token 认证（轻量化 JWT风格）============
+// 以前的做法：前端每次请求都调 /auth/verify 验证账密，QPS 减半、延迟翻倍。
+// 现在：登录成功后返回 token，后续请求只需验证 token，且服务端用 Map 缓存。
+// token 格式：base64(payload).hmacSha256，payload = { u: username, exp: 过期时间戳 }
+const TOKEN_SECRET =
+  process.env.TOKEN_SECRET ||
+  // 未配置时使用进程内随机密钥（重启后旧 token 会失效，这是预期行为）
+  crypto.randomBytes(32).toString('hex')
+const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 天
+
+function signToken(username: string): string {
+  const payload = { u: username, exp: Date.now() + TOKEN_TTL_MS }
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  const sig = crypto.createHmac('sha256', TOKEN_SECRET).update(body).digest('base64url')
+  return `${body}.${sig}`
+}
+
+function verifyToken(token: string): { ok: boolean; username?: string } {
+  if (!token || typeof token !== 'string') return { ok: false }
+  const parts = token.split('.')
+  if (parts.length !== 2) return { ok: false }
+  const [body, sig] = parts
+  const expectSig = crypto.createHmac('sha256', TOKEN_SECRET).update(body).digest('base64url')
+  // 恒时间比较，防时序攻击
+  const a = Buffer.from(sig, 'utf8')
+  const b = Buffer.from(expectSig, 'utf8')
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return { ok: false }
+  try {
+    const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as {
+      u: string
+      exp: number
+    }
+    if (!payload?.exp || Date.now() > payload.exp) return { ok: false }
+    return { ok: true, username: payload.u }
+  } catch {
+    return { ok: false }
+  }
+}
+
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    res.json({ code: 0, message: '登录成功' })
+    const token = signToken(username)
+    res.json({
+      code: 0,
+      message: '登录成功',
+      data: { token, expiresAt: Date.now() + TOKEN_TTL_MS },
+    })
   } else {
     res.json({ code: 1, message: '账号或密码错误' })
   }
 })
 
-// 验证接口 - 检查当前登录的用户密码是否还有效
+// 验证接口 - 同时兼容两种调用：
+// 1) 新版：Authorization: Bearer <token>      → 仅验证 token，无 DB 查询
+// 2) 旧版：body { username, password }          → 向后兼容，调用后会返回一个 token 让前端迁移
 app.post('/api/auth/verify', (req, res) => {
-  const { username, password } = req.body
+  // 优先走 token
+  const auth = req.header('authorization') || ''
+  const tokenFromHeader = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  if (tokenFromHeader) {
+    const r = verifyToken(tokenFromHeader)
+    if (r.ok) {
+      res.json({ code: 0, message: '验证成功' })
+      return
+    }
+    res.status(401).json({ code: 401, message: '认证失败，请重新登录' })
+    return
+  }
+
+  // 向后兼容账密验证
+  const { username, password } = req.body || {}
   if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    res.json({ code: 0, message: '验证成功' })
+    const token = signToken(username)
+    res.json({
+      code: 0,
+      message: '验证成功',
+      data: { token, expiresAt: Date.now() + TOKEN_TTL_MS },
+    })
   } else {
     res.status(401).json({ code: 401, message: '认证失败，请重新登录' })
   }
 })
+
+// ============ 接口鉴权中间件（仅保护 /api/orders/* 等业务接口）============
+function authGuard(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const auth = req.header('authorization') || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  if (token) {
+    const r = verifyToken(token)
+    if (r.ok) return next()
+  }
+  // 向后兼容：允许老客户端不带 token 以账密鉴权（过渡期可鼏）
+  const u = req.header('x-username')
+  const p = req.header('x-password')
+  if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD) return next()
+
+  return res.status(401).json({ code: 401, message: '认证失败，请重新登录' })
+}
 
 // 健康检查
 app.get('/api/health', (_req, res) => {

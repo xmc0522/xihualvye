@@ -95,8 +95,9 @@ const handleLogout = () => {
         }
       }
       
-      // 移除当前认证信息
+      // 移除当前认证信息（含 token）
       localStorage.removeItem('xhly_auth')
+      localStorage.removeItem('xhly_token')
       
       // 如果勾选了记住密码，重新保存账号密码信息（不含 loginTime）
       if (shouldRemember) {

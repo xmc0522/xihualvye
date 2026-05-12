@@ -9,12 +9,17 @@ const VALID_STATUS = ['pending', 'producing', 'completed'] as const
 // ============ 简单内存缓存（仅缓存统计接口，5秒 TTL）============
 let statsCache: { data: any; expireAt: number } | null = null
 let statusStatsCache: { data: any; expireAt: number } | null = null
+let dashboardCache: { data: any; expireAt: number } | null = null
 const STATS_TTL = 5_000
 
 function invalidateStatsCache() {
   statsCache = null
   statusStatsCache = null
+  dashboardCache = null
 }
+
+// 三大款式分类（与前端保持一致）
+const CATEGORIES = ['天枢款', '天权款', '天璇款'] as const
 
 // ============ 按型号统计订单数量 ============
 router.get('/stats/by-page-type', (_req: Request, res: Response) => {
@@ -25,7 +30,7 @@ router.get('/stats/by-page-type', (_req: Request, res: Response) => {
     }
 
     const rows = db.prepare(`
-      SELECT page_type, COALESCE(SUM(CAST(quantity AS INTEGER)), 0) as total_quantity, COUNT(*) as order_count
+      SELECT page_type, COALESCE(SUM(quantity), 0) as total_quantity, COUNT(*) as order_count
       FROM orders
       WHERE page_type IS NOT NULL AND page_type != ''
       GROUP BY page_type
@@ -52,7 +57,7 @@ router.get('/stats/by-status', (_req: Request, res: Response) => {
       SELECT
         COALESCE(NULLIF(status, ''), 'pending') as status,
         COUNT(*) as order_count,
-        COALESCE(SUM(CAST(quantity AS INTEGER)), 0) as total_quantity
+        COALESCE(SUM(quantity), 0) as total_quantity
       FROM orders
       GROUP BY COALESCE(NULLIF(status, ''), 'pending')
     `).all()
@@ -61,6 +66,114 @@ router.get('/stats/by-status', (_req: Request, res: Response) => {
     res.json({ code: 0, data: rows })
   } catch (e: any) {
     console.error('按状态统计失败:', e)
+    res.status(500).json({ code: -1, message: '统计失败: ' + e.message })
+  }
+})
+
+// ============ Dashboard 一站式聚合接口 ============
+// 替代旧的「前端拉 500 条订单做聚合」做法。
+// 全部聚合在 SQL 层完成，1万订单也只需个位数毫秒即可返回。
+// query: ?days=7|30  控制折线图天数范围
+router.get('/stats/dashboard', (req: Request, res: Response) => {
+  try {
+    const daysRaw = parseInt((req.query.days as string) || '7', 10)
+    const days = daysRaw === 30 ? 30 : 7
+
+    // 命中缓存
+    const cacheKey = `days=${days}`
+    if (
+      dashboardCache &&
+      dashboardCache.expireAt > Date.now() &&
+      dashboardCache.data?.__cacheKey === cacheKey
+    ) {
+      const { __cacheKey, ...rest } = dashboardCache.data
+      res.json({ code: 0, data: rest })
+      return
+    }
+
+    // 1) 总订单数 / 总数量
+    const totals = db.prepare(`
+      SELECT COUNT(*) as totalOrders, COALESCE(SUM(quantity), 0) as totalQuantity
+      FROM orders
+    `).get() as { totalOrders: number; totalQuantity: number }
+
+    // 2) 今日 / 本月新增（按 updated_at 的本地日期）
+    const todayMonth = db.prepare(`
+      SELECT
+        SUM(CASE WHEN date(updated_at) = date('now', 'localtime') THEN 1 ELSE 0 END) as todayOrders,
+        SUM(CASE WHEN strftime('%Y-%m', updated_at) = strftime('%Y-%m', 'now', 'localtime') THEN 1 ELSE 0 END) as monthOrders
+      FROM orders
+    `).get() as { todayOrders: number | null; monthOrders: number | null }
+
+    // 3) 状态分布
+    const statusRows = db.prepare(`
+      SELECT COALESCE(NULLIF(status, ''), 'pending') as status, COUNT(*) as c
+      FROM orders
+      GROUP BY COALESCE(NULLIF(status, ''), 'pending')
+    `).all() as Array<{ status: string; c: number }>
+    const statusCounts = { pending: 0, producing: 0, completed: 0 } as Record<string, number>
+    for (const r of statusRows) {
+      if (statusCounts[r.status] !== undefined) statusCounts[r.status] = r.c
+      else statusCounts.pending += r.c
+    }
+
+    // 4) 三大款式数量（用 LIKE 前缀，索引可用；款式名都以"天枢款/天权款/天璇款"开头）
+    const categoryQuantity: Record<string, number> = { 天枢款: 0, 天权款: 0, 天璇款: 0 }
+    const catStmt = db.prepare(`
+      SELECT COALESCE(SUM(quantity), 0) as q
+      FROM orders
+      WHERE page_type LIKE ?
+    `)
+    for (const cat of CATEGORIES) {
+      const r = catStmt.get(`${cat}%`) as { q: number }
+      categoryQuantity[cat] = r.q || 0
+    }
+
+    // 5) 折线图：近 N 天每日新增订单数（按 updated_at 日期 GROUP BY）
+    const trendRows = db.prepare(`
+      SELECT date(updated_at) as day, COUNT(*) as c
+      FROM orders
+      WHERE date(updated_at) >= date('now', 'localtime', ?)
+      GROUP BY date(updated_at)
+    `).all(`-${days - 1} day`) as Array<{ day: string; c: number }>
+    const trendMap = new Map(trendRows.map((r) => [r.day, r.c]))
+    const dailyTrend: Array<{ date: string; count: number }> = []
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const yyyy = d.getFullYear()
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const dd = String(d.getDate()).padStart(2, '0')
+      const key = `${yyyy}-${mm}-${dd}`
+      dailyTrend.push({ date: `${yyyy}/${mm}/${dd}`, count: trendMap.get(key) || 0 })
+    }
+
+    // 6) 最近 10 条订单（仅展示用列）
+    const recentOrders = db.prepare(`
+      SELECT id, customer, order_no, date, surface, quantity, page_type, status, created_at, updated_at
+      FROM orders
+      ORDER BY date DESC, updated_at DESC
+      LIMIT 10
+    `).all()
+
+    const data = {
+      totalOrders: totals.totalOrders || 0,
+      totalQuantity: totals.totalQuantity || 0,
+      todayOrders: todayMonth.todayOrders || 0,
+      monthOrders: todayMonth.monthOrders || 0,
+      statusCounts,
+      categoryQuantity,
+      dailyTrend,
+      recentOrders,
+    }
+
+    dashboardCache = {
+      data: { ...data, __cacheKey: cacheKey },
+      expireAt: Date.now() + STATS_TTL,
+    }
+    res.json({ code: 0, data })
+  } catch (e: any) {
+    console.error('Dashboard 聚合失败:', e)
     res.status(500).json({ code: -1, message: '统计失败: ' + e.message })
   }
 })
@@ -139,8 +252,9 @@ router.get('/', (req: Request, res: Response) => {
       params.push(`%${customer}%`)
     }
     if (pageType) {
+      // 优化：page_type 都以"天枢款/天权款/天璇款"开头，使用前缀 LIKE 可命中索引
       where += ' AND page_type LIKE ?'
-      params.push(`%${pageType}%`)
+      params.push(`${pageType}%`)
     }
     if (orderNo) {
       where += ' AND order_no LIKE ?'

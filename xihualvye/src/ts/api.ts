@@ -6,6 +6,7 @@
 import { ElMessage } from 'element-plus'
 
 const BASE_URL = '/api'
+const TOKEN_KEY = 'xhly_token'
 
 // 获取当前登录信息
 function getAuthInfo() {
@@ -20,80 +21,93 @@ function getAuthInfo() {
   return null
 }
 
+// Token 存取
+export function getToken(): string {
+  return localStorage.getItem(TOKEN_KEY) || ''
+}
+export function setToken(token: string) {
+  if (token) localStorage.setItem(TOKEN_KEY, token)
+}
+function clearToken() {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
 // 强制退出登录
 function forceLogout() {
   localStorage.removeItem('xhly_auth')
-  ElMessage.error('密码已更改，请重新登录')
+  clearToken()
+  ElMessage.error('登录已过期，请重新登录')
   // 延迟跳转，确保消息显示
   setTimeout(() => {
     window.location.href = '/login'
   }, 1000)
 }
 
-// 验证当前登录凭据是否有效
-async function verifyAuth(): Promise<boolean> {
-  const auth = getAuthInfo()
-  if (!auth || !auth.username || !auth.password) {
-    return false
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/auth/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: auth.username,
-        password: auth.password,
-      }),
-    })
-
-    if (res.status === 401) {
-      forceLogout()
-      return false
-    }
-
-    const data = await res.json()
-    return data.code === 0
-  } catch {
-    return false
-  }
-}
-
 // 通用请求方法
 async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
-  // 在每次请求前验证认证信息（除了登录接口）
+  // 组装验证请求头：优先使用 token，未登录过新版接口时向后兼容账密
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options.headers as Record<string, string>) || {}),
+  }
   if (!url.includes('/auth/login')) {
-    const isValid = await verifyAuth()
-    if (!isValid) {
-      throw new Error('认证失败')
+    const token = getToken()
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    } else {
+      // 向后兼容：老客户端未拿到 token，以账密鉴权作为过渡
+      const auth = getAuthInfo()
+      if (auth?.username && auth?.password) {
+        headers['x-username'] = auth.username
+        headers['x-password'] = auth.password
+      } else {
+        forceLogout()
+        throw new Error('认证失败')
+      }
     }
   }
 
   const res = await fetch(`${BASE_URL}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
     ...options,
+    headers,
   })
 
-  const data = await res.json()
+  // 401 统一处理
+  if (res.status === 401) {
+    forceLogout()
+    throw new Error('认证失败，请重新登录')
+  }
 
-  // 检查是否返回401认证失败
-  if (res.status === 401 || data.code === 401) {
+  const data = await res.json()
+  if (data?.code === 401) {
     forceLogout()
     throw new Error('认证失败，请重新登录')
   }
 
   if (!res.ok) {
-    throw new Error(data.message || `请求失败 (${res.status})`)
+    throw new Error(data?.message || `请求失败 (${res.status})`)
   }
 
   return data
 }
 
+// ============ 认证相关接口 ============
+
+/** 登录（拿到 token 并存入 localStorage） */
+export async function login(username: string, password: string) {
+  const res = await request<{
+    code: number
+    message: string
+    data?: { token: string; expiresAt: number }
+  }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  })
+  if (res.code === 0 && res.data?.token) {
+    setToken(res.data.token)
+  }
+  return res
+}
 // ============ 订单相关接口 ============
 
 /** 订单状态枚举 */
@@ -266,4 +280,22 @@ export interface PageTypeStats {
 /** 按型号统计订单数量 */
 export async function getOrderStatsByPageType() {
   return request<{ code: number; data: PageTypeStats[] }>('/orders/stats/by-page-type')
+}
+
+// ============ Dashboard 一站式聚合 ============
+
+export interface DashboardStats {
+  totalOrders: number
+  totalQuantity: number
+  todayOrders: number
+  monthOrders: number
+  statusCounts: { pending: number; producing: number; completed: number }
+  categoryQuantity: Record<string, number>  // { '天枢款': 12, ... }
+  dailyTrend: Array<{ date: string; count: number }>  // YYYY/MM/DD
+  recentOrders: OrderListItem[]
+}
+
+/** 获取 Dashboard 一站式聚合数据（SQL 层计算，1万订单也仅需几毫秒） */
+export async function getDashboardStats(days: 7 | 30 = 7) {
+  return request<{ code: number; data: DashboardStats }>(`/orders/stats/dashboard?days=${days}`)
 }

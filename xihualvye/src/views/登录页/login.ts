@@ -267,6 +267,10 @@ export function useLogin() {
       const data = await res.json()
 
       if (data.code === 0) {
+        // 保存 token（核心鉴权凭据），后续所有请求只带 token，不再每次 verify 密码
+        if (data.data?.token) {
+          localStorage.setItem('xhly_token', data.data.token)
+        }
         localStorage.setItem(
           'xhly_auth',
           JSON.stringify({
