@@ -443,6 +443,7 @@ const extraTypeOptions = [
   { label: '侧面加固', value: '侧面加固' },
   { label: '需要配件', value: '需要配件' },
   { label: '假门-需要配件', value: '假门-需要配件' },
+  { label: '需要底板', value: '需要底板' },
 ] as const
 
 const extraTypeList = ref<string[]>([])
@@ -571,7 +572,52 @@ watch(extraTypeList, (val) => {
       }
     }
   }
+
+  // ===== 3. 需要底板：底部门板区“门板”后插入“底板” =====
+  const hasDiBan = val.includes('需要底板')
+  const diBanIdx = doorPanelRows.value.findIndex((r: any) => r.name === '底板')
+
+  if (hasDiBan && diBanIdx === -1) {
+    const menBanIdx = doorPanelRows.value.findIndex((r: any) => r.name === '门板')
+    const insertAt = menBanIdx >= 0 ? menBanIdx + 1 : doorPanelRows.value.length
+    doorPanelRows.value.splice(insertAt, 0, {
+      name: '底板',
+      shuju1: '',
+      shuju2: '',
+      shuliang: '',
+      beizhu: '',
+    } as any)
+    recalcDiBan()
+  } else if (!hasDiBan && diBanIdx >= 0) {
+    doorPanelRows.value.splice(diBanIdx, 1)
+  }
 })
+
+// 需要底板：底板行的值计算
+// shuju1 = (长度 - 82) / 门板数量（保留1位小数），shuju2 = 宽度 - 126，shuliang = 门板数量 * qty
+function recalcDiBan() {
+  const diBan = doorPanelRows.value.find((r: any) => r.name === '底板')
+  if (!diBan) return
+  const doorCount = Number(info.doorCount) || 0
+  const qty = Number(info.quantity) || 1
+  if (info.length && doorCount > 0) {
+    diBan.shuju1 = ((Number(info.length) - 82) / doorCount).toFixed(1)
+  } else {
+    diBan.shuju1 = ''
+  }
+  diBan.shuju2 = info.width ? String(Number(info.width) - 126) : ''
+  diBan.shuliang = doorCount > 0 ? String(doorCount * qty) : ''
+}
+
+// 监听尺寸/门板数量/数量变化，实时同步底板计算
+watch(
+  () => [info.length, info.width, info.doorCount, info.quantity],
+  () => {
+    if (extraTypeList.value.includes('需要底板')) {
+      recalcDiBan()
+    }
+  },
+)
 
 // 监听相关数值变化，实时重算配件数量
 watch(
@@ -665,10 +711,25 @@ onMounted(async () => {
       if (rows.some((r) => r?.mingcheng === '加固') && !extraTypeList.value.includes('侧面加固')) {
         extraTypeList.value = [...extraTypeList.value, '侧面加固']
       }
+      // 检测保存的底部门板中是否含“底板”行
+      const doorRows: Array<{ name?: string }> = data?.doorPanelRows || []
+      if (
+        doorRows.some((r) => r?.name === '底板') &&
+        !extraTypeList.value.includes('需要底板')
+      ) {
+        extraTypeList.value = [...extraTypeList.value, '需要底板']
+      }
     }
   } catch { /* 忽略恢复失败 */ }
-})
 
+  // 从订单管理加载场景：检测当前 doorPanelRows 中是否含“底板”行
+  if (
+    doorPanelRows.value.some((r: any) => r?.name === '底板') &&
+    !extraTypeList.value.includes('需要底板')
+  ) {
+    extraTypeList.value = [...extraTypeList.value, '需要底板']
+  }
+})
 // 监听数据变化，自动保存到本地存储
 watch(
   () => [doorPanelRows.value, info.remark],

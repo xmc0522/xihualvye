@@ -449,6 +449,7 @@ watch(excludeList, (val) => {
 const extraTypeOptions = [
   { label: '侧面加固', value: '侧面加固' },
   { label: '需要配件', value: '需要配件' },
+  { label: '需要底板', value: '需要底板' },
 ] as const
 
 // 当前选中要增加的类型
@@ -561,7 +562,52 @@ watch(extraTypeList, (val) => {
       }
     }
   }
+
+  // ===== 3. 需要底板：底部门板区“门板”后插入“底板” =====
+  const hasDiBan = val.includes('需要底板')
+  const diBanIdx = doorPanelRows.value.findIndex((r: any) => r.name === '底板')
+
+  if (hasDiBan && diBanIdx === -1) {
+    const menBanIdx = doorPanelRows.value.findIndex((r: any) => r.name === '门板')
+    const insertAt = menBanIdx >= 0 ? menBanIdx + 1 : doorPanelRows.value.length
+    doorPanelRows.value.splice(insertAt, 0, {
+      name: '底板',
+      shuju1: '',
+      shuju2: '',
+      shuliang: '',
+      beizhu: '',
+    } as any)
+    recalcDiBan()
+  } else if (!hasDiBan && diBanIdx >= 0) {
+    doorPanelRows.value.splice(diBanIdx, 1)
+  }
 })
+
+// 需要底板：底板行的值计算
+// shuju1 = (长度 - 82) / 门板数量（保留1位小数），shuju2 = 宽度 - 126，shuliang = 门板数量 * qty
+function recalcDiBan() {
+  const diBan = doorPanelRows.value.find((r: any) => r.name === '底板')
+  if (!diBan) return
+  const doorCount = Number(info.doorCount) || 0
+  const qty = Number(info.quantity) || 1
+  if (info.length && doorCount > 0) {
+    diBan.shuju1 = ((Number(info.length) - 82) / doorCount).toFixed(1)
+  } else {
+    diBan.shuju1 = ''
+  }
+  diBan.shuju2 = info.width ? String(Number(info.width) - 126) : ''
+  diBan.shuliang = doorCount > 0 ? String(doorCount * qty) : ''
+}
+
+// 监听尺寸/门板数量/数量变化，实时同步底板计算
+watch(
+  () => [info.length, info.width, info.doorCount, info.quantity],
+  () => {
+    if (extraTypeList.value.includes('需要底板')) {
+      recalcDiBan()
+    }
+  },
+)
 
 // 监听相关数值变化，实时重算配件数量
 watch(
@@ -664,6 +710,13 @@ async function restoreExtraTypeCheckboxes() {
   ) {
     restored.push('需要配件')
   }
+  // 若当前 doorPanelRows 中含有“底板”行，自动勾选“需要底板”
+  if (
+    doorPanelRows.value.some((r: any) => r?.name === '底板') &&
+    !restored.includes('需要底板')
+  ) {
+    restored.push('需要底板')
+  }
 
   // 2. 兜底从 localStorage 检测（适用于本地缓存场景，因 button2.load 不会新增行）
   try {
@@ -681,6 +734,14 @@ async function restoreExtraTypeCheckboxes() {
         !restored.includes('需要配件')
       ) {
         restored.push('需要配件')
+      }
+      // 检测保存的底部门板中是否含有“底板”行
+      const doorRows: Array<{ name?: string }> = data?.doorPanelRows || []
+      if (
+        doorRows.some((r) => r?.name === '底板') &&
+        !restored.includes('需要底板')
+      ) {
+        restored.push('需要底板')
       }
     }
   } catch {

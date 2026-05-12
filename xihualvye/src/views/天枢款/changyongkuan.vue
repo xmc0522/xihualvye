@@ -469,6 +469,7 @@ const extraTypeOptions = [
   { label: '背板多块', value: '背板多块' },
   { label: '侧面加固', value: '侧面加固' },
   { label: '背板一块', value: '背板一块' },
+  { label: '需要底板', value: '需要底板' },
 ] as const
 
 // 当前选中要增加的类型
@@ -607,6 +608,25 @@ watch(extraTypeList, (val) => {
     tableData.splice(xiaoZhongIdx, 1)
     bumpTableDataVersion()
   }
+
+  // ===== 4. 需要底板：底部门板"门板"后插入"底板" =====
+  const hasDiBan = val.includes('需要底板')
+  const diBanIdx = doorPanelRows.value.findIndex((r) => r.name === '底板')
+
+  if (hasDiBan && diBanIdx === -1) {
+    const menBanIdx = doorPanelRows.value.findIndex((r) => r.name === '门板')
+    const insertAt = menBanIdx >= 0 ? menBanIdx + 1 : doorPanelRows.value.length
+    doorPanelRows.value.splice(insertAt, 0, {
+      name: '底板',
+      shuju1: '',
+      shuju2: '',
+      shuliang: '',
+      beizhu: '',
+    })
+    recalcDiBan()
+  } else if (!hasDiBan && diBanIdx >= 0) {
+    doorPanelRows.value.splice(diBanIdx, 1)
+  }
 })
 
 // 背板一块：背板底部门板的值计算
@@ -619,9 +639,25 @@ function recalcBeibanOne() {
   beiBan.shuliang = info.beibanCount || ''
 }
 
+// 需要底板：底板底部门板的值计算
+// shuju1 = (长度 - 82) / 门板数量，shuju2 = 宽度 - 104，shuliang = 门板数量 * qty
+function recalcDiBan() {
+  const diBan = doorPanelRows.value.find((r) => r.name === '底板')
+  if (!diBan) return
+  const doorCount = Number(info.doorCount) || 0
+  const qty = Number(info.quantity) || 1
+  if (info.length && doorCount > 0) {
+    diBan.shuju1 = ((Number(info.length) - 82) / doorCount).toFixed(1)
+  } else {
+    diBan.shuju1 = ''
+  }
+  diBan.shuju2 = info.width ? String(Number(info.width) - 104) : ''
+  diBan.shuliang = doorCount > 0 ? String(doorCount * qty) : ''
+}
+
 // 监听尺寸/背板数量变化，实时同步相关计算
 watch(
-  () => [info.length, info.height, info.doorCount, info.beibanCount],
+  () => [info.length, info.height, info.width, info.doorCount, info.beibanCount, info.quantity],
   () => {
     if (extraTypeList.value.includes('背板多块')) {
       recalcBackPanelByDoorCount()
@@ -630,6 +666,9 @@ watch(
       recalcBeibanOne()
       // 背板一块模式下，触发 filteredTableData 重算（中柱/小中柱数量依赖门板数量和背板数量）
       bumpTableDataVersion()
+    }
+    if (extraTypeList.value.includes('需要底板')) {
+      recalcDiBan()
     }
   },
 )
@@ -720,6 +759,7 @@ async function restoreExtraTypeCheckboxes() {
   if (doorPanelRows.value.some((p) => p.name === '背板')) restored.push('背板多块')
   if ((tableData as any[]).some((r) => r.mingcheng === '加固')) restored.push('侧面加固')
   if ((tableData as any[]).some((r) => r.mingcheng === '小中柱')) restored.push('背板一块')
+  if (doorPanelRows.value.some((p) => p.name === '底板')) restored.push('需要底板')
 
   // 2. 兜底从 localStorage 检测（适用于本地缓存场景，因 button2.load 不会新增行）
   try {
@@ -736,6 +776,9 @@ async function restoreExtraTypeCheckboxes() {
       }
       if (rows.some((r) => r?.mingcheng === '小中柱') && !restored.includes('背板一块')) {
         restored.push('背板一块')
+      }
+      if (panels.some((p) => p?.name === '底板') && !restored.includes('需要底板')) {
+        restored.push('需要底板')
       }
     }
   } catch {
