@@ -7,6 +7,110 @@
     <el-button type="danger" @click="handleClear">清空表格</el-button>
   </div>
   <div class="page-wrapper">
+    <!-- 左侧固定参考表格（仅展示，无任何逻辑） -->
+    <table class="reference-table" border="1" cellspacing="0" cellpadding="0">
+      <tr>
+        <th></th>
+        <th>名称</th>
+        <th colspan="2">规格</th>
+        <th>数量</th>
+      </tr>
+      <tr>
+        <td rowspan="2"></td>
+        <td rowspan="2">上包边</td>
+        <td colspan="2">长度-84</td>
+        <td class="hl">固定值：2</td>
+      </tr>
+      <tr>
+        <td colspan="2">宽度-84</td>
+        <td class="hl">固定值：2</td>
+      </tr>
+      <tr>
+        <td rowspan="2"></td>
+        <td rowspan="2">下包边</td>
+        <td colspan="2">长度-84</td>
+        <td class="hl">固定值：2</td>
+      </tr>
+      <tr>
+        <td colspan="2">宽度-84</td>
+        <td class="hl">固定值：2</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>立柱</td>
+        <td colspan="2">高度-3</td>
+        <td class="hl">固定值：4</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>前后横梁</td>
+        <td colspan="2">长度-80</td>
+        <td class="hl">固定值：4</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>侧横梁</td>
+        <td colspan="2">宽度-140</td>
+        <td class="hl">固定值：4</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>加固</td>
+        <td colspan="2">高度-90</td>
+        <td>自定义</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>拉筋</td>
+        <td colspan="2">宽度-102</td>
+        <td>门板数量*2</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>横拉</td>
+        <td colspan="2">宽度-140</td>
+        <td class="hl">固定值：1</td>
+      </tr>
+      <tr>
+        <td rowspan="2"></td>
+        <td rowspan="2">门料</td>
+        <td colspan="2">（长度-80-（门板数量+1）*2）/门板数量</td>
+        <td>门板数量*2</td>
+      </tr>
+      <tr>
+        <td colspan="2">高度-25</td>
+        <td>门板数量*2</td>
+      </tr>
+      <tr>
+        <td rowspan="2"></td>
+        <td rowspan="2">侧板</td>
+        <td colspan="2">宽度-85</td>
+        <td class="hl">固定值：4</td>
+      </tr>
+      <tr>
+        <td colspan="2">高度-1</td>
+        <td class="hl">固定值：4</td>
+      </tr>
+      <tr>
+        <td>门板</td>
+        <td>门料第一个规格值-2.8</td>
+        <td>高度-25-2.8</td>
+        <td colspan="2">门板数量</td>
+      </tr>
+      <tr>
+        <td>侧门板</td>
+        <td>宽度-85-2.8</td>
+        <td>高度-1-2.8</td>
+        <td class="hl" colspan="2">固定值：2</td>
+      </tr>
+      <tr>
+        <td>底板</td>
+        <td>（长度-82）/门板数量</td>
+        <td>宽度-104</td>
+        <td colspan="2">门板数量</td>
+      </tr>
+    </table>
+
     <!-- 左侧页面标识标签条 -->
     <div class="page-label-bar" style="background: #67c23a;">常用款</div>
     <div class="table-container">

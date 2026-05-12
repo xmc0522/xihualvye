@@ -506,11 +506,15 @@ export function useChangyongBiaoge() {
     // 侧板：两行合计 = 4 * qty * 2
     const ceBanTotal = isExcluded('侧板') ? 0 : 4 * qty * 2
 
-    // 三卡锁 = (前后横梁 + 侧横梁 + 中柱 + 拉筋 + 横拉) * 2
+    // 加固：从主表格里读取用户手动输入的 shuliang（被排除或不存在则为 0）
+    const jiaGuRow = tableData.find((row: any) => row && row.mingcheng === '加固')
+    const jiaGu = isExcluded('加固') || !jiaGuRow ? 0 : Number(jiaGuRow.shuliang) || 0
+
+    // 三卡锁 = (前后横梁 + 侧横梁 + 中柱 + 拉筋 + 横拉 + 加固) * 2
     const sanKaSuo = allAccessories.find((item) => item.name === '三卡锁')
     if (sanKaSuo) {
       sanKaSuo.value = String(
-        (qianHouHengLiang + ceHengLiang + zhongZhuTotal + laJin + hengLa) * 2,
+        (qianHouHengLiang + ceHengLiang + zhongZhuTotal + laJin + hengLa + jiaGu) * 2,
       )
     }
 
@@ -556,6 +560,12 @@ export function useChangyongBiaoge() {
   }
 
   // 监听基本信息变化，自动计算侧门板的数据值
+  // 监听主表格变化（主要用于加固行 shuliang 的手动修改 → 触发三卡锁重算）
+  watch(
+    () => tableData.map((r: any) => (r && r.mingcheng === '加固' ? r.shuliang : '')).join('|'),
+    () => recalcExtraAccessories(),
+  )
+
   watch(
     () => [
       info.width,

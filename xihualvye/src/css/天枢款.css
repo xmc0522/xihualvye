@@ -793,6 +793,55 @@
   resize: none;
 }
 
+/* 左侧固定参考表格（仅作展示用，与表格内容无任何联动） */
+.reference-table {
+  position: absolute;
+  right: calc(100% + 150px);
+  top: 100px;
+  width: 560px;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #333;
+  background: #fff;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.reference-table th,
+.reference-table td {
+  border: 1px solid #999;
+  padding: 6px 6px;
+  text-align: center;
+  line-height: 3;
+  word-break: break-all;
+}
+
+.reference-table th {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+
+/* 绿色高亮 - 固定值 / 等于门板数量 */
+.reference-table td.hl {
+  background: #67c23a;
+}
+
+/* 蓝色高亮变体（双面门页面使用） */
+.reference-table.reference-blue td.hl {
+  background: #40a9ff;
+  color: #fff;
+}
+
+/* 橙色高亮变体（背板全平页面使用） */
+.reference-table.reference-orange td.hl {
+  background: #f6b26b;
+}
+/* 打印时隐藏左侧参考表 */
+@media print {
+  .reference-table {
+    display: none !important;
+  }
+}
+
 /* 左侧竖向页面标识标签条 */
 .page-label-bar {
   position: absolute;

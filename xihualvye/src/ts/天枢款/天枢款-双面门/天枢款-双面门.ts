@@ -275,7 +275,7 @@ export function useChangyongBiaoge() {
     }
 
     // 计算侧板的规格值：第一个侧板规格 = width - 85，第二个侧板规格 = height - 1
-    // 侧板shuliang = 固定值2 * quantity
+    // 侧板shuliang = 固定值4 * quantity
     let ceBanIdx = 0
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '侧板') {
@@ -287,7 +287,7 @@ export function useChangyongBiaoge() {
           // 第二个侧板：规格 = 高度 - 1
           result[i]!.guige = String(Number(info.height) - 1)
         }
-        result[i]!.shuliang = String(2 * qty)
+        result[i]!.shuliang = String(4 * qty)
       }
     }
 

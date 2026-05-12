@@ -232,11 +232,11 @@ export function useChangyongBiaoge() {
       }
     }
 
-    // 计算拉筋的规格值：拉筋规格 = width - 102
+    // 计算拉筋的规格值：拉筋规格 = width - 124
     for (let i = 0; i < result.length; i++) {
       if (result[i] && result[i]!.mingcheng === '拉筋') {
         if (info.width) {
-          result[i]!.guige = String(Number(info.width) - 102)
+          result[i]!.guige = String(Number(info.width) - 124)
         }
         // 拉筋shuliang = doorCount * 2 * quantity
         if (info.doorCount) {
@@ -479,78 +479,6 @@ export function useChangyongBiaoge() {
     return rows
   })
 
-  // 计算额外配件数量（三卡锁、堵头(分左右)、角码），供 watch 和外部（vue 勾选新增配件时）调用
-  const recalcExtraAccessories = () => {
-    const qty = Number(info.quantity) || 1
-    // 辅助：被排除的名称不计入
-    const isExcluded = (name: string) => excludeNames.value.includes(name)
-
-    // 各主表项对应的数量（与 filteredTableData 中 shuliang 计算口径保持一致）
-    const qianHouHengLiang = isExcluded('前后横梁') ? 0 : 4 * qty // 前后横梁
-    const ceHengLiang = isExcluded('侧横梁') ? 0 : 4 * qty // 侧横梁
-    // 中柱：两行合计 = (doorCount - 1) * 2 * qty * 2
-    const zhongZhuTotal =
-      isExcluded('中柱') || !info.doorCount ? 0 : (Number(info.doorCount) - 1) * 2 * qty * 2
-    // 拉筋：doorCount * 2 * qty
-    const laJin =
-      isExcluded('拉筋') || !info.doorCount ? 0 : Number(info.doorCount) * 2 * qty
-    const hengLa = isExcluded('横拉') ? 0 : 1 * qty // 横拉
-    const liZhu = isExcluded('立柱') ? 0 : 4 * qty // 立柱
-    // 门料：两行合计 = doorCount * 2 * qty * 2
-    const menLiaoTotal =
-      isExcluded('门料') || !info.doorCount ? 0 : Number(info.doorCount) * 2 * qty * 2
-    // 侧板：两行合计 = 4 * qty * 2
-    const ceBanTotal = isExcluded('侧板') ? 0 : 4 * qty * 2
-
-    // 三卡锁 = (前后横梁 + 侧横梁 + 中柱 + 拉筋 + 横拉) * 2
-    const sanKaSuo = allAccessories.find((item) => item.name === '三卡锁')
-    if (sanKaSuo) {
-      sanKaSuo.value = String(
-        (qianHouHengLiang + ceHengLiang + zhongZhuTotal + laJin + hengLa) * 2,
-      )
-    }
-
-    // 堵头(分左右) = 立柱数量 * 2
-    const duTou = allAccessories.find((item) => item.name === '堵头(分左右)')
-    if (duTou) {
-      duTou.value = String(liZhu * 2)
-    }
-
-    // 角码 = 门料第一个数量 + 门料第二个数量 + 侧板第一个数量 + 侧板第二个数量
-    const jiaoMa = allAccessories.find((item) => item.name === '角码')
-    if (jiaoMa) {
-      jiaoMa.value = String(menLiaoTotal + ceBanTotal)
-    }
-
-    // 门数量（不乘 qty，按用户需求以门数量原始值计算）
-    const doorCountNum = Number(info.doorCount) || 0
-
-    // 铰链垫块 = 门数量 * 2
-    const jiaoLianDianKuai = allAccessories.find((item) => item.name === '铰链垫块')
-    if (jiaoLianDianKuai) {
-      jiaoLianDianKuai.value = doorCountNum ? String(doorCountNum * 2) : '0'
-    }
-
-    // 反弹器 = 门数量
-    const fanTanQi = allAccessories.find((item) => item.name === '反弹器')
-    if (fanTanQi) {
-      fanTanQi.value = doorCountNum ? String(doorCountNum) : '0'
-    }
-
-    // 直臂铰链 = (门数量 - 2) * 2，结果为负时取 0
-    const zhiBiJiaoLianCount = doorCountNum >= 2 ? (doorCountNum - 2) * 2 : 0
-    const zhiBiJiaoLian = allAccessories.find((item) => item.name === '直臂铰链')
-    if (zhiBiJiaoLian) {
-      zhiBiJiaoLian.value = String(zhiBiJiaoLianCount)
-    }
-
-    // 大弯铰链 = 门数量 * 2 - 直臂铰链
-    const daWanJiaoLian = allAccessories.find((item) => item.name === '大弯铰链')
-    if (daWanJiaoLian) {
-      daWanJiaoLian.value = String(doorCountNum * 2 - zhiBiJiaoLianCount)
-    }
-  }
-
   // 监听基本信息变化，自动计算侧门板的数据值
   watch(
     () => [
@@ -620,9 +548,6 @@ export function useChangyongBiaoge() {
           ? '0'
           : String(2 * qty * 2)
       }
-
-      // 计算额外配件数量（三卡锁、堵头(分左右)、角码）
-      recalcExtraAccessories()
 
       // 背板 shuju1 = 第一个侧门料的 guige 值 - 2.8 = (length - 82) - 2.8
       // 背板 shuju2 = 第二个侧门料的 guige 值 - 2.8 = (height - 1) - 2.8
