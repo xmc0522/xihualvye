@@ -275,10 +275,16 @@ export function useDashboard() {
     }
   }
 
+  // resize 事件高频触发（每秒可能上百次），用 requestAnimationFrame 节流到屏幕刷新率
+  let resizeRaf: number | null = null
   function handleResize() {
-    barChart?.resize()
-    lineChart?.resize()
-    pieChart?.resize()
+    if (resizeRaf !== null) return
+    resizeRaf = requestAnimationFrame(() => {
+      barChart?.resize()
+      lineChart?.resize()
+      pieChart?.resize()
+      resizeRaf = null
+    })
   }
 
   onMounted(() => {
@@ -288,6 +294,10 @@ export function useDashboard() {
 
   onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize)
+    if (resizeRaf !== null) {
+      cancelAnimationFrame(resizeRaf)
+      resizeRaf = null
+    }
     barChart?.dispose()
     lineChart?.dispose()
     pieChart?.dispose()

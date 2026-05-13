@@ -3,10 +3,50 @@
  * 所有后端接口都通过这个模块调用
  */
 
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
 
 const BASE_URL = '/api'
 const TOKEN_KEY = 'xhly_token'
+
+// ============ 全局 Loading 管理 ============
+// 设计目标：
+//   1) 多请求并发时仅显示一个 loading 蒙层（计数器）
+//   2) 请求快（<300ms）时不弹 loading，避免画面闪烁
+//   3) 某些接口（如 stats）可通过 options.silent=true 跳过 loading
+let pendingCount = 0
+let loadingInstance: ReturnType<typeof ElLoading.service> | null = null
+let showTimer: number | null = null
+const LOADING_DELAY = 300 // ms
+
+function startLoading() {
+  pendingCount++
+  if (pendingCount === 1 && !showTimer) {
+    showTimer = window.setTimeout(() => {
+      if (pendingCount > 0 && !loadingInstance) {
+        loadingInstance = ElLoading.service({
+          lock: true,
+          background: 'rgba(255, 255, 255, 0.6)',
+          text: '加载中...',
+        })
+      }
+      showTimer = null
+    }, LOADING_DELAY)
+  }
+}
+
+function stopLoading() {
+  pendingCount = Math.max(0, pendingCount - 1)
+  if (pendingCount === 0) {
+    if (showTimer) {
+      clearTimeout(showTimer)
+      showTimer = null
+    }
+    if (loadingInstance) {
+      loadingInstance.close()
+      loadingInstance = null
+    }
+  }
+}
 
 // 获取当前登录信息
 function getAuthInfo() {
@@ -44,11 +84,15 @@ function forceLogout() {
 }
 
 // 通用请求方法
-async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+async function request<T = any>(
+  url: string,
+  options: RequestInit & { silent?: boolean } = {},
+): Promise<T> {
+  const { silent, ...rest } = options
   // 组装验证请求头：优先使用 token，未登录过新版接口时向后兼容账密
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...((options.headers as Record<string, string>) || {}),
+    ...((rest.headers as Record<string, string>) || {}),
   }
   if (!url.includes('/auth/login')) {
     const token = getToken()
@@ -67,28 +111,33 @@ async function request<T = any>(url: string, options: RequestInit = {}): Promise
     }
   }
 
-  const res = await fetch(`${BASE_URL}${url}`, {
-    ...options,
-    headers,
-  })
+  if (!silent) startLoading()
+  try {
+    const res = await fetch(`${BASE_URL}${url}`, {
+      ...rest,
+      headers,
+    })
 
-  // 401 统一处理
-  if (res.status === 401) {
-    forceLogout()
-    throw new Error('认证失败，请重新登录')
+    // 401 统一处理
+    if (res.status === 401) {
+      forceLogout()
+      throw new Error('认证失败，请重新登录')
+    }
+
+    const data = await res.json()
+    if (data?.code === 401) {
+      forceLogout()
+      throw new Error('认证失败，请重新登录')
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.message || `请求失败 (${res.status})`)
+    }
+
+    return data
+  } finally {
+    if (!silent) stopLoading()
   }
-
-  const data = await res.json()
-  if (data?.code === 401) {
-    forceLogout()
-    throw new Error('认证失败，请重新登录')
-  }
-
-  if (!res.ok) {
-    throw new Error(data?.message || `请求失败 (${res.status})`)
-  }
-
-  return data
 }
 
 // ============ 认证相关接口 ============
@@ -297,5 +346,7 @@ export interface DashboardStats {
 
 /** 获取 Dashboard 一站式聚合数据（SQL 层计算，1万订单也仅需几毫秒） */
 export async function getDashboardStats(days: 7 | 30 = 7) {
-  return request<{ code: number; data: DashboardStats }>(`/orders/stats/dashboard?days=${days}`)
+  return request<{ code: number; data: DashboardStats }>(`/orders/stats/dashboard?days=${days}`, {
+    silent: true,
+  })
 }

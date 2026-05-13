@@ -85,6 +85,9 @@
       <el-button type="danger" :disabled="selectedIds.length === 0" @click="handleBatchDelete">
         批量删除 ({{ selectedIds.length }})
       </el-button>
+      <el-button @click="colSettingVisible = true">
+        <el-icon style="margin-right: 4px"><Setting /></el-icon>列设置
+      </el-button>
       <span class="total-info">共 {{ total }} 条订单</span>
     </div>
 
@@ -94,6 +97,8 @@
       border
       stripe
       v-loading="loading"
+      element-loading-text="加载订单中..."
+      element-loading-background="rgba(255, 255, 255, 0.7)"
       @selection-change="handleSelectionChange"
       style="width: 100%"
       :header-cell-style="{ background: '#f5f7fa', color: '#333', textAlign: 'center' }"
@@ -114,22 +119,22 @@
           <span style="color: #1890ff; font-weight: 500">{{ row.customer }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="order_no" label="单号" min-width="80" show-overflow-tooltip />
-      <el-table-column prop="date" label="日期" min-width="100" />
-      <el-table-column prop="page_type" label="款式" min-width="190" show-overflow-tooltip />
-      <el-table-column prop="surface" label="表面" min-width="80" />
-      <el-table-column prop="quantity" label="数量/套" width="80" />
-      <el-table-column label="尺寸 (长×宽×高)" min-width="170">
+      <el-table-column v-if="isColVisible('order_no')" prop="order_no" label="单号" min-width="80" show-overflow-tooltip />
+      <el-table-column v-if="isColVisible('date')" prop="date" label="日期" min-width="100" />
+      <el-table-column v-if="isColVisible('page_type')" prop="page_type" label="款式" min-width="190" show-overflow-tooltip />
+      <el-table-column v-if="isColVisible('surface')" prop="surface" label="表面" min-width="80" />
+      <el-table-column v-if="isColVisible('quantity')" prop="quantity" label="数量/套" width="80" />
+      <el-table-column v-if="isColVisible('size')" label="尺寸 (长×宽×高)" min-width="170">
         <template #default="{ row }">
           {{ row.length || '-' }} × {{ row.width || '-' }} × {{ row.height || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="remark" label="工艺备注" min-width="170" show-overflow-tooltip>
+      <el-table-column v-if="isColVisible('remark')" prop="remark" label="工艺备注" min-width="170" show-overflow-tooltip>
         <template #default="{ row }">
           {{ row.remark }}
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="150" align="center">
+      <el-table-column v-if="isColVisible('status')" label="状态" width="150" align="center">
         <template #default="{ row }">
           <el-dropdown trigger="click" @command="(s: any) => handleStatusChange(row, s)">
             <span
@@ -166,7 +171,7 @@
           <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="updated_at" label="最新更改订单的时间" min-width="180" />
+      <el-table-column v-if="isColVisible('updated_at')" prop="updated_at" label="最新更改订单的时间" min-width="180" />
     </el-table>
 
     <!-- 分页 -->
@@ -237,6 +242,22 @@
           <el-table-column prop="value" label="数值" width="100" />
         </el-table>
       </div>
+    </el-dialog>
+
+    <!-- 列设置弹窗 -->
+    <el-dialog v-model="colSettingVisible" title="列显示设置" width="420px">
+      <div style="margin-bottom: 12px; color: #909399; font-size: 13px">
+        勾选的列将在订单列表中显示（设置自动保存到本地）
+      </div>
+      <el-checkbox-group :model-value="visibleCols" @update:model-value="(v: any) => saveVisibleCols(v)">
+        <div v-for="col in allColumns" :key="col.key" style="margin-bottom: 8px">
+          <el-checkbox :value="col.key" :label="col.label" />
+        </div>
+      </el-checkbox-group>
+      <template #footer>
+        <el-button @click="resetCols">重置默认</el-button>
+        <el-button type="primary" @click="colSettingVisible = false">确定</el-button>
+      </template>
     </el-dialog>
 
     <!-- 编辑弹窗 -->
@@ -328,7 +349,7 @@
 </template>
 
 <script setup lang="ts">
-import { CaretBottom } from '@element-plus/icons-vue'
+import { CaretBottom, Setting } from '@element-plus/icons-vue'
 import { useOrderManage } from './OrderManage'
 
 const {
@@ -357,6 +378,13 @@ const {
   handleStatusChange,
   getRowClassName,
   ORDER_STATUS_OPTIONS,
+  // 列设置
+  allColumns,
+  visibleCols,
+  isColVisible,
+  saveVisibleCols,
+  resetCols,
+  colSettingVisible,
 } = useOrderManage()
 </script>
 

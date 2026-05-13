@@ -210,12 +210,16 @@
         <el-table-column prop="xinghao" label="型号" width="90" />
         <el-table-column prop="tupian" label="图片" width="160">
           <template #default="{ row }">
-            <img
+            <el-image
               v-if="row.tupian"
               :src="getImage(row.tupian)"
               :alt="row.tupian"
-              class="table-img"
+              :preview-src-list="[getImage(row.tupian)]"
+              :hide-on-click-modal="true"
+              :preview-teleported="true"
+              fit="contain"
               loading="lazy"
+              class="table-img"
             />
           </template>
         </el-table-column>

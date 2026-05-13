@@ -65,6 +65,23 @@ export function printTable() {
   }
 
   // 执行打印
+  // Electron 桌面版：调用系统原生打印（更稳定，弹原生对话框选打印机/纸张）
+  // 浏览器版：降级到 window.print()
+  // 注意：DOM 已加上 .print-row-tall/.print-row-short 类，CSS 的 @media print 规则照样生效
+  const xhly = (window as any).xhly
+  if (xhly?.isDesktop && typeof xhly.print === 'function') {
+    xhly
+      .print()
+      .catch(() => window.print())
+      .finally(() => {
+        // 打印后：移除所有添加的类名，不影响正常显示
+        for (const { row, className } of taggedRows) {
+          row.classList.remove(className)
+        }
+      })
+    return
+  }
+
   window.print()
 
   // 打印后：移除所有添加的类名，不影响正常显示

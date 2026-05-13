@@ -5,6 +5,8 @@ import path from 'path'
 import fs from 'fs'
 import db from './db'
 import ordersRouter from './routes/orders'
+import { startBackupSchedule } from './backup'
+import { logger } from './logger'
 
 const app = express()
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3456
@@ -36,6 +38,12 @@ const TOKEN_SECRET =
   // 未配置时使用进程内随机密钥（重启后旧 token 会失效，这是预期行为）
   crypto.randomBytes(32).toString('hex')
 const TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 天
+
+if (!process.env.TOKEN_SECRET) {
+  console.warn('⚠️  未设置 TOKEN_SECRET 环境变量，已生成临时随机密钥')
+  console.warn('   每次服务重启后所有用户都需要重新登录。建议在 ecosystem.config.js 中显式设置：')
+  console.warn('   TOKEN_SECRET: <强随机串>  // 可用：node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"')
+}
 
 function signToken(username: string): string {
   const payload = { u: username, exp: Date.now() + TOKEN_TTL_MS }
@@ -149,7 +157,7 @@ if (fs.existsSync(publicDir)) {
 
 // 全局兜底错误处理（保证最后注册，防止任何异常导致进程崩溃）
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('❌ 未捕获的错误:', err)
+  logger.error('未捕获的错误:', err)
   res.status(500).json({
     code: -1,
     message: err?.message || '服务器内部错误',
@@ -170,5 +178,8 @@ db.waitForReady().then(() => {
     if (fs.existsSync(publicDir)) {
       console.log(`\n🌐 前端页面: http://localhost:${PORT}`)
     }
+
+    // 启动数据库定时备份（每天凌晨 3 点）
+    startBackupSchedule()
   })
 })

@@ -768,6 +768,13 @@
   object-fit: contain;
   display: block;
   margin: 2px auto;
+  cursor: zoom-in;
+}
+.table-img :deep(img) {
+  width: 140px !important;
+  max-height: 80px !important;
+  object-fit: contain;
+  cursor: zoom-in;
 }
 
 /* 数量输入框样式 */

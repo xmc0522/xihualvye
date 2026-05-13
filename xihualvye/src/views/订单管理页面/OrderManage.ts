@@ -38,6 +38,57 @@ export function useOrderManage() {
   const tableRef = ref()
   const isFirstClickAfterReturn = ref(true) // 返回后首次点击不取消高亮
 
+  // ============ 列自定义显示 ============
+  const COLUMN_KEY = 'xhly_order_visible_cols'
+  /** 可选列定义（必显示的列如客户名、操作不在此列表里） */
+  const allColumns = [
+    { key: 'order_no', label: '单号' },
+    { key: 'date', label: '日期' },
+    { key: 'page_type', label: '款式' },
+    { key: 'surface', label: '表面' },
+    { key: 'quantity', label: '数量/套' },
+    { key: 'size', label: '尺寸 (长×宽×高)' },
+    { key: 'remark', label: '工艺备注' },
+    { key: 'status', label: '状态' },
+    { key: 'updated_at', label: '更新时间' },
+  ] as const
+  type ColKey = (typeof allColumns)[number]['key']
+  const defaultVisible: ColKey[] = allColumns.map((c) => c.key)
+
+  /** 当前可见列（从 localStorage 读取；解析失败回退默认） */
+  const visibleCols = ref<ColKey[]>((() => {
+    try {
+      const saved = localStorage.getItem(COLUMN_KEY)
+      if (saved) {
+        const arr = JSON.parse(saved) as string[]
+        const filtered = arr.filter((k) => defaultVisible.includes(k as ColKey)) as ColKey[]
+        if (filtered.length > 0) return filtered
+      }
+    } catch { /* 忽略 */ }
+    return [...defaultVisible]
+  })())
+
+  /** 列可见性配置弹窗显示 */
+  const colSettingVisible = ref(false)
+
+  /** 用户调整列后保存到 localStorage */
+  function saveVisibleCols(cols: ColKey[]) {
+    visibleCols.value = cols
+    try {
+      localStorage.setItem(COLUMN_KEY, JSON.stringify(cols))
+    } catch { /* 忽略 */ }
+  }
+
+  /** 列是否可见（模板中用 v-if 判断） */
+  function isColVisible(key: ColKey): boolean {
+    return visibleCols.value.includes(key)
+  }
+
+  /** 重置为默认全部显示 */
+  function resetCols() {
+    saveVisibleCols([...defaultVisible])
+  }
+
   // 详情弹窗
   const detailVisible = ref(false)
   const detailData = ref<OrderDetail | null>(null)
@@ -310,5 +361,12 @@ export function useOrderManage() {
     handleStatusChange,
     getRowClassName,
     ORDER_STATUS_OPTIONS,
+    // 列自定义
+    allColumns,
+    visibleCols,
+    isColVisible,
+    saveVisibleCols,
+    resetCols,
+    colSettingVisible,
   }
 }

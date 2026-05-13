@@ -20,4 +20,9 @@ contextBridge.exposeInMainWorld('xhly', {
   onUpdateAvailable: (callback: (info: any) => void): void => {
     ipcRenderer.on('update-available', (_event, info) => callback(info))
   },
+
+  /** 调用系统打印（带原生打印对话框，可选打印机/纸张/份数） */
+  print: (
+    options?: { silent?: boolean; printBackground?: boolean },
+  ): Promise<{ success: boolean; message?: string }> => ipcRenderer.invoke('print-page', options),
 })

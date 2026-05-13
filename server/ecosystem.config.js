@@ -47,8 +47,11 @@ module.exports = {
         // ⚠️ 强烈建议改成强密码（≥12位，含字母数字符号）
         ADMIN_PASSWORD: '123123',
 
-        // 注：未设置 TOKEN_SECRET 时，服务会在启动时自动生成随机密钥；
-        // 副作用是每次 pm2 restart 后所有用户需重新登录一次，对小型后台无影响。
+        // Token 密钥：保证 pm2 restart 后旧 token 仍有效（不强制用户重新登录）
+        // 推荐用强随机串（32+ 字节），可用 Node 一行命令生成：
+        //   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+        // 改后再次 restart 一次即生效；若想强制所有用户重新登录，改这个值即可。
+        TOKEN_SECRET: 'xhly_change_me_to_a_long_random_secret_at_least_32_chars',
 
         // 数据库目录（默认 dist/../data，无特殊需求保持默认即可）
         // DB_DIR: '/xmc/xihualvye/data',

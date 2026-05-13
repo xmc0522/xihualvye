@@ -172,6 +172,23 @@ ipcMain.handle('test-server', async (_event, url: string) => {
   }
 })
 
+// 调用系统原生打印（带打印对话框：可选打印机、纸张、份数等）
+ipcMain.handle('print-page', async (_event, options?: { silent?: boolean; printBackground?: boolean }) => {
+  if (!mainWindow) return { success: false, message: '窗口未就绪' }
+  return new Promise((resolve) => {
+    mainWindow!.webContents.print(
+      {
+        silent: options?.silent ?? false,
+        printBackground: options?.printBackground ?? true,
+        margins: { marginType: 'default' },
+      },
+      (success, errorType) => {
+        resolve({ success, message: success ? '' : errorType || '打印失败' })
+      },
+    )
+  })
+})
+
 // ============ 自动更新 ============
 function setupAutoUpdater(): void {
   // 生产环境才检查更新
